@@ -12,7 +12,18 @@ export default {
 		join(require.resolve('@skeletonlabs/skeleton'), '../**/*.{html,js,svelte,ts}')
 	],
 	theme: {
-		extend: {}
+		extend: {
+			fontFamily: {
+				heading: ['Merriweather']
+			},
+			fontSize: {
+				'5xl': '52px'
+			}
+		},
+		container: {
+			center: true,
+			padding: '2rem'
+		}
 	},
 	plugins: [
 		typography,
