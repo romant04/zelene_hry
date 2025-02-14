@@ -34,7 +34,7 @@
 	}
 </script>
 
-<div style="perspective: 1200px" class="flex w-[22rem] items-center justify-center">
+<div style="perspective: 1200px" class="flex w-full max-w-[22.5rem] items-center justify-center">
 	<a
 		bind:this="{card}"
 		onmousemove="{handleAnimation}"
@@ -42,9 +42,9 @@
 		href="game-detail.html"
 	>
 		<img loading="lazy" class="h-[15rem] w-full object-cover object-top" src="{image}" alt="" />
-		<div class="flex h-[12rem] flex-col rounded-b-md bg-tertiary-600 p-4">
+		<div class="flex h-[12.5rem] flex-col rounded-b-md bg-tertiary-600 p-4">
 			<h3 class="text-3xl font-semibold">{title}</h3>
-			<p class="text-sm">{perex}</p>
+			<p class="line-clamp-5 text-sm tracking-tight">{perex}</p>
 			<p class="mt-auto flex gap-1">
 				{#each tags as tag}
 				<span class="{tag.tagColor}">#{tag.tagName}</span>

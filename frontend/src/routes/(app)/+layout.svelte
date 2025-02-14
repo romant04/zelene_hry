@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../../app.postcss';
 	import { AppBar } from '@skeletonlabs/skeleton';
+	import AppFooter from './components/layout-footer.svelte';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -113,6 +114,4 @@
 <main class="main h-full pt-16">{@render children?.()}</main>
 
 <!-- Footer -->
-<footer class="footer">
-	<h1>Hello footer</h1>
-</footer>
+<AppFooter />

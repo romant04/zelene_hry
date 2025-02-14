@@ -73,7 +73,9 @@
 			</p>
 		</div>
 
-		<div class="mt-8 flex flex-wrap gap-10">
+		<div
+			class="mt-8 grid grid-cols-1 justify-items-center gap-10 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+		>
 			{#each GAMES as game}
 			<GameCard
 				image="{game.image}"
