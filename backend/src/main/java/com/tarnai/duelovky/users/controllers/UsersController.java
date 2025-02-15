@@ -1,4 +1,4 @@
-package com.tarnai.duelovky.controllers;
+package com.tarnai.duelovky.users.controllers;
 
 import com.tarnai.duelovky.users.dto.AccountDto;
 import com.tarnai.duelovky.users.services.UserService;

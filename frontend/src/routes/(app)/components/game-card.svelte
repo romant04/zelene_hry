@@ -47,7 +47,7 @@
 			<p class="line-clamp-5 text-sm tracking-tight">{perex}</p>
 			<p class="mt-auto flex gap-1">
 				{#each tags as tag}
-				<span class="{tag.tagColor}">#{tag.tagName}</span>
+				<span class="{tag.tagColor} text-[0.85rem]">#{tag.tagName}</span>
 				{/each}
 			</p>
 		</div>

@@ -1,4 +1,4 @@
-package com.tarnai.duelovky.controllers;
+package com.tarnai.duelovky.users.controllers;
 
 import com.tarnai.duelovky.users.dto.LoginDto;
 import com.tarnai.duelovky.users.dto.LoginResponse;

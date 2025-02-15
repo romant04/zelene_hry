@@ -63,7 +63,7 @@
 	<section
 		class="grid grid-cols-1 gap-10 px-8 pb-5 md:grid-cols-[2fr,auto,1fr] lg:px-16 xl:px-24"
 	>
-		<section class="flex w-full flex-wrap justify-center gap-16 xl:justify-start">
+		<section class="flex w-full flex-wrap justify-center gap-16 2xl:gap-24">
 			{#each LINKS as link}
 			<div class="flex flex-col">
 				<h4 class="mb-2 text-2xl">{link.title}</h4>
