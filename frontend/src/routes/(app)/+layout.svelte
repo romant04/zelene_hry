@@ -2,6 +2,7 @@
 	import '../../app.postcss';
 	import { AppBar } from '@skeletonlabs/skeleton';
 	import AppFooter from './components/layout-footer.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -11,7 +12,7 @@
 
 	const LINKS = [
 		{
-			href: '#',
+			href: '/#hry',
 			target: '_self',
 			text: 'Hry'
 		},
@@ -89,7 +90,7 @@
 		{#snippet lead()}
 		<h1 class="font-heading text-4xl font-bold">Duelovky</h1>
 		{/snippet}
-		<ul class="flex gap-16">
+		<ul class="hidden gap-16 lg:flex">
 			{#each LINKS as { href, target, text }}
 			<li class="group">
 				<a
@@ -102,11 +103,13 @@
 			{/each}
 		</ul>
 		{#snippet trail()}
-		<button
-			class="variant-filled-primary btn h-10 w-40 text-sm font-bold uppercase tracking-wide"
+		<Icon width="38" icon="material-symbols:account-circle" class="lg:hidden text-primary-400 cursor-pointer" />
+		<a
+			href="/login"
+			class="variant-filled-primary hidden lg:flex justify-center items-center btn h-10 w-40 text-sm font-bold uppercase tracking-wide"
 		>
 			Přihlásit se
-		</button>
+		</a>
 		{/snippet}
 	</AppBar>
 </div>

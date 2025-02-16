@@ -61,9 +61,9 @@
 
 <footer class="mt-20 flex min-h-[24rem] flex-col justify-between bg-tertiary-700 pt-10">
 	<section
-		class="grid grid-cols-1 gap-10 px-8 pb-5 md:grid-cols-[2fr,auto,1fr] lg:px-16 xl:px-24"
+		class="grid grid-cols-1 gap-16 px-8 pb-5 lg:grid-cols-[2fr,auto,1fr] lg:px-16 xl:px-24"
 	>
-		<section class="flex w-full flex-wrap justify-center gap-16 2xl:gap-24">
+		<section class="grid mx-auto w-fit grid-cols-1 sm:flex sm:w-full flex-wrap justify-center gap-16 2xl:gap-24">
 			{#each LINKS as link}
 			<div class="flex flex-col">
 				<h4 class="mb-2 text-2xl">{link.title}</h4>
@@ -78,10 +78,10 @@
 
 		<div class="mr-4 hidden h-full w-px bg-tertiary-200 md:block lg:mr-8 xl:mr-16"></div>
 		<div class="flex w-full justify-center">
-			<div class="w-full max-w-[20rem]">
+			<div class="w-full max-w-[24rem]">
 				<h4 class="mb-3 text-2xl">Narazili jste na bug ?</h4>
 				<form class="w-full">
-					<div class="form-group">
+					<div>
 						<label for="email" class="label">E-mail</label>
 						<input
 							name="email"
@@ -89,7 +89,7 @@
 							class="input w-full !bg-tertiary-800 p-2 text-sm"
 						/>
 					</div>
-					<div class="form-group">
+					<div class="mt-2">
 						<label class="label" for="bug-desc">Popis bugu</label>
 						<textarea
 							name="bug-desc"
@@ -102,12 +102,13 @@
 			</div>
 		</div>
 	</section>
-	<section class="mt-2 flex w-full items-center justify-between bg-tertiary-800 px-6 py-2">
+
+	<section class="mt-8 flex md:flex-row gap-8 flex-col w-full items-center justify-between bg-tertiary-800 px-6 py-2">
 		<h2 class="font-heading text-3xl font-semibold tracking-wide">Duelovky</h2>
 		<div class="flex gap-10">
 			<SocialLink href="https://www.x.com">
 				<svg
-					class="w-5 text-black"
+					class="w-6 text-black group-hover:text-white transition-all duration-150"
 					role="img"
 					viewBox="0 0 24 24"
 					xmlns="http://www.w3.org/2000/svg"
@@ -122,7 +123,7 @@
 			<SocialLink href="https://www.youtube.com">
 				<svg
 					role="img"
-					class="w-5 text-black"
+					class="w-6 text-black group-hover:text-white transition-all duration-150"
 					viewBox="0 0 24 24"
 					xmlns="http://www.w3.org/2000/svg"
 				>
@@ -136,7 +137,7 @@
 			<SocialLink href="https://www.instagram.com">
 				<svg
 					role="img"
-					class="w-5 text-black"
+					class="w-6 text-black group-hover:text-white transition-all duration-150"
 					viewBox="0 0 24 24"
 					xmlns="http://www.w3.org/2000/svg"
 				>
