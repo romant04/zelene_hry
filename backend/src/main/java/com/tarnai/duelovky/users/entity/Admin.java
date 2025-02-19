@@ -1,10 +1,6 @@
 package com.tarnai.duelovky.users.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity(name = "admins")
 public class Admin {
@@ -16,4 +12,27 @@ public class Admin {
     // 1 to 3
     @Column(name = "permission_level")
     private Integer permissionLevel;
+
+    public Admin(Integer permissionLevel) {
+        this.permissionLevel = permissionLevel;
+    }
+
+    public Admin() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getPermissionLevel() {
+        return permissionLevel;
+    }
+
+    public void setPermissionLevel(Integer permissionLevel) {
+        this.permissionLevel = permissionLevel;
+    }
 }

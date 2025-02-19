@@ -1,5 +1,6 @@
 <script lang="ts">
 	let { signIn }: { signIn: boolean } = $props();
+	import { setToken } from '../../../../stores/auth';
 	import FormField from './form-field.svelte';
 
 	let username = $state('');
@@ -21,7 +22,7 @@
 		const data = await res.json();
 
 		if (res.ok) {
-			localStorage.setItem('token', data.token);
+			setToken(data.token);
 			window.location.href = '/';
 		} else {
 			alert('Špatné přihlašovací údaje');
@@ -50,7 +51,7 @@
 		const data = await res.json();
 
 		if (res.ok) {
-			localStorage.setItem('token', data.token);
+			setToken(data.token);
 			window.location.href = '/';
 		} else {
 			alert('Registrace se nezdařila');

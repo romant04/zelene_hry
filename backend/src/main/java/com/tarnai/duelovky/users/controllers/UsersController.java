@@ -3,6 +3,7 @@ package com.tarnai.duelovky.users.controllers;
 import com.tarnai.duelovky.users.dto.AccountDto;
 import com.tarnai.duelovky.users.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/secured/users")
+@RequestMapping("/api/secured")
 public class UsersController {
     private final UserService userService;
 
@@ -21,8 +22,15 @@ public class UsersController {
         this.userService = userService;
     }
 
-    @GetMapping
+    @GetMapping("/users")
     public List<AccountDto> getUsers(@RequestParam Optional<String> search) {
         return search.map(s -> userService.getUsersBySearchTerm(s).stream().map(AccountDto::new).toList()).orElseGet(() -> userService.getAllUsers().stream().map(AccountDto::new).toList());
+    }
+
+    @GetMapping("/user")
+    public AccountDto getUser(Authentication authentication) {
+        System.out.println(authentication.getName());
+        System.out.println(userService.getUsersBySearchTerm(authentication.getName()));
+        return userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst().map(AccountDto::new).orElse(null);
     }
 }

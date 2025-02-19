@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
-    @Query("SELECT a FROM accounts a WHERE a.username LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR a.email LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+    @Query("SELECT a FROM accounts a WHERE a.username LIKE CONCAT('%', :searchTerm, '%') OR a.email LIKE CONCAT('%', :searchTerm, '%')")
     List<Account> findBySearchTerm(@Param("searchTerm") String searchTerm);
 
     List<Account> findByUsername(String username);

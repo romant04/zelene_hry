@@ -4,6 +4,7 @@
 	import AppFooter from './components/layout-footer.svelte';
 	import Icon from '@iconify/svelte';
 	import MobileMenu from './components/mobile-menu.svelte';
+	import { auth } from '../../stores/auth';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -77,6 +78,13 @@
 	function handleIsOpen() {
 		isOpen = !isOpen;
 	}
+
+	let isAuthenticated = $state(false);
+
+	$effect(() => {
+		isAuthenticated = !!$auth.token && $auth.data !== null;
+		console.log($auth);
+	});
 </script>
 
 <svelte:window bind:scrollY="{scrollY}"></svelte:window>
@@ -105,7 +113,10 @@
 			</li>
 			{/each}
 		</ul>
-		{#snippet trail()}
+		{#snippet trail()} {#if isAuthenticated}
+		<p>Authenticated</p>
+		{:else}
+
 		<Icon
 			width="38"
 			icon="heroicons-outline:menu-alt-3"
@@ -118,7 +129,7 @@
 		>
 			Přihlásit se
 		</a>
-		{/snippet}
+		{/if} {/snippet}
 	</AppBar>
 </div>
 
