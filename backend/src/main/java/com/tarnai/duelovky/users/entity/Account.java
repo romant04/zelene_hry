@@ -3,6 +3,7 @@ package com.tarnai.duelovky.users.entity;
 
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -96,9 +97,14 @@ public class Account implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        if (this.admin != null) {
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        } else if (this.player != null) {
+            return List.of(new SimpleGrantedAuthority("ROLE_PLAYER"));
+        } else {
+            return List.of();
+        }
     }
-
     public String getPassword() {
         return password;
     }

@@ -3,7 +3,10 @@ package com.tarnai.duelovky.users.controllers;
 import com.tarnai.duelovky.users.dto.AccountDto;
 import com.tarnai.duelovky.users.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;

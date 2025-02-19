@@ -22,7 +22,18 @@ public class AccountService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Account account = accountRepository.findByUsername(username).stream().findFirst().orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return new org.springframework.security.core.userdetails.User(account.getUsername(), account.getPassword(), List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        Account account = accountRepository.findByUsername(username)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        // Assign role based on whether the account has an Admin property
+        String role = (account.getAdmin() != null) ? "ROLE_ADMIN" : "ROLE_PLAYER";
+
+        return new org.springframework.security.core.userdetails.User(
+                account.getUsername(),
+                account.getPassword(),
+                List.of(new SimpleGrantedAuthority(role))
+        );
     }
 }

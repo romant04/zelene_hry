@@ -33,8 +33,8 @@ public class SecurityConfiguration {
     protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/public/**", "/auth/**").permitAll()
-                .requestMatchers("/api/secured/admin/**").authenticated()
-                .requestMatchers("/api/secured/user/**").authenticated()
+                .requestMatchers("/api/secured/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/secured/user/**").hasAnyRole("ADMIN", "PLAYER")
                 .requestMatchers("/api/secured/**").authenticated()
                 .anyRequest().permitAll()
         );

@@ -3,32 +3,30 @@
 	import { AppBar } from '@skeletonlabs/skeleton';
 	import AppFooter from './components/layout-footer.svelte';
 	import Icon from '@iconify/svelte';
+	import MobileMenu from './components/mobile-menu.svelte';
 
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
 
 	let { children }: Props = $props();
+	let isOpen = $state(false);
 
 	const LINKS = [
 		{
 			href: '/#hry',
-			target: '_self',
 			text: 'Hry'
 		},
 		{
 			href: '#',
-			target: '_self',
 			text: 'Chat'
 		},
 		{
-			href: '#',
-			target: '_self',
+			href: '/pratele',
 			text: 'Přátelé'
 		},
 		{
 			href: '#',
-			target: '_self',
 			text: 'Žebříček'
 		}
 	];
@@ -75,6 +73,10 @@
 			header.style.transform = 'translateY(0)';
 		}
 	});
+
+	function handleIsOpen() {
+		isOpen = !isOpen;
+	}
 </script>
 
 <svelte:window bind:scrollY="{scrollY}"></svelte:window>
@@ -88,25 +90,31 @@
 		slotTrail="place-content-end"
 	>
 		{#snippet lead()}
-		<h1 class="font-heading text-4xl font-bold">Duelovky</h1>
+		<a href="/">
+			<h1 class="font-heading text-4xl font-bold">Duelovky</h1>
+		</a>
 		{/snippet}
 		<ul class="hidden gap-16 lg:flex">
-			{#each LINKS as { href, target, text }}
+			{#each LINKS as { href, text }}
 			<li class="group">
 				<a
 					class="relative text-xl after:absolute after:-bottom-[2px] after:left-0 after:h-[2px] after:w-0 after:rounded-sm after:bg-success-500 after:transition-all after:duration-[200ms] after:ease-out group-hover:after:w-[105%]"
 					{href}
-					{target}
 					>{text}</a
 				>
 			</li>
 			{/each}
 		</ul>
 		{#snippet trail()}
-		<Icon width="38" icon="material-symbols:account-circle" class="lg:hidden text-primary-400 cursor-pointer" />
+		<Icon
+			width="38"
+			icon="heroicons-outline:menu-alt-3"
+			onclick="{handleIsOpen}"
+			class="cursor-pointer lg:hidden"
+		/>
 		<a
 			href="/login"
-			class="variant-filled-primary hidden lg:flex justify-center items-center btn h-10 w-40 text-sm font-bold uppercase tracking-wide"
+			class="variant-filled-primary btn hidden h-10 w-40 items-center justify-center text-sm font-bold uppercase tracking-wide lg:flex"
 		>
 			Přihlásit se
 		</a>
@@ -114,7 +122,9 @@
 	</AppBar>
 </div>
 
-<main class="main h-full pt-16">{@render children?.()}</main>
+<MobileMenu links="{LINKS}" bind:isOpen />
+
+<main class="main h-full pt-[4.5rem]">{@render children?.()}</main>
 
 <!-- Footer -->
 <AppFooter />
