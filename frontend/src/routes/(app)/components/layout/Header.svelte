@@ -1,0 +1,162 @@
+<script lang="ts">
+	import UserMenu from './UserMenu.svelte';
+	import LoginSkeleton from './login-skeleton.svelte';
+	import { AppBar } from '@skeletonlabs/skeleton';
+	import Icon from '@iconify/svelte';
+	import { auth } from '../../../../stores/auth';
+	import MobileMenu from './mobile-menu.svelte';
+	import { fly } from 'svelte/transition';
+	import { clearToken } from '../../../../stores/auth';
+	import { headerLinks } from '../../../../constants/links';
+	import { userMenuLinks } from '../../../../constants/links';
+
+	let mobileMenuOpened = false;
+
+	let scrollY = $state(0);
+	let header: HTMLElement | undefined;
+	let isOpen = $state(false);
+
+	let scrollPosition = 0;
+	let scrollFromLastDirectionChange = 0;
+	const scrollTolerance = 25;
+
+	$effect(() => {
+		if (!header) {
+			return;
+		}
+
+		const newScrollPosition = Math.max(scrollY, 0);
+		const oldDirection = scrollFromLastDirectionChange < 0 ? 'up' : 'down';
+		const newDirection = newScrollPosition > scrollPosition ? 'down' : 'up';
+
+		if (oldDirection !== newDirection) {
+			scrollFromLastDirectionChange = 0;
+		}
+		scrollFromLastDirectionChange += newScrollPosition - scrollPosition;
+
+		scrollPosition = newScrollPosition;
+
+		if (
+			Math.abs(scrollFromLastDirectionChange) > scrollTolerance &&
+			scrollY > header.offsetHeight &&
+			mobileMenuOpened === false
+		) {
+			if (scrollFromLastDirectionChange < 0) {
+				header.style.transform = 'translateY(0)';
+			} else {
+				header.style.transform = 'translateY(-100%)';
+				isOpenModal = false;
+			}
+		}
+
+		// Ensure that there header will always stick to top when we see can see it
+		if (scrollY < header.offsetHeight && header.style.transform !== 'translateY(0)') {
+			header.style.transform = 'translateY(0)';
+		}
+	});
+
+	function handleIsOpen() {
+		isOpen = !isOpen;
+	}
+
+	let isAuthenticated = $state(0);
+
+	$effect(() => {
+		isAuthenticated =
+			$auth.loaded === false ? 0 : $auth.data !== null ? 1 : $auth.data === null ? 2 : 0;
+		console.log($auth);
+	});
+
+	let isOpenModal = $state(false);
+	let modal: HTMLElement | undefined = $state(undefined);
+
+	function handleSignOut() {
+		isOpenModal = false;
+		clearToken();
+	}
+</script>
+
+<svelte:window bind:scrollY />
+
+<header bind:this={header} class="fixed top-0 z-20 w-full transition-all duration-300">
+	<AppBar
+		class="header"
+		gridColumns="grid-cols-3"
+		slotDefault="place-self-center"
+		slotTrail="place-content-end"
+	>
+		{#snippet lead()}
+			<a href="/">
+				<h1 class="font-heading text-4xl font-bold">Duelovky</h1>
+			</a>
+		{/snippet}
+		<ul class="hidden gap-16 lg:flex">
+			{#each headerLinks as { href, text, target }}
+				<li class="group">
+					<a
+						{target}
+						class="relative text-xl after:absolute after:-bottom-[2px] after:left-0 after:h-[2px] after:w-0 after:rounded-sm after:bg-success-500 after:transition-all after:duration-[200ms] after:ease-out group-hover:after:w-[105%]"
+						{href}>{text}</a
+					>
+				</li>
+			{/each}
+		</ul>
+		{#snippet trail()}
+			{#if isAuthenticated === 1 && $auth.data}
+				<UserMenu bind:isOpenModal bind:modal />
+				<Icon
+					width="38"
+					icon="heroicons-outline:menu-alt-3"
+					onclick={handleIsOpen}
+					class="cursor-pointer lg:hidden"
+				/>
+			{:else if isAuthenticated === 2}
+				<Icon
+					width="38"
+					icon="heroicons-outline:menu-alt-3"
+					onclick={handleIsOpen}
+					class="cursor-pointer lg:hidden"
+				/>
+				<a
+					href="/login"
+					class="variant-filled-primary btn hidden h-10 w-40 items-center justify-center text-sm font-bold uppercase tracking-wide lg:flex"
+				>
+					Přihlásit se
+				</a>
+			{:else}
+				<LoginSkeleton />
+			{/if}
+		{/snippet}
+	</AppBar>
+</header>
+
+{#if isOpenModal}
+	<div
+		transition:fly={{ y: -200, duration: 300, opacity: 1 }}
+		bind:this={modal}
+		class="fixed top-16 right-3 bg-tertiary-600 z-10 px-4 pt-5 pb-4 w-64 h-48 rounded-md"
+	>
+		<div class="h-full flex flex-col justify-between">
+			<div>
+				<p class="text-xl font-semibold">{$auth.data?.username}</p>
+				<ul class="flex flex-col gap-1 mt-2">
+					{#each userMenuLinks as { href, text, target }}
+						<li>
+							<a
+								{target}
+								{href}
+								class="btn bg-tertiary-700 text-[0.9rem] w-full h-7 font-semibold"
+								>{text}</a
+							>
+						</li>
+					{/each}
+				</ul>
+			</div>
+			<button
+				onclick={handleSignOut}
+				class="btn variant-filled-secondary !text-white h-8 w-full">Odhlásit se</button
+			>
+		</div>
+	</div>
+{/if}
+<MobileMenu links={headerLinks} bind:isOpen />

@@ -36,18 +36,23 @@
 
 <div style="perspective: 1200px" class="flex w-full max-w-[22.5rem] items-center justify-center">
 	<a
-		bind:this="{card}"
-		onmousemove="{handleAnimation}"
-		onmouseleave="{handleAnimationEnd}"
+		bind:this={card}
+		onmousemove={handleAnimation}
+		onmouseleave={handleAnimationEnd}
 		href="game-detail.html"
 	>
-		<img loading="lazy" class="h-[15rem] w-full object-cover object-top" src="{image}" alt="" />
+		<img
+			loading="lazy"
+			class="h-[15rem] w-full object-cover rounded-t-md object-top"
+			src={image}
+			alt=""
+		/>
 		<div class="flex h-[12.5rem] flex-col rounded-b-md bg-tertiary-600 p-4">
 			<h3 class="text-3xl font-semibold">{title}</h3>
 			<p class="line-clamp-5 text-sm tracking-tight">{perex}</p>
 			<p class="mt-auto flex gap-1">
 				{#each tags as tag}
-				<span class="{tag.tagColor} text-[0.85rem]">#{tag.tagName}</span>
+					<span class="{tag.tagColor} text-[0.85rem]">#{tag.tagName}</span>
 				{/each}
 			</p>
 		</div>

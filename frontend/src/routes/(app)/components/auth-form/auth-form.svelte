@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+
 	let { signIn }: { signIn: boolean } = $props();
 	import { setToken } from '../../../../stores/auth';
 	import FormField from './form-field.svelte';
@@ -23,7 +25,7 @@
 
 		if (res.ok) {
 			setToken(data.token);
-			window.location.href = '/';
+			await goto('/');
 		} else {
 			alert('Špatné přihlašovací údaje');
 			password = '';
@@ -52,7 +54,7 @@
 
 		if (res.ok) {
 			setToken(data.token);
-			window.location.href = '/';
+			await goto('/');
 		} else {
 			alert('Registrace se nezdařila');
 		}
@@ -76,34 +78,36 @@
 		class="flex h-[24rem] w-full flex-col items-center justify-center gap-4 rounded-t-md bg-tertiary-700 px-6 py-8 lg:h-[30rem] lg:gap-8 lg:rounded-l-md lg:rounded-t-none"
 	>
 		<h2 class="text-center font-heading text-2xl font-bold lg:text-4xl">
-			{signIn ? "Přihlásit se" : "Registrovat se"}
+			{signIn ? 'Přihlásit se' : 'Registrovat se'}
 		</h2>
 		<form
-			onsubmit="{handleSubmit}"
-			class="{signIn ? 'gap-2 lg:gap-4' : 'gap-1 lg:gap-3'} mx-auto flex w-full max-w-[34rem] flex-col"
+			onsubmit={handleSubmit}
+			class="{signIn
+				? 'gap-2 lg:gap-4'
+				: 'gap-1 lg:gap-3'} mx-auto flex w-full max-w-[34rem] flex-col"
 		>
 			{#if !signIn}
-			<FormField
-				bind:value="{username}"
-				{signIn}
-				name="username"
-				type="text"
-				label="Přezdívka"
-			/>
+				<FormField
+					bind:value={username}
+					{signIn}
+					name="username"
+					type="text"
+					label="Přezdívka"
+				/>
 			{/if}
-			<FormField bind:value="{email}" {signIn} name="email" type="email" label="E-mail" />
-			<FormField bind:value="{password}" {signIn} name="pass" type="password" label="Heslo" />
+			<FormField bind:value={email} {signIn} name="email" type="email" label="E-mail" />
+			<FormField bind:value={password} {signIn} name="pass" type="password" label="Heslo" />
 			{#if !signIn}
-			<FormField
-				bind:value="{password2}"
-				{signIn}
-				name="pass2"
-				type="password"
-				label="Heslo znovu"
-			/>
+				<FormField
+					bind:value={password2}
+					{signIn}
+					name="pass2"
+					type="password"
+					label="Heslo znovu"
+				/>
 			{/if}
 			<button class="btn mt-2 h-11 w-full bg-primary-600 text-white">
-				{signIn ? "Přihlásit se" : "Registrovat se"}
+				{signIn ? 'Přihlásit se' : 'Registrovat se'}
 			</button>
 		</form>
 	</div>
@@ -112,13 +116,13 @@
 		class="flex h-[18rem] flex-col items-center justify-center rounded-b-md bg-secondary-600 px-6 py-8 lg:h-[30rem] lg:rounded-b-none lg:rounded-r-md"
 	>
 		<h2 class="text-center font-heading text-2xl font-bold lg:text-4xl">
-			{signIn ? "Ještě nemáte účet ?" : "Už máte svůj účet ?"}
+			{signIn ? 'Ještě nemáte účet ?' : 'Už máte svůj účet ?'}
 		</h2>
-		<p>{signIn ? "Vytvořte si ho nyní" : "Přihlaště se k němu"}</p>
+		<p>{signIn ? 'Vytvořte si ho nyní' : 'Přihlaště se k němu'}</p>
 		<a
-			href="{signIn ? '/register' : '/login'}"
+			href={signIn ? '/register' : '/login'}
 			class="btn mt-5 h-12 w-full max-w-56 bg-tertiary-700"
-			>{signIn ? "Registrovat se" : "Přihlásit se"}</a
+			>{signIn ? 'Registrovat se' : 'Přihlásit se'}</a
 		>
 	</div>
 </div>

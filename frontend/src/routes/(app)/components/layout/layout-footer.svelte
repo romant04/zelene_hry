@@ -59,20 +59,24 @@
 	];
 </script>
 
-<footer class="mt-20 flex min-h-[24rem] flex-col justify-between bg-tertiary-700 pt-10">
+<footer class="footer mt-20 flex min-h-[24rem] flex-col justify-between bg-tertiary-700 pt-10">
 	<section
 		class="grid grid-cols-1 gap-16 px-8 pb-5 lg:grid-cols-[2fr,auto,1fr] lg:px-16 xl:px-24"
 	>
-		<section class="grid mx-auto w-fit grid-cols-1 sm:flex sm:w-full flex-wrap justify-center gap-16 2xl:gap-24">
+		<section
+			class="grid mx-auto w-fit grid-cols-1 sm:flex sm:w-full flex-wrap justify-center gap-16 2xl:gap-24"
+		>
 			{#each LINKS as link}
-			<div class="flex flex-col">
-				<h4 class="mb-2 text-2xl">{link.title}</h4>
-				{#each link.links as l} {#if l.href}
-				<a href="{l.href}" class="text-gray-300 hover:text-gray-100">{l.label}</a>
-				{:else}
-				<p>{l.label}</p>
-				{/if} {/each}
-			</div>
+				<div class="flex flex-col">
+					<h4 class="mb-2 text-2xl">{link.title}</h4>
+					{#each link.links as l}
+						{#if l.href}
+							<a href={l.href} class="text-gray-300 hover:text-gray-100">{l.label}</a>
+						{:else}
+							<p>{l.label}</p>
+						{/if}
+					{/each}
+				</div>
 			{/each}
 		</section>
 
@@ -103,7 +107,9 @@
 		</div>
 	</section>
 
-	<section class="mt-8 flex md:flex-row gap-8 flex-col w-full items-center justify-between bg-tertiary-800 px-6 py-2">
+	<section
+		class="mt-8 flex md:flex-row gap-8 flex-col w-full items-center justify-between bg-tertiary-800 px-6 py-2"
+	>
 		<h2 class="font-heading text-3xl font-semibold tracking-wide">Duelovky</h2>
 		<div class="flex gap-10">
 			<SocialLink href="https://www.x.com">

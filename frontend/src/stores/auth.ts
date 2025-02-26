@@ -1,8 +1,14 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
+import type { User } from '../types/user';
+import { goto } from '$app/navigation';
 
 // User store
-export const auth = writable<{ token: string | null; data: any }>({ token: null, data: null });
+export const auth = writable<{ token: string | null; data: User | null; loaded: boolean }>({
+	token: null,
+	data: null,
+	loaded: false
+});
 
 // Function to fetch user data
 async function fetchUserData(token: string) {
@@ -14,8 +20,14 @@ async function fetchUserData(token: string) {
 		}
 	});
 
+	if (!response.ok) {
+		await goto('/login'); // Redirect to login page if request fails
+		auth.update((u) => ({ ...u, token: null, data: null, loaded: true }));
+		return;
+	}
+
 	const data = await response.json();
-	auth.update((u) => ({ ...u, data }));
+	auth.update((u) => ({ ...u, data, loaded: true }));
 }
 
 // Function to initialize or update the user state
@@ -24,10 +36,10 @@ function updateUserState() {
 		const token = localStorage.getItem('token');
 
 		if (token) {
-			auth.set({ token, data: null });
+			auth.set({ token, data: null, loaded: false });
 			void fetchUserData(token); // Fetch user data if token exists
 		} else {
-			auth.set({ token: null, data: null }); // Clear user state if no token
+			auth.set({ token: null, data: null, loaded: true }); // Clear user state if no token
 		}
 	}
 }
