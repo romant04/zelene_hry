@@ -5,7 +5,6 @@ import com.tarnai.duelovky.friendShips.entity.Friendship;
 import com.tarnai.duelovky.friendShips.repositories.FriendRequestRepository;
 import com.tarnai.duelovky.friendShips.repositories.FriendShipRepository;
 import com.tarnai.duelovky.users.entity.Account;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +33,10 @@ public class FriendRequestService {
 
     public Optional<FriendRequest> getFriendRequestForReceiver(Account receiver, Long senderId) {
         return friendRequestRepository.findForReceiver(receiver.getId(), senderId).stream().findFirst();
+    }
+
+    public List<FriendRequest> getUserFriendRequest(Account receiver) {
+        return friendRequestRepository.findAllUserFriendRequests(receiver.getId());
     }
 
     public void acceptFriendRequest(FriendRequest friendRequest) {

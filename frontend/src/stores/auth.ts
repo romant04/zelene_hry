@@ -12,16 +12,23 @@ export const auth = writable<{ token: string | null; data: User | null; loaded: 
 
 // Function to fetch user data
 async function fetchUserData(token: string) {
-	const response = await fetch('http://localhost:8080/api/secured/user', {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`
-		}
-	});
+	let response: Response;
+	try {
+		response = await fetch('http://localhost:8080/api/secured/user', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`
+			}
+		});
+	} catch (error) {
+		await goto('/login'); // TODO: rather redirect to service unreachable page (backend is not working here)
+		auth.update((u) => ({ ...u, token: null, data: null, loaded: true }));
+		return;
+	}
 
 	if (!response.ok) {
-		await goto('/login'); // Redirect to login page if request fails
+		await goto('/login'); // TODO: No need to redirect, if not on secured page
 		auth.update((u) => ({ ...u, token: null, data: null, loaded: true }));
 		return;
 	}

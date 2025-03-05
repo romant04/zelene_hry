@@ -1,14 +1,12 @@
 <script lang="ts">
-	import UserMenu from './UserMenu.svelte';
+	import UserMenu from './user-menu/user-menu.svelte';
 	import LoginSkeleton from './login-skeleton.svelte';
 	import { AppBar } from '@skeletonlabs/skeleton';
 	import Icon from '@iconify/svelte';
 	import { auth } from '../../../../stores/auth';
 	import MobileMenu from './mobile-menu.svelte';
-	import { fly } from 'svelte/transition';
-	import { clearToken } from '../../../../stores/auth';
 	import { headerLinks } from '../../../../constants/links';
-	import { userMenuLinks } from '../../../../constants/links';
+	import UserMenuModal from './user-menu/user-menu-modal.svelte';
 
 	let mobileMenuOpened = false;
 
@@ -64,16 +62,10 @@
 	$effect(() => {
 		isAuthenticated =
 			$auth.loaded === false ? 0 : $auth.data !== null ? 1 : $auth.data === null ? 2 : 0;
-		console.log($auth);
 	});
 
 	let isOpenModal = $state(false);
 	let modal: HTMLElement | undefined = $state(undefined);
-
-	function handleSignOut() {
-		isOpenModal = false;
-		clearToken();
-	}
 </script>
 
 <svelte:window bind:scrollY />
@@ -86,24 +78,31 @@
 		slotTrail="place-content-end"
 	>
 		{#snippet lead()}
+			<div class="md:hidden">
+				<UserMenu bind:isOpenModal bind:modal />
+			</div>
 			<a href="/">
-				<h1 class="font-heading text-4xl font-bold">Duelovky</h1>
+				<h1 class="font-heading text-4xl hidden md:inline font-bold">Duelovky</h1>
 			</a>
 		{/snippet}
 		<ul class="hidden gap-16 lg:flex">
-			{#each headerLinks as { href, text, target }}
+			{#each headerLinks as { href, text }}
 				<li class="group">
 					<a
-						{target}
 						class="relative text-xl after:absolute after:-bottom-[2px] after:left-0 after:h-[2px] after:w-0 after:rounded-sm after:bg-success-500 after:transition-all after:duration-[200ms] after:ease-out group-hover:after:w-[105%]"
 						{href}>{text}</a
 					>
 				</li>
 			{/each}
 		</ul>
+
+		<h1 class="font-heading text-3xl md:hidden font-bold">Duelovky</h1>
+
 		{#snippet trail()}
 			{#if isAuthenticated === 1 && $auth.data}
-				<UserMenu bind:isOpenModal bind:modal />
+				<div class="hidden md:block">
+					<UserMenu bind:isOpenModal bind:modal />
+				</div>
 				<Icon
 					width="38"
 					icon="heroicons-outline:menu-alt-3"
@@ -131,32 +130,6 @@
 </header>
 
 {#if isOpenModal}
-	<div
-		transition:fly={{ y: -200, duration: 300, opacity: 1 }}
-		bind:this={modal}
-		class="fixed top-16 right-3 bg-tertiary-600 z-10 px-4 pt-5 pb-4 w-64 h-48 rounded-md"
-	>
-		<div class="h-full flex flex-col justify-between">
-			<div>
-				<p class="text-xl font-semibold">{$auth.data?.username}</p>
-				<ul class="flex flex-col gap-1 mt-2">
-					{#each userMenuLinks as { href, text, target }}
-						<li>
-							<a
-								{target}
-								{href}
-								class="btn bg-tertiary-700 text-[0.9rem] w-full h-7 font-semibold"
-								>{text}</a
-							>
-						</li>
-					{/each}
-				</ul>
-			</div>
-			<button
-				onclick={handleSignOut}
-				class="btn variant-filled-secondary !text-white h-8 w-full">Odhlásit se</button
-			>
-		</div>
-	</div>
+	<UserMenuModal bind:modal bind:isOpen={isOpenModal} />
 {/if}
 <MobileMenu links={headerLinks} bind:isOpen />

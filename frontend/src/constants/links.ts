@@ -3,35 +3,29 @@ import type { Link } from '../types/link';
 export const headerLinks: Link[] = [
 	{
 		href: '/#hry',
-		text: 'Hry',
-		target: '_self'
+		text: 'Hry'
 	},
 	{
 		href: '#',
-		text: 'Chat',
-		target: '_self'
+		text: 'Chat'
 	},
 	{
 		href: '/pratele',
-		text: 'Přátelé',
-		target: '_self'
+		text: 'Přátelé'
 	},
 	{
 		href: '/zebricek',
-		text: 'Žebříček',
-		target: '_self'
+		text: 'Žebříček'
 	}
 ];
 
 export const userMenuLinks: Link[] = [
 	{
 		href: '/profil',
-		text: 'Můj účet',
-		target: '_self'
+		text: 'Můj účet'
 	},
 	{
 		href: '/pratele',
-		text: 'Přátelé',
-		target: '_self'
+		text: 'Přátelé'
 	}
 ];

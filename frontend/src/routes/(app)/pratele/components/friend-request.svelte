@@ -2,7 +2,9 @@
 	let { name, message }: { name: string; message: string } = $props();
 </script>
 
-<div class="flex items-center justify-between gap-8 rounded-md bg-surface-600 px-6 py-3">
+<div
+	class="flex flex-col sm:flex-row sm:items-center justify-between gap-8 rounded-md bg-surface-600 px-6 py-3"
+>
 	<div class="flex flex-col gap-px">
 		<p class="text-xl font-semibold">{name}</p>
 		<p class="line-clamp-5 text-sm">{message}</p>
