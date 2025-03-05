@@ -1,5 +1,6 @@
 <script lang="ts">
 	import SocialLink from './social-link.svelte';
+	import { page } from '$app/state';
 
 	const LINKS = [
 		{
@@ -59,7 +60,10 @@
 	];
 </script>
 
-<footer class="footer mt-20 flex min-h-[24rem] flex-col justify-between bg-tertiary-700 pt-10">
+<footer
+	class="footer {!page.url.pathname.includes('/chat') &&
+		'mt-20'} flex min-h-[24rem] flex-col justify-between bg-tertiary-700 pt-10"
+>
 	<section
 		class="grid grid-cols-1 gap-16 px-8 pb-5 lg:grid-cols-[2fr,auto,1fr] lg:px-16 xl:px-24"
 	>

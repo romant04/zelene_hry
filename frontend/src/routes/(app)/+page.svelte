@@ -66,7 +66,9 @@
 	<HpHero />
 	<div class="container mx-auto pt-24" id="hry">
 		<div class="flex flex-col gap-1">
-			<h2 class="font-heading text-4xl md:text-5xl font-semibold tracking-wide">Online hry</h2>
+			<h2 class="font-heading text-4xl md:text-5xl font-semibold tracking-wide">
+				Online hry
+			</h2>
 			<p class="text-lg md:text-[24px] leading-tight md:leading-[32px]">
 				Hrej online proti ostatním lidem a nebo vyzvi své <br />
 				kamarády na duel
@@ -77,12 +79,12 @@
 			class="mt-8 grid grid-cols-1 justify-items-center gap-10 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
 		>
 			{#each GAMES as game}
-			<GameCard
-				image="{game.image}"
-				perex="{game.perex}"
-				title="{game.title}"
-				tags="{game.tags}"
-			/>
+				<GameCard
+					image={game.image}
+					perex={game.perex}
+					title={game.title}
+					tags={game.tags}
+				/>
 			{/each}
 		</div>
 	</div>

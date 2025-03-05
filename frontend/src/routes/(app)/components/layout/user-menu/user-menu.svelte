@@ -27,7 +27,9 @@
 	}
 
 	onDestroy(() => {
-		document.removeEventListener('click', handleClickOutside);
+		if (typeof document !== 'undefined') {
+			document.removeEventListener('click', handleClickOutside);
+		}
 	});
 </script>
 

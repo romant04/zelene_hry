@@ -6,7 +6,7 @@ export const headerLinks: Link[] = [
 		text: 'Hry'
 	},
 	{
-		href: '#',
+		href: '/chat',
 		text: 'Chat'
 	},
 	{
