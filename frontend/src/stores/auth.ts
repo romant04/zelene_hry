@@ -21,14 +21,13 @@ async function fetchUserData(token: string) {
 				Authorization: `Bearer ${token}`
 			}
 		});
-	} catch (error) {
+	} catch {
 		await goto('/login'); // TODO: rather redirect to service unreachable page (backend is not working here)
 		auth.update((u) => ({ ...u, token: null, data: null, loaded: true }));
 		return;
 	}
 
 	if (!response.ok) {
-		await goto('/login'); // TODO: No need to redirect, if not on secured page
 		auth.update((u) => ({ ...u, token: null, data: null, loaded: true }));
 		return;
 	}

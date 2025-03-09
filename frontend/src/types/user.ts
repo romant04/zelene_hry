@@ -1,5 +1,5 @@
 export interface User {
-	id: string;
+	id: number;
 	email: string;
 	username: string;
 	player: Player | null;
@@ -7,10 +7,10 @@ export interface User {
 }
 
 export interface Player {
-	id: string;
+	id: number;
 	playTime: number;
 }
 export interface Admin {
-	id: string;
+	id: number;
 	permissionLevel: number;
 }

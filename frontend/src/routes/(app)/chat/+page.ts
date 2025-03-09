@@ -1,7 +1,7 @@
 import type { PageLoad } from './$types';
 import type { Friendship } from '../../../types/friendship';
 
-export const load: PageLoad = async ({ params }) => {
+export const load: PageLoad = async () => {
 	try {
 		const friendships = await fetch(`http://localhost:8080/api/secured/user/friends`, {
 			headers: {
