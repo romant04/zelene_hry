@@ -6,11 +6,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:3000"  # Node adapter uses port 3000 by default
+      - "5173:3000"  # Svelte frontend runs on 5173 locally but maps to 3000 inside the container
     environment:
-      - PORT=3000    # Tell the Node adapter which port to use
+      - PORT=3000    # Tell the frontend which port to use
     depends_on:
       - backend
+      - sockets
     networks:
       - app-network
 
@@ -24,6 +25,17 @@ services:
       - ./backend/.env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - app-network
+
+  sockets:
+    build:
+      context: ./sockets
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"  # Expose WebSocket backend on port 3000
+    environment:
+      - PORT=3000
     networks:
       - app-network
 
