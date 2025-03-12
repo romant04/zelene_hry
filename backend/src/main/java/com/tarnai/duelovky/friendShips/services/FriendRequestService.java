@@ -1,5 +1,6 @@
 package com.tarnai.duelovky.friendShips.services;
 
+import com.tarnai.duelovky.friendShips.dto.FriendShipDto;
 import com.tarnai.duelovky.friendShips.entity.FriendRequest;
 import com.tarnai.duelovky.friendShips.entity.Friendship;
 import com.tarnai.duelovky.friendShips.repositories.FriendRequestRepository;
@@ -39,8 +40,13 @@ public class FriendRequestService {
         return friendRequestRepository.findAllUserFriendRequests(receiver.getId());
     }
 
-    public void acceptFriendRequest(FriendRequest friendRequest) {
+    public FriendShipDto acceptFriendRequest(FriendRequest friendRequest) {
         Friendship friendShip = new Friendship(friendRequest.getSender(), friendRequest.getReceiver(), new Date());
-        friendShipRepository.save(friendShip);
+        Friendship f = friendShipRepository.save(friendShip);
+        return new FriendShipDto(f);
+    }
+
+    public void deleteFriendRequest(FriendRequest friendRequest) {
+        friendRequestRepository.delete(friendRequest);
     }
 }

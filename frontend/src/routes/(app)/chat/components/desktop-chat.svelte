@@ -1,17 +1,24 @@
 <script lang="ts">
 	import type { User } from '../../../../types/user';
+	import { Socket } from 'socket.io-client';
+	import { createChatSocket } from '$lib/socket';
+	import type { Dm } from '../../../../types/dm';
+	import { onDestroy } from 'svelte';
+	import { auth } from '../../../../stores/auth';
 	import ChatOption from './chat-option.svelte';
 	import ChatBubble from './chat-bubble.svelte';
-	import type { Dm } from '../../../../types/dm';
-	import { auth } from '../../../../stores/auth';
+	import { clearSocket } from '../../../../utils/socket';
 
 	let { friends }: { friends: User[] } = $props();
-
 	let activeChat: User | null = $state(null);
+	let chatSocket: Socket | null = null;
 
-	let filter = $state('');
-	let searchTerm = $state('');
-	let debounceTimeout: number | null = $state(null);
+	let filter = '';
+	let searchTerm = '';
+	let debounceTimeout: number | null = null;
+
+	let messages: Dm[] = $state([]);
+	let message = $state('');
 
 	function handleSearch(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
 		if (!event.target) {
@@ -28,11 +35,8 @@
 		}, 500);
 	}
 
-	let messages: Dm[] = $state([]);
-	let message = $state('');
-
 	async function sendMessage() {
-		if (activeChat === null) {
+		if (!activeChat || !$auth.data || !chatSocket) {
 			return;
 		}
 
@@ -48,7 +52,9 @@
 			})
 		});
 		message = '';
-		console.log(response);
+
+		const data = (await response.json()) as Dm;
+		chatSocket.emit('sendMessage', data);
 	}
 
 	async function fetchMessages(friendId: number) {
@@ -57,13 +63,41 @@
 				Authorization: `Bearer ${localStorage.getItem('token')}`
 			}
 		});
-		const data = await response.json();
-		console.log(data);
-		messages = data;
+		messages = await response.json();
 	}
+
 	$effect(() => {
-		if (activeChat !== null && friends.length > 0) {
+		if (activeChat && friends.length > 0) {
 			fetchMessages(activeChat.id);
+		}
+	});
+
+	$effect(() => {
+		if (activeChat && chatSocket !== null) {
+			clearSocket(chatSocket);
+			chatSocket = null;
+		}
+
+		if (activeChat && chatSocket === null && $auth.data?.id) {
+			chatSocket = createChatSocket($auth.data.id, activeChat.id);
+		}
+	});
+
+	$effect(() => {
+		if (!$auth.data?.id || !activeChat?.id || chatSocket === null) {
+			return;
+		}
+
+		chatSocket.on('receiveMessage', (data: Dm) => {
+			messages = [...messages, data];
+		});
+	});
+
+	// Cleanup on component destroy
+	onDestroy(() => {
+		if (chatSocket) {
+			clearSocket(chatSocket);
+			chatSocket = null;
 		}
 	});
 </script>

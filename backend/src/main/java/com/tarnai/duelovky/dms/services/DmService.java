@@ -32,7 +32,7 @@ public class DmService {
         return dmRepository.getUserDms(userId, userId2).stream().map(DmDto::new).toList();
     }
 
-    public void sendDm(DmInputDto dmInputDto, Account sender) {
+    public DmDto sendDm(DmInputDto dmInputDto, Account sender) {
         Optional<Account> receiver = accountRepository.findById(dmInputDto.getReceiverId());
 
         if (receiver.isEmpty()) {
@@ -46,6 +46,7 @@ public class DmService {
                 new Date()
         );
         dmRepository.save(directMessage);
+        return new DmDto(directMessage);
     }
 
     public void deleteDm(Long dmId) {

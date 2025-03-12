@@ -38,14 +38,14 @@ public class DmController {
     }
 
     @PostMapping
-    public void sendDm(Authentication authentication, @RequestBody DmInputDto DmInputDto) {
+    public DmDto sendDm(Authentication authentication, @RequestBody DmInputDto DmInputDto) {
         Optional<Account> account = userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst();
 
         if (account.isEmpty()) {
             throw new IllegalArgumentException("User not found!");
         }
 
-        dmService.sendDm(DmInputDto, account.get());
+        return dmService.sendDm(DmInputDto, account.get());
     }
 
     @DeleteMapping

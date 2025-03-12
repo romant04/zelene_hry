@@ -2,6 +2,7 @@ package com.tarnai.duelovky.friendShips.controllers;
 
 import com.tarnai.duelovky.friendShips.dto.FriendRequestDto;
 import com.tarnai.duelovky.friendShips.dto.FriendRequestInputDto;
+import com.tarnai.duelovky.friendShips.dto.FriendShipDto;
 import com.tarnai.duelovky.friendShips.entity.FriendRequest;
 import com.tarnai.duelovky.friendShips.services.FriendRequestService;
 import com.tarnai.duelovky.users.entity.Account;
@@ -62,7 +63,7 @@ public class FriendRequestsController {
     }
 
     @PostMapping("/friendRequest/accept")
-    public ResponseEntity<ErrorResponse> acceptFriendRequest(@RequestBody Long senderId, Authentication authentication) {
+    public ResponseEntity<FriendShipDto> acceptFriendRequest(@RequestBody Long senderId, Authentication authentication) {
         Account receiver = userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst().orElse(null);
         if (receiver == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -76,7 +77,24 @@ public class FriendRequestsController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        friendRequestService.acceptFriendRequest(fr.get());
+        FriendShipDto newFriendship = friendRequestService.acceptFriendRequest(fr.get());
+        return ResponseEntity.ok(newFriendship);
+    }
+
+    @DeleteMapping("/friendRequest")
+    public ResponseEntity<ErrorResponse> deleteFriendRequest(@RequestBody Long senderId, Authentication authentication) {
+        Account receiver = userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst().orElse(null);
+        if (receiver == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        Optional<FriendRequest> fr = friendRequestService.getFriendRequestForReceiver(receiver, senderId);
+
+        if (fr.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        friendRequestService.deleteFriendRequest(fr.get());
         return ResponseEntity.ok().build();
     }
 }
