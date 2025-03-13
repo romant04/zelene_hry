@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import type { User } from '../../../../types/user';
+	import { setActiveChat } from '../../../../stores/active-chat';
+	import { goto } from '$app/navigation';
 
 	let {
 		friend,
@@ -24,6 +26,11 @@
 		friendToBeRemoved = friend;
 	}
 
+	function handleChatRedirect() {
+		setActiveChat(friend);
+		goto('/chat');
+	}
+
 	// TODO: open modal to ask if you want to remove friend
 </script>
 
@@ -34,11 +41,13 @@
 	<p class="font-semibold">{friend.username}</p>
 	{#if isFriend}
 		<div class="flex items-center gap-2">
-			<Icon
-				width="32"
-				icon="mdi:chat"
-				class="h-9 w-9 cursor-pointer rounded-full bg-primary-500 p-2 transition-all duration-150 hover:bg-primary-400"
-			/>
+			<button onclick={handleChatRedirect}>
+				<Icon
+					width="32"
+					icon="mdi:chat"
+					class="h-9 w-9 cursor-pointer rounded-full bg-primary-500 p-2 transition-all duration-150 hover:bg-primary-400"
+				/>
+			</button>
 			<button onclick={handleRemoveFriend} class="variant-filled-error btn h-9 w-32 text-sm"
 				>Odebrat z přátel</button
 			>
