@@ -30,8 +30,6 @@
 		setActiveChat(friend);
 		goto('/chat');
 	}
-
-	// TODO: open modal to ask if you want to remove friend
 </script>
 
 <div

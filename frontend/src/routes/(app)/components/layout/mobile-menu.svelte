@@ -3,8 +3,13 @@
 
 	let {
 		isOpen = $bindable(false),
-		links
-	}: { isOpen: boolean; links: { href: string; text: string }[] } = $props();
+		links,
+		isAuthenticated
+	}: {
+		isOpen: boolean;
+		links: { href: string; text: string }[];
+		isAuthenticated: number;
+	} = $props();
 
 	function handleClose() {
 		isOpen = false;
@@ -18,8 +23,8 @@
 ></div>
 <div
 	class="{isOpen
-		? '-translate-x-[100%] sm:-translate-x-[200%]'
-		: 'translate-x-0'} fixed -right-full top-0 z-50 h-full w-full bg-tertiary-800 p-6 transition-all duration-500 sm:w-3/4 md:w-1/2"
+		? '-translate-x-[100%] md:-translate-x-[200%]'
+		: 'translate-x-0'} fixed -right-full top-0 z-50 h-full w-full bg-tertiary-800 p-6 transition-all duration-500 md:w-1/2"
 >
 	<div class="flex items-center justify-between">
 		<a href="/frontend/static" onclick={handleClose}>
@@ -37,4 +42,13 @@
 			>
 		{/each}
 	</div>
+
+	{#if isAuthenticated !== 1}
+		<a
+			href="/login"
+			class="flex variant-filled-primary absolute bottom-10 left-1/2 -translate-x-1/2 btn h-10 w-[90%] items-center justify-center text-sm font-bold uppercase tracking-wide"
+		>
+			Přihlásit se
+		</a>
+	{/if}
 </div>

@@ -78,9 +78,13 @@
 		slotTrail="place-content-end"
 	>
 		{#snippet lead()}
-			<div class="md:hidden">
-				<UserMenu bind:isOpenModal bind:modal />
-			</div>
+			{#if isAuthenticated === 1}
+				<div class="md:hidden">
+					<UserMenu bind:isOpenModal bind:modal />
+				</div>
+			{:else}
+				<h1 class="font-heading text-3xl md:hidden font-bold">Duelovky</h1>
+			{/if}
 			<a href="/">
 				<h1 class="font-heading text-4xl hidden md:inline font-bold">Duelovky</h1>
 			</a>
@@ -96,7 +100,9 @@
 			{/each}
 		</ul>
 
-		<h1 class="font-heading text-3xl md:hidden font-bold">Duelovky</h1>
+		{#if isAuthenticated === 1}
+			<h1 class="font-heading text-3xl md:hidden font-bold">Duelovky</h1>
+		{/if}
 
 		{#snippet trail()}
 			{#if isAuthenticated === 1 && $auth.data}
@@ -132,4 +138,4 @@
 {#if isOpenModal}
 	<UserMenuModal bind:modal bind:isOpen={isOpenModal} />
 {/if}
-<MobileMenu links={headerLinks} bind:isOpen />
+<MobileMenu links={headerLinks} bind:isOpen {isAuthenticated} />
