@@ -70,7 +70,7 @@
 
 <svelte:window bind:scrollY />
 
-<header bind:this={header} class="fixed top-0 z-20 w-full transition-all duration-300">
+<header bind:this={header} class="fixed top-0 z-40 w-full transition-all duration-300">
 	<AppBar
 		class="header"
 		gridColumns="grid-cols-3"

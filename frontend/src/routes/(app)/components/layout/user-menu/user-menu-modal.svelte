@@ -22,7 +22,7 @@
 <div
 	transition:fly={{ y: -200, duration: 300, opacity: 1 }}
 	bind:this={modal}
-	class="fixed top-16 left-3 md:left-auto md:right-3 bg-tertiary-600 z-10 px-4 pt-5 pb-4 w-64 h-48 rounded-md"
+	class="fixed top-16 left-3 md:left-auto md:right-3 bg-tertiary-600 z-30 px-4 pt-5 pb-4 w-64 h-48 rounded-md"
 >
 	<div class="h-full flex flex-col justify-between">
 		<div>

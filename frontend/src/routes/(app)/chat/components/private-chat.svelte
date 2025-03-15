@@ -8,7 +8,9 @@
 	import ChatOption from './chat-option.svelte';
 	import ChatBubble from './chat-bubble.svelte';
 	import { clearSocket } from '../../../../utils/socket';
-	import { activeChat } from '../../../../stores/active-chat';
+	import { activeChat, clearActiveChat } from '../../../../stores/active-chat';
+	import Icon from '@iconify/svelte';
+	import ChatSection from './chat-section.svelte';
 
 	let { friends }: { friends: User[] } = $props();
 	let chatSocket: Socket | null = null;
@@ -19,8 +21,10 @@
 
 	let messages: Dm[] = $state([]);
 	let message = $state('');
+	let loading = $state(true);
 
 	let chatContainer: HTMLDivElement | null = $state(null);
+	let mobileChatContainer: HTMLDivElement | null = $state(null);
 
 	function handleSearch(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
 		if (!event.target) {
@@ -68,14 +72,25 @@
 		messages = await response.json();
 	}
 
+	async function scrollToBottom() {
+		if (chatContainer && mobileChatContainer) {
+			await tick();
+			chatContainer.scrollTop = chatContainer.scrollHeight;
+			mobileChatContainer.scrollTop = mobileChatContainer.scrollHeight;
+		}
+	}
+
+	$effect(() => {
+		if ($activeChat.activeChat !== null && loading === false) {
+			scrollToBottom();
+		}
+	})
+
 	$effect(() => {
 		if ($activeChat.activeChat && friends.length > 0) {
 			async function init(id: number) {
 				await fetchMessages(id);
-				if (chatContainer) {
-					await tick();
-					chatContainer.scrollTop = chatContainer.scrollHeight;
-				}
+				loading = false;
 			}
 			init($activeChat.activeChat.id);
 		}
@@ -99,12 +114,6 @@
 
 		chatSocket.on('receiveMessage', (data: Dm) => {
 			messages = [...messages, data];
-			async function scrollToBottom() {
-				await tick();
-				if (chatContainer) {
-					chatContainer.scrollTop = chatContainer.scrollHeight;
-				}
-			}
 			scrollToBottom();
 		});
 	});
@@ -118,7 +127,7 @@
 	});
 </script>
 
-<div class="grid grid-cols-[auto,1fr] h-[calc(100vh-72px)]">
+<div class="hidden md:grid grid-cols-[auto,1fr] h-[calc(100vh-72px)]">
 	<div class="bg-tertiary-600 py-5 px-4 w-80">
 		<h2 class="text-3xl font-semibold">Chaty</h2>
 		<input
@@ -129,44 +138,35 @@
 		/>
 		<div class="flex flex-col gap-[2px] mt-5">
 			{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
-				<ChatOption {friend} />
+				<ChatOption {friend} bind:loading />
 			{/each}
 		</div>
 	</div>
 
 	{#if $activeChat.activeChat !== null}
 		{@const username = $activeChat.activeChat.username}
-		<div class="p-5 h-[calc(100vh-144px)] grid grid-rows-[auto,1fr,auto]">
-			<div class="flex items-center gap-2">
-				<span
-					class="flex font-bold justify-center items-center uppercase bg-primary-400 rounded-full h-10 w-10"
-					>{username.slice(0, 1) +
-						username.slice(username.length - 1, username.length)}</span
-				>
-				<p class="text-xl">{username}</p>
-			</div>
+		<ChatSection {loading} {username} {messages} bind:message bind:chatContainer {sendMessage} />
+	{/if}
+</div>
 
-			<div class="flex h-[calc(100vh-144px)] justify-between flex-col gap-2">
-				<div
-					class="flex flex-col my-4 gap-1 overflow-auto max-h-[85%] px-5"
-					bind:this={chatContainer}
-				>
-					{#if $auth.data}
-						{#each messages as dm, index}
-							<ChatBubble
-								message={dm.message}
-								mine={dm.sender.id === $auth.data.id}
-							/>
-						{/each}
-					{/if}
-				</div>
-				<form onsubmit={sendMessage} class="flex gap-1 mt-auto">
-					<input type="text" class="input p-2" bind:value={message} />
-					<button type="submit" class="btn variant-filled-primary w-36 rounded-md"
-						>Poslat</button
-					>
-				</form>
-			</div>
+<div class="md:hidden relative h-[calc(100vh-72px)]">
+	<div class=" bg-tertiary-600 absolute left-0 top-0 z-20 {$activeChat.activeChat === null ? 'w-full px-4' : 'w-0 px-0'} py-5 overflow-hidden transition-all duration-300 ease-out h-full">
+		<h2 class="text-3xl font-semibold">Chaty</h2>
+		<input
+			placeholder="Vyhledat kamaráda..."
+			class="input !bg-tertiary-800 py-2 text-sm font-semibold px-2 mt-3"
+			type="text"
+			oninput={handleSearch}
+		/>
+		<div class="flex flex-col gap-[2px] mt-5">
+			{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
+				<ChatOption {friend} bind:loading />
+			{/each}
 		</div>
+	</div>
+
+	{#if $activeChat.activeChat !== null}
+		{@const username = $activeChat.activeChat.username}
+		<ChatSection bind:loading {username} {messages} bind:message bind:chatContainer={mobileChatContainer} {sendMessage} />
 	{/if}
 </div>

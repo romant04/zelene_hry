@@ -3,10 +3,11 @@
 	import { setActiveChat } from '../../../../stores/active-chat';
 	import { activeChat } from '../../../../stores/active-chat';
 
-	let { friend }: { friend: User } = $props();
+	let { friend, loading = $bindable() }: { friend: User, loading: boolean } = $props();
 
 	function handleChatSelect() {
 		setActiveChat(friend);
+		loading = true;
 	}
 </script>
 
