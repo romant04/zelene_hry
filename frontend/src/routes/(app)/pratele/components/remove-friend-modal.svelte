@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { User } from '../../../../types/user';
 	import { onMount } from 'svelte';
+	import { addToast } from '../../../../stores/toast';
 
 	let {
 		friend = $bindable(),
@@ -43,11 +44,12 @@
 		});
 		if (response.ok) {
 			updateAfterFriendRemoved(friend);
+			addToast('Přítel byl úspěšně odstraněn', 'success');
 			friend = null;
 			return;
 		}
 
-		console.log('Failed to remove friend');
+		addToast('Nepodařilo se odstranit přítele', 'error');
 	}
 </script>
 

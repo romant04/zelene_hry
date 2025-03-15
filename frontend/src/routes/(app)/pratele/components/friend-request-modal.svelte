@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { User } from '../../../../types/user';
 	import { onMount } from 'svelte';
+	import { addToast } from '../../../../stores/toast';
 
 	let { friend = $bindable() }: { friend: User | null } = $props();
 
@@ -43,10 +44,11 @@
 		});
 		if (response.ok) {
 			friend = null;
+			addToast('Žádost o přátelství byla úspěšně odeslána', 'success');
 			return;
 		}
 
-		console.log('Failed to send friend request');
+		addToast('Nepodařilo se odeslat žádost o přátelství', 'error');
 	}
 </script>
 

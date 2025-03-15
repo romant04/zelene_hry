@@ -28,6 +28,7 @@
 			onclick={() => clearActiveChat()}
 			icon="mdi:arrow-back"
 			width="28"
+			class="cursor-pointer"
 		/>
 		<div class="flex items-center gap-2">
 			<span

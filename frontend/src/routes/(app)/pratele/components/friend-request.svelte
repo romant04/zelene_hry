@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { FriendRequest } from '../../../../types/friendRequest';
 	import type { Friendship } from '../../../../types/friendship';
+	import { addToast } from '../../../../stores/toast';
 
 	let {
 		friendRequest,
@@ -26,12 +27,12 @@
 
 		const data = await response.json();
 		if (response.ok) {
-			console.log('Friend request accepted'); // TODO: replace these logs with toasts
+			addToast('Úspěšne jste přijali jste žádost o přátelství', 'success');
 			updateAfterFriendRequest(true, friendRequest, data);
 			return;
 		}
 
-		console.log('Failed to accept friend request');
+		addToast('Nepodařilo se přijmout žádost o přátelství', 'error');
 	}
 
 	async function handleReject() {
@@ -45,7 +46,7 @@
 		});
 
 		if (response.ok) {
-			console.log('Friend request rejected');
+			addToast('Žádost o přátelství byla zamítnuta', 'success');
 			updateAfterFriendRequest(false, friendRequest);
 			return;
 		}

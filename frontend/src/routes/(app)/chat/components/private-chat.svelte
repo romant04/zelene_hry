@@ -6,16 +6,14 @@
 	import { onDestroy, tick } from 'svelte';
 	import { auth } from '../../../../stores/auth';
 	import ChatOption from './chat-option.svelte';
-	import ChatBubble from './chat-bubble.svelte';
 	import { clearSocket } from '../../../../utils/socket';
-	import { activeChat, clearActiveChat } from '../../../../stores/active-chat';
-	import Icon from '@iconify/svelte';
+	import { activeChat } from '../../../../stores/active-chat';
 	import ChatSection from './chat-section.svelte';
 
 	let { friends }: { friends: User[] } = $props();
 	let chatSocket: Socket | null = null;
 
-	let filter = '';
+	let filter = $state('');
 	let searchTerm = '';
 	let debounceTimeout: number | null = null;
 

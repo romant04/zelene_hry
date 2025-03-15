@@ -6,6 +6,9 @@
 	import { auth } from '../../stores/auth';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import Toast from './components/toast.svelte';
+	import { onMount } from 'svelte';
+	import { addToast } from '../../stores/toast';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -26,7 +29,10 @@
 
 <Header />
 
-<main class="main h-full pt-[4.5rem]">{@render children?.()}</main>
+<main class="main h-full pt-[4.5rem]">
+	<Toast />
+	{@render children?.()}
+</main>
 
 <!-- Footer -->
 <AppFooter />
