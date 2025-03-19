@@ -2,11 +2,13 @@
 	import type { User } from '../../../../types/user';
 	import { onMount } from 'svelte';
 	import { addToast } from '../../../../stores/toast';
+	import Spinner from '../../components/spinner.svelte';
 
 	let { friend = $bindable() }: { friend: User | null } = $props();
 
 	let modal: HTMLDivElement | null = $state(null);
 	let message = $state('');
+	let loading = $state(false);
 
 	onMount(() => {
 		if (!modal) {
@@ -31,6 +33,8 @@
 			return;
 		}
 
+		loading = true;
+
 		const response = await fetch(`http://localhost:8080/api/secured/friendRequest`, {
 			method: 'POST',
 			headers: {
@@ -42,6 +46,9 @@
 				message: message
 			})
 		});
+
+		loading = false;
+
 		if (response.ok) {
 			friend = null;
 			addToast('Žádost o přátelství byla úspěšně odeslána', 'success');
@@ -69,8 +76,12 @@
 			class="input mt-1 !bg-tertiary-800 px-2 py-1 resize-none"
 			rows="4"
 		></textarea>
-		<button onclick={handleAddFriend} class="btn variant-filled-primary mt-5 w-full"
-			>Přidat do přátel</button
-		>
+		<button onclick={handleAddFriend} class="btn variant-filled-primary mt-5 w-full">
+			{#if loading}
+				<Spinner w="w-5" h="h-5" fill="fill-white" />
+			{:else}
+				Přidat do přátel
+			{/if}
+		</button>
 	</div>
 </div>

@@ -9,6 +9,7 @@
 	import { clearSocket } from '../../../../utils/socket';
 	import { activeChat } from '../../../../stores/active-chat';
 	import ChatSection from './chat-section.svelte';
+	import { addToast } from '../../../../stores/toast';
 
 	let { friends }: { friends: User[] } = $props();
 	let chatSocket: Socket | null = null;
@@ -20,6 +21,8 @@
 	let messages: Dm[] = $state([]);
 	let message = $state('');
 	let loading = $state(true);
+
+	let loadingSending = $state(false);
 
 	let chatContainer: HTMLDivElement | null = $state(null);
 	let mobileChatContainer: HTMLDivElement | null = $state(null);
@@ -44,6 +47,16 @@
 			return;
 		}
 
+		if (message === '') {
+			addToast('Zpráva nesmí být prázdná', 'error');
+			return;
+		}
+
+		const tempMessage = message;
+		message = '';
+
+		loadingSending = true;
+
 		const response = await fetch('http://localhost:8080/api/secured/dms', {
 			method: 'POST',
 			headers: {
@@ -52,10 +65,9 @@
 			},
 			body: JSON.stringify({
 				receiverId: $activeChat.activeChat.id,
-				message: message
+				message: tempMessage
 			})
 		});
-		message = '';
 
 		const data = (await response.json()) as Dm;
 		chatSocket.emit('sendMessage', data);
@@ -82,7 +94,7 @@
 		if ($activeChat.activeChat !== null && loading === false) {
 			scrollToBottom();
 		}
-	})
+	});
 
 	$effect(() => {
 		if ($activeChat.activeChat && friends.length > 0) {
@@ -112,6 +124,7 @@
 
 		chatSocket.on('receiveMessage', (data: Dm) => {
 			messages = [...messages, data];
+			loadingSending = false;
 			scrollToBottom();
 		});
 	});
@@ -143,12 +156,24 @@
 
 	{#if $activeChat.activeChat !== null}
 		{@const username = $activeChat.activeChat.username}
-		<ChatSection {loading} {username} {messages} bind:message bind:chatContainer {sendMessage} />
+		<ChatSection
+			{loading}
+			{loadingSending}
+			{username}
+			{messages}
+			bind:message
+			bind:chatContainer
+			{sendMessage}
+		/>
 	{/if}
 </div>
 
 <div class="md:hidden relative h-[calc(100vh-72px)]">
-	<div class=" bg-tertiary-600 absolute left-0 top-0 z-20 {$activeChat.activeChat === null ? 'w-full px-4' : 'w-0 px-0'} py-5 overflow-hidden transition-all duration-300 ease-out h-full">
+	<div
+		class=" bg-tertiary-600 absolute left-0 top-0 z-20 {$activeChat.activeChat === null
+			? 'w-full px-4'
+			: 'w-0 px-0'} py-5 overflow-hidden transition-all duration-300 ease-out h-full"
+	>
 		<h2 class="text-3xl font-semibold">Chaty</h2>
 		<input
 			placeholder="Vyhledat kamaráda..."
@@ -165,6 +190,14 @@
 
 	{#if $activeChat.activeChat !== null}
 		{@const username = $activeChat.activeChat.username}
-		<ChatSection bind:loading {username} {messages} bind:message bind:chatContainer={mobileChatContainer} {sendMessage} />
+		<ChatSection
+			{loading}
+			{loadingSending}
+			{username}
+			{messages}
+			bind:message
+			bind:chatContainer={mobileChatContainer}
+			{sendMessage}
+		/>
 	{/if}
 </div>

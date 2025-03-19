@@ -4,9 +4,11 @@
 	import Icon from '@iconify/svelte';
 	import ChatBubble from './chat-bubble.svelte';
 	import type { Dm } from '../../../../types/dm';
+	import Spinner from '../../components/spinner.svelte';
 
 	let {
 		loading,
+		loadingSending,
 		username,
 		chatContainer = $bindable(),
 		messages,
@@ -14,6 +16,7 @@
 		message = $bindable()
 	}: {
 		loading: boolean;
+		loadingSending: boolean;
 		username: string;
 		chatContainer: HTMLDivElement | null;
 		messages: Dm[];
@@ -56,7 +59,13 @@
 		</div>
 		<form onsubmit={sendMessage} class="flex gap-1 mt-auto">
 			<input type="text" class="input p-2" bind:value={message} />
-			<button type="submit" class="btn variant-filled-primary w-36 rounded-md">Poslat</button>
+			<button type="submit" class="btn variant-filled-primary w-36 rounded-md">
+				{#if loadingSending}
+					<Spinner w="w-5" h="h-5" fill="fill-white" />
+				{:else}
+					Poslat
+				{/if}
+			</button>
 		</form>
 	</div>
 </div>

@@ -2,6 +2,7 @@
 	import type { User } from '../../../../types/user';
 	import { onMount } from 'svelte';
 	import { addToast } from '../../../../stores/toast';
+	import Spinner from '../../components/spinner.svelte';
 
 	let {
 		friend = $bindable(),
@@ -9,6 +10,7 @@
 	}: { friend: User | null; updateAfterFriendRemoved: (friend: User) => void } = $props();
 
 	let modal: HTMLDivElement | null = $state(null);
+	let loading = $state(false);
 
 	onMount(() => {
 		if (!modal) {
@@ -33,6 +35,8 @@
 			return;
 		}
 
+		loading = true;
+
 		// TODO: Až se budeš nudit tak to sjednoť friendShip -> friendship
 		const response = await fetch(`http://localhost:8080/api/secured/friendShip`, {
 			method: 'DELETE',
@@ -42,6 +46,9 @@
 			},
 			body: JSON.stringify(friend.id)
 		});
+
+		loading = false;
+
 		if (response.ok) {
 			updateAfterFriendRemoved(friend);
 			addToast('Přítel byl úspěšně odstraněn', 'success');
@@ -66,8 +73,13 @@
 		<h1 class="text-xl mb-5 font-semibold uppercase">Odstranit přítele '{friend?.username}'</h1>
 		<p>Opravdu si přejete smazat {friend?.username} z vašeho seznamu přátel ?</p>
 		<div class="mt-5 w-full flex gap-1">
-			<button onclick={handleRemoveFriend} class="btn variant-filled-primary">Potvrdit</button
-			>
+			<button onclick={handleRemoveFriend} class="btn variant-filled-primary">
+				{#if loading}
+					<Spinner w="w-5" h="h-5" fill="fill-white" />
+				{:else}
+					Potvrdit
+				{/if}
+			</button>
 			<button onclick={handleClose} class="btn variant-filled-error">Zrušit</button>
 		</div>
 	</div>

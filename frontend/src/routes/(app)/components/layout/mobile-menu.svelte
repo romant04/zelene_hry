@@ -45,6 +45,7 @@
 
 	{#if isAuthenticated !== 1}
 		<a
+			onclick={handleClose}
 			href="/login"
 			class="flex variant-filled-primary absolute bottom-10 left-1/2 -translate-x-1/2 btn h-10 w-[90%] items-center justify-center text-sm font-bold uppercase tracking-wide"
 		>
