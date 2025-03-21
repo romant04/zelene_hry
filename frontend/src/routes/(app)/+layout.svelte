@@ -3,18 +3,23 @@
 	import '../../main.css';
 	import AppFooter from './components/layout/layout-footer.svelte';
 	import Header from './components/layout/header.svelte';
-	import { auth } from '../../stores/auth';
+	import {auth, updateUserState} from '../../stores/auth';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import Toast from './components/toast.svelte';
-	import { onMount } from 'svelte';
-	import { addToast } from '../../stores/toast';
+	import { onMount } from "svelte";
 
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
 
 	let { children }: Props = $props();
+
+	onMount(() => {
+		if (localStorage.getItem('out-of-service')) {
+			updateUserState(); // Test if service is back online
+		}
+	})
 
 	const protectedRoutes = ['/chat', '/pratele'];
 	$effect(() => {

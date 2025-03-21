@@ -1,9 +1,8 @@
 import { io } from 'socket.io-client';
-
-const SERVER_URL = 'http://localhost:3000';
+import { WEBSOCKET } from "../constants/urls";
 
 export const createChatSocket = (userId: number, friendId: number) => {
-	return io(`${SERVER_URL}/chat`, {
+	return io(`${WEBSOCKET}/chat`, {
 		auth: { userId, friendId }
 	});
 };

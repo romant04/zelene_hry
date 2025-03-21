@@ -10,6 +10,7 @@
 	import { activeChat } from '../../../../stores/active-chat';
 	import ChatSection from './chat-section.svelte';
 	import { addToast } from '../../../../stores/toast';
+	import {API} from "../../../../constants/urls";
 
 	let { friends }: { friends: User[] } = $props();
 	let chatSocket: Socket | null = null;
@@ -57,7 +58,7 @@
 
 		loadingSending = true;
 
-		const response = await fetch('http://localhost:8080/api/secured/dms', {
+		const response = await fetch(`${API}/api/secured/dms`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -74,7 +75,7 @@
 	}
 
 	async function fetchMessages(friendId: number) {
-		const response = await fetch(`http://localhost:8080/api/secured/dms?userId=${friendId}`, {
+		const response = await fetch(`${API}/api/secured/dms?userId=${friendId}`, {
 			headers: {
 				Authorization: `Bearer ${localStorage.getItem('token')}`
 			}

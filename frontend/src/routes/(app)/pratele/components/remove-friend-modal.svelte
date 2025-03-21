@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { addToast } from '../../../../stores/toast';
 	import Spinner from '../../components/spinner.svelte';
+	import {API} from "../../../../constants/urls";
 
 	let {
 		friend = $bindable(),
@@ -38,7 +39,7 @@
 		loading = true;
 
 		// TODO: Až se budeš nudit tak to sjednoť friendShip -> friendship
-		const response = await fetch(`http://localhost:8080/api/secured/friendShip`, {
+		const response = await fetch(`${API}/api/secured/friendShip`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',

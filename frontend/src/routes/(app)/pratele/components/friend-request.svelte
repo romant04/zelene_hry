@@ -2,6 +2,7 @@
 	import type { FriendRequest } from '../../../../types/friendRequest';
 	import type { Friendship } from '../../../../types/friendship';
 	import { addToast } from '../../../../stores/toast';
+	import {API} from "../../../../constants/urls";
 
 	let {
 		friendRequest,
@@ -16,7 +17,7 @@
 	} = $props();
 
 	async function handleAccept() {
-		const response = await fetch(`http://localhost:8080/api/secured/friendRequest/accept`, {
+		const response = await fetch(`${API}/api/secured/friendRequest/accept`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -36,7 +37,7 @@
 	}
 
 	async function handleReject() {
-		const response = await fetch(`http://localhost:8080/api/secured/friendRequest`, {
+		const response = await fetch(`${API}/api/secured/friendRequest`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',

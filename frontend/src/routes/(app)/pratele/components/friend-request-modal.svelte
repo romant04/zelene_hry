@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { addToast } from '../../../../stores/toast';
 	import Spinner from '../../components/spinner.svelte';
+	import {API} from "../../../../constants/urls";
 
 	let { friend = $bindable() }: { friend: User | null } = $props();
 
@@ -35,7 +36,7 @@
 
 		loading = true;
 
-		const response = await fetch(`http://localhost:8080/api/secured/friendRequest`, {
+		const response = await fetch(`${API}/api/secured/friendRequest`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

@@ -29,19 +29,19 @@
 			links: [
 				{
 					label: 'Přihlášení',
-					href: '#'
+					href: '/login'
 				},
 				{
 					label: 'Registrace',
-					href: '#'
+					href: '/register'
 				},
 				{
 					label: 'Přátelé',
-					href: '#'
+					href: '/pratele'
 				},
 				{
 					label: 'Chat',
-					href: '#'
+					href: '/chat'
 				}
 			]
 		},

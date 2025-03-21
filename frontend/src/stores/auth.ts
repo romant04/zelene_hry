@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { User } from '../types/user';
 import { goto } from '$app/navigation';
+import {API} from "../constants/urls";
 
 // User store
 export const auth = writable<{ token: string | null; data: User | null; loaded: boolean }>({
@@ -14,7 +15,7 @@ export const auth = writable<{ token: string | null; data: User | null; loaded: 
 async function fetchUserData(token: string) {
 	let response: Response;
 	try {
-		response = await fetch('http://localhost:8080/api/secured/user', {
+		response = await fetch(`${API}/api/secured/user`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
@@ -22,7 +23,7 @@ async function fetchUserData(token: string) {
 			}
 		});
 	} catch {
-		await goto('/login'); // TODO: rather redirect to service unreachable page (backend is not working here)
+		await goto('/error/out-of-service');
 		auth.update((u) => ({ ...u, token: null, data: null, loaded: true }));
 		return;
 	}
@@ -33,11 +34,12 @@ async function fetchUserData(token: string) {
 	}
 
 	const data = await response.json();
+	localStorage.removeItem('out-of-service');
 	auth.update((u) => ({ ...u, data, loaded: true }));
 }
 
 // Function to initialize or update the user state
-function updateUserState() {
+export function updateUserState() {
 	if (browser) {
 		const token = localStorage.getItem('token');
 

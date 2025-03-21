@@ -4,6 +4,7 @@
 	let { signIn }: { signIn: boolean } = $props();
 	import { setToken } from '../../../../stores/auth';
 	import FormField from './form-field.svelte';
+	import {API} from "../../../../constants/urls";
 
 	let username = $state('');
 	let email = $state('');
@@ -11,7 +12,7 @@
 	let password2 = $state('');
 
 	async function handleSignIn() {
-		const res = await fetch('http://localhost:8080/auth/login', {
+		const res = await fetch(`${API}/auth/login`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -38,7 +39,7 @@
 			return;
 		}
 
-		const res = await fetch('http://localhost:8080/auth/register', {
+		const res = await fetch(`${API}/auth/register`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

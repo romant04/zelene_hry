@@ -1,9 +1,10 @@
 import type { PageLoad } from './$types';
 import type { Friendship } from '../../../types/friendship';
+import {API} from "../../../constants/urls";
 
 export const load: PageLoad = async () => {
 	try {
-		const friendships = await fetch(`http://localhost:8080/api/secured/user/friends`, {
+		const friendships = await fetch(`${API}/api/secured/user/friends`, {
 			headers: {
 				Authorization: `Bearer ${localStorage.getItem('token')}`
 			}
@@ -14,7 +15,7 @@ export const load: PageLoad = async () => {
 				friendships: friendships as Friendship[]
 			}
 		};
-	} catch (error) {
+	} catch {
 		return {
 			status: 404,
 			error: new Error('Failed to load')
