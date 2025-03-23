@@ -1,5 +1,7 @@
 node_modules
-
+playwright-report
+results.json
+test-results
 # Output
 .output
 .vercel

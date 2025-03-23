@@ -8,7 +8,7 @@
 		type,
 		label
 	}: {
-		signIn: string;
+		signIn: boolean;
 		value: string;
 		name: string;
 		type: HTMLInputTypeAttribute;

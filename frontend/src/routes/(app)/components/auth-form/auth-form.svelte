@@ -5,6 +5,7 @@
 	import { setToken } from '../../../../stores/auth';
 	import FormField from './form-field.svelte';
 	import {API} from "../../../../constants/urls";
+	import {addToast} from "../../../../stores/toast";
 
 	let username = $state('');
 	let email = $state('');
@@ -28,14 +29,14 @@
 			setToken(data.token);
 			await goto('/');
 		} else {
-			alert('Špatné přihlašovací údaje');
+			addToast('Špatné přihlašovací údaje', 'error');
 			password = '';
 		}
 	}
 
 	async function handleSignUp() {
 		if (password !== password2) {
-			alert('Hesla se neshodují');
+			addToast('Hesla se neshodují', 'error');
 			return;
 		}
 
@@ -57,7 +58,7 @@
 			setToken(data.token);
 			await goto('/');
 		} else {
-			alert('Registrace se nezdařila');
+			addToast('Registrace se nezdařila', 'error');
 		}
 	}
 
@@ -107,7 +108,7 @@
 					label="Heslo znovu"
 				/>
 			{/if}
-			<button class="btn mt-2 h-11 w-full bg-primary-600 text-white">
+			<button type="submit" class="btn mt-2 h-11 w-full bg-primary-600 text-white">
 				{signIn ? 'Přihlásit se' : 'Registrovat se'}
 			</button>
 		</form>

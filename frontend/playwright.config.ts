@@ -1,12 +1,16 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
-const config: PlaywrightTestConfig = {
-	webServer: {
-		command: 'npm run build && npm run preview',
-		port: 4173
+export default defineConfig({
+	testDir: './tests',
+	timeout: 30000,
+	expect: {
+		timeout: 5000
 	},
-	testDir: 'tests',
-	testMatch: /(.+\.)?(test|spec)\.[jt]s/
-};
-
-export default config;
+	use: {
+		headless: true,
+		baseURL: 'http://localhost:5173',
+		browserName: 'chromium',
+		trace: 'on-first-retry'
+	},
+	reporter: [['html'], ['json', { outputFile: 'results.json' }]],
+});
