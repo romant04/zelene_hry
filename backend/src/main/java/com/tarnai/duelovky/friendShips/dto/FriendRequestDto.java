@@ -2,9 +2,7 @@ package com.tarnai.duelovky.friendShips.dto;
 
 import com.tarnai.duelovky.friendShips.entity.FriendRequest;
 import com.tarnai.duelovky.users.dto.AccountDto;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;

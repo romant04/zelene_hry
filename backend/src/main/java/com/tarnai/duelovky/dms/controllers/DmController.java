@@ -6,8 +6,11 @@ import com.tarnai.duelovky.dms.entity.DirectMessage;
 import com.tarnai.duelovky.dms.services.DmService;
 import com.tarnai.duelovky.users.entity.Account;
 import com.tarnai.duelovky.users.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,14 +41,18 @@ public class DmController {
     }
 
     @PostMapping
-    public DmDto sendDm(Authentication authentication, @RequestBody DmInputDto DmInputDto) {
+    public ResponseEntity<?> sendDm(Authentication authentication, @Valid @RequestBody DmInputDto DmInputDto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors().get(0).getDefaultMessage());
+        }
+
         Optional<Account> account = userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst();
 
         if (account.isEmpty()) {
             throw new IllegalArgumentException("User not found!");
         }
 
-        return dmService.sendDm(DmInputDto, account.get());
+        return ResponseEntity.ok(dmService.sendDm(DmInputDto, account.get()));
     }
 
     @DeleteMapping

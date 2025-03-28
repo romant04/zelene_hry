@@ -7,7 +7,10 @@ import com.tarnai.duelovky.users.dto.RegisterResponse;
 import com.tarnai.duelovky.users.entity.Account;
 import com.tarnai.duelovky.users.services.AuthService;
 import com.tarnai.duelovky.users.services.JwtService;
+import com.tarnai.duelovky.validators.ValidPassword;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,7 +28,11 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterDto registerUserDto) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterDto registerUserDto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors().get(0).getDefaultMessage());
+        }
+
         Account registeredUser = AuthService.signup(registerUserDto);
 
         String jwtToken = jwtService.generateToken(registeredUser);
@@ -35,7 +42,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginDto loginUserDto) {
+    public ResponseEntity<?> authenticate(@Valid @RequestBody LoginDto loginUserDto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors().get(0).getDefaultMessage());
+        }
+
         Account authenticatedUser = AuthService.authenticate(loginUserDto);
 
         String jwtToken = jwtService.generateToken(authenticatedUser);

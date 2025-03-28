@@ -7,10 +7,12 @@ import com.tarnai.duelovky.friendShips.entity.FriendRequest;
 import com.tarnai.duelovky.friendShips.services.FriendRequestService;
 import com.tarnai.duelovky.users.entity.Account;
 import com.tarnai.duelovky.users.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,7 +51,11 @@ public class FriendRequestsController {
 
 
     @PostMapping("/friendRequest")
-    public ResponseEntity<ErrorResponse> sendFriendRequest(@RequestBody FriendRequestInputDto friendRequestInputDto, Authentication authentication) {
+    public ResponseEntity<?> sendFriendRequest(@Valid @RequestBody FriendRequestInputDto friendRequestInputDto, Authentication authentication, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors().get(0).getDefaultMessage());
+        }
+
         Account sender = userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst().orElse(null);
         Optional<Account> receiver = userService.getUserById(friendRequestInputDto.getReceiverId());
 

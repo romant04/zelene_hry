@@ -2,7 +2,6 @@ package com.tarnai.duelovky.dms.entity;
 
 import com.tarnai.duelovky.users.entity.Account;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
