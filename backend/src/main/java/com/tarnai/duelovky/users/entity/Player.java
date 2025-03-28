@@ -1,8 +1,14 @@
 package com.tarnai.duelovky.users.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity(name = "players")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Player {
     @Id
     @Column(name = "user_id")
@@ -12,26 +18,7 @@ public class Player {
     @Column(name = "play_time")
     private Integer playTime;
 
-    public Player() {
-    }
-
     public Player(Integer playTime) {
-        this.playTime = playTime;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Integer getPlayTime() {
-        return playTime;
-    }
-
-    public void setPlayTime(Integer playTime) {
         this.playTime = playTime;
     }
 }

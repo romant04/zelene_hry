@@ -25,14 +25,14 @@ public class FriendRequestsController {
     private final UserService userService;
 
     @Autowired
-    public FriendRequestsController(FriendRequestService friendRequestService, UserService userService, UserService userService1) {
+    public FriendRequestsController(FriendRequestService friendRequestService, UserService userService) {
         this.friendRequestService = friendRequestService;
-        this.userService = userService1;
+        this.userService = userService;
     }
 
     @GetMapping("/friendRequests")
-    public List<FriendRequestInputDto> getAllFriendRequests() {
-        return friendRequestService.getAllFriendRequests().stream().map(FriendRequestInputDto::new).toList();
+    public List<FriendRequestDto> getAllFriendRequests() {
+        return friendRequestService.getAllFriendRequests().stream().map(FriendRequestDto::new).toList();
     }
 
 

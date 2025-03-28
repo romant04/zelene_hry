@@ -2,10 +2,17 @@ package com.tarnai.duelovky.dms.entity;
 
 import com.tarnai.duelovky.users.entity.Account;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Date;
 
 @Entity(name = "direct_messages")
+@Getter
+@Setter
+@NoArgsConstructor
 public class DirectMessage {
     @ManyToOne
     @JoinColumn(name = "sender_id", referencedColumnName = "user_id")
@@ -31,48 +38,5 @@ public class DirectMessage {
         this.receiver = receiver;
         this.message = message;
         this.createdAt = createdAt;
-    }
-
-    public DirectMessage() {
-    }
-
-    public Account getSender() {
-        return sender;
-    }
-
-    public void setSender(Account sender) {
-        this.sender = sender;
-    }
-
-    public Account getReceiver() {
-        return receiver;
-    }
-
-    public void setReceiver(Account receiver) {
-        this.receiver = receiver;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Long getDmId() {
-        return dmId;
-    }
-
-    public void setDmId(Long dmId) {
-        this.dmId = dmId;
     }
 }
