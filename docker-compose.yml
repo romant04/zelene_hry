@@ -21,10 +21,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    env_file:
-      - ./backend/.env
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      - DB_TEST_URL=${DB_TEST_URL}
+      - DB_URL=${DB_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - PROFILE=${PROFILE}
     networks:
       - app-network
 

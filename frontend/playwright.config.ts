@@ -13,4 +13,5 @@ export default defineConfig({
 		trace: 'on-first-retry'
 	},
 	reporter: [['html'], ['json', { outputFile: 'results.json' }]],
+	globalTeardown: './tests/global-teardown.ts'
 });
