@@ -37,6 +37,7 @@
 	bind:this={button}
 	onclick={handleClick}
 	class="bg-primary-500 hover:bg-primary-400 w-10 h-10 rounded-full flex justify-center items-center"
+	title="Uživatelské menu"
 >
 	<Icon icon="mdi:user" width="30" class="text-white" />
 </button>

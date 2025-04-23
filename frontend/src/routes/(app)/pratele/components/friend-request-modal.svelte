@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { addToast } from '../../../../stores/toast';
 	import Spinner from '../../components/spinner.svelte';
-	import {API} from "../../../../constants/urls";
+	import { API } from '../../../../constants/urls';
 
 	let { friend = $bindable() }: { friend: User | null } = $props();
 
@@ -76,8 +76,13 @@
 			bind:value={message}
 			class="input mt-1 !bg-tertiary-800 px-2 py-1 resize-none"
 			rows="4"
+			name="message"
 		></textarea>
-		<button onclick={handleAddFriend} class="btn variant-filled-primary mt-5 w-full">
+		<button
+			title="Odeslat žádost"
+			onclick={handleAddFriend}
+			class="btn variant-filled-primary mt-5 w-full"
+		>
 			{#if loading}
 				<Spinner w="w-5" h="h-5" fill="fill-white" />
 			{:else}

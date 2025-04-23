@@ -25,14 +25,22 @@
 
 <div>
 	{#each $toast as { id, type, message, duration }}
-		<div transition:fly={{y: -50, opacity: 0, duration: 400}} class="fixed max-w-28 flex items-center gap-2 z-50 top-6 right-6 min-w-64 p-4 pr-8 rounded-md bg-tertiary-700 text-white">
-			<Icon icon={toastIcon[type]} width="24" class="{iconColor[type]} min-w-[24px]"/>
-			<span id={`error-${id}`} class={message.length > 50 ? 'text-sm' : 'text-base'}>{message}</span>
+		<div
+			transition:fly={{ y: -50, opacity: 0, duration: 400 }}
+			class="fixed max-w-28 flex items-center gap-2 z-50 top-6 right-6 min-w-64 p-4 pr-8 rounded-md bg-tertiary-700 text-white"
+		>
+			<Icon icon={toastIcon[type]} width="24" class="{iconColor[type]} min-w-[24px]" />
+			<span id={`${type}-${id}`} class={message.length > 50 ? 'text-sm' : 'text-base'}
+				>{message}</span
+			>
 			<button class="absolute top-2 text-error-400 right-2" onclick={() => removeToast(id)}>
 				<Icon icon="system-uicons:cross" width="24" />
 			</button>
 
-			<div class="progress-bar absolute bottom-0 left-0 h-1 {durationColor[type]}" style="animation-duration: {duration}ms"></div>
+			<div
+				class="progress-bar absolute bottom-0 left-0 h-1 {durationColor[type]}"
+				style="animation-duration: {duration}ms"
+			></div>
 		</div>
 	{/each}
 </div>

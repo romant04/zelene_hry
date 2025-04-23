@@ -25,5 +25,8 @@ public class TestController {
         jdbcTemplate.execute("TRUNCATE TABLE friend_requests RESTART IDENTITY CASCADE");
         jdbcTemplate.execute("DELETE FROM accounts WHERE email != 'test@test.test' AND email != 'test.friend@gmail.com'");
         jdbcTemplate.execute("DELETE FROM players USING accounts WHERE accounts.player_user_id = players.user_id AND (accounts.email != 'test@test.test' AND accounts.email != 'test.friend@gmail.com')");
+
+        // INSERT DEFAULT TEST DATA
+        jdbcTemplate.execute("INSERT INTO friend_requests (sender_id, receiver_id, message, sent_at) VALUES (12, 13, 'This is a test message!', NOW()) ON CONFLICT DO NOTHING");
     }
 }
