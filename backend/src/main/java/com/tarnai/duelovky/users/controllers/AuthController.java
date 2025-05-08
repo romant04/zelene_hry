@@ -33,6 +33,10 @@ public class AuthController {
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors().get(0).getDefaultMessage());
         }
 
+        // Find out if the email or username already exists
+        if (AuthService.emailExists(registerUserDto.getEmail()) || AuthService.usernameExists(registerUserDto.getUsername())) {
+            return ResponseEntity.badRequest().body("Uživatel s tímto emailem nebo uživatelským jménem již existuje");
+        }
         Account registeredUser = AuthService.signup(registerUserDto);
 
         String jwtToken = jwtService.generateToken(registeredUser);

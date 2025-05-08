@@ -23,7 +23,18 @@
 				password
 			})
 		});
-		const data = await res.json();
+
+		let data;
+		let error: string;
+
+		const contentType = res.headers.get("content-type");
+		if (contentType && contentType.includes("application/json")) {
+			data = await res.json();
+		} else {
+			error = await res.text();
+			addToast(`${error}`, 'error'); // If there is a defined error message use it.
+			return;
+		}
 
 		if (res.ok) {
 			setToken(data.token);
@@ -52,7 +63,17 @@
 			})
 		});
 
-		const data = await res.json();
+		let data;
+		let error: string;
+
+		const contentType = res.headers.get("content-type");
+		if (contentType && contentType.includes("application/json")) {
+			data = await res.json();
+		} else {
+			error = await res.text();
+			addToast(`${error}`, 'error'); // If there is a defined error message use it.
+			return;
+		}
 
 		if (res.ok) {
 			setToken(data.token);

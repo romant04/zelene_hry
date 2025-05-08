@@ -50,4 +50,11 @@ public class AuthService {
 
         return userRepository.findBySearchTerm(input.getEmail()).stream().findFirst().orElse(null);
     }
+
+    public boolean emailExists(String email) {
+        return userRepository.findByEmail(email).stream().findFirst().isPresent();
+    }
+    public boolean usernameExists(String username) {
+        return userRepository.findByUsername(username).stream().findFirst().isPresent();
+    }
 }

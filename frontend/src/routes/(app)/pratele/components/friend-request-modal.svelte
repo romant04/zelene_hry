@@ -77,6 +77,7 @@
 			class="input mt-1 !bg-tertiary-800 px-2 py-1 resize-none"
 			rows="4"
 			name="message"
+			maxlength="300"
 		></textarea>
 		<button
 			title="Odeslat žádost"

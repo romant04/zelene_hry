@@ -58,7 +58,7 @@
 			{/if}
 		</div>
 		<form onsubmit={sendMessage} class="flex gap-1 mt-auto">
-			<input type="text" class="input p-2" bind:value={message} />
+			<input type="text" class="input p-2" maxlength="300" bind:value={message} />
 			<button type="submit" class="btn variant-filled-primary w-36 rounded-md">
 				{#if loadingSending}
 					<Spinner w="w-5" h="h-5" fill="fill-white" />
