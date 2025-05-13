@@ -18,6 +18,8 @@ test.describe('Register Tests', () => {
 		await registerPage.register('test@test.test', 'wrongpass1234'); // already taken
 
 		const errorMessage = await registerPage.getErrorMessage();
-		expect(errorMessage).toContain('Registrace se nezdařila');
+		expect(errorMessage).toContain(
+			'Uživatel s tímto emailem nebo uživatelským jménem již existuje'
+		);
 	});
 });
