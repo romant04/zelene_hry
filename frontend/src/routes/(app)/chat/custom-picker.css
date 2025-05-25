@@ -1,0 +1,15 @@
+@media only screen and (max-width: 800px) {
+    div:has(div.picmo__dark) {
+        width: 300px;
+    }
+    div.picmo__dark {
+        transform: scale(0.8) translateX(-50px) translateY(50px);
+    }
+    div.picmo__dark button {
+        transform: scale(0.7);
+    }
+    .picmo__closeButton {
+        right: 20px !important;
+        top: 80px !important;
+    }
+}

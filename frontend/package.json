@@ -44,6 +44,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@picmo/popup-picker": "^5.8.5",
     "@types/socket.io": "^3.0.2",
     "socket.io-client": "^4.8.1"
   }
