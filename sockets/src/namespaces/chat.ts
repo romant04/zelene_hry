@@ -32,5 +32,5 @@ export function setupChatNamespace(io: Server) {
     });
   });
 
-  console.log("Chat initialized.");
+  console.log("Chat namespace initialized.");
 }

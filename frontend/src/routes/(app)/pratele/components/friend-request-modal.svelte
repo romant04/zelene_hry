@@ -4,8 +4,18 @@
 	import { addToast } from '../../../../stores/toast';
 	import Spinner from '../../components/spinner.svelte';
 	import { API } from '../../../../constants/urls';
+	import type { FriendRequest } from '../../../../types/friendRequest';
+	import type { Socket } from 'socket.io-client';
 
-	let { friend = $bindable() }: { friend: User | null } = $props();
+	let {
+		friend = $bindable(),
+		friendRequests = $bindable(),
+		friendSocket = $bindable()
+	}: {
+		friend: User | null;
+		friendRequests: FriendRequest[];
+		friendSocket: Socket | null;
+	} = $props();
 
 	let modal: HTMLDivElement | null = $state(null);
 	let message = $state('');
@@ -48,11 +58,14 @@
 			})
 		});
 
+		const data = await response.json();
 		loading = false;
 
 		if (response.ok) {
 			friend = null;
 			addToast('Žádost o přátelství byla úspěšně odeslána', 'success');
+			friendSocket?.emit('friendRequestSent', data);
+			friendRequests.push(data);
 			return;
 		}
 

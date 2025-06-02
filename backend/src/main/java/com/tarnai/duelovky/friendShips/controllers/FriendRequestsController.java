@@ -65,7 +65,7 @@ public class FriendRequestsController {
 
         FriendRequest friendRequest = new FriendRequest(sender, receiver.get(), friendRequestInputDto.getMessage(), new Date());
         friendRequestService.sendFriendRequest(friendRequest);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(new FriendRequestDto(friendRequest));
     }
 
     @PostMapping("/friendRequest/accept")

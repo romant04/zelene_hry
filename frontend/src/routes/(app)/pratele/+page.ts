@@ -2,7 +2,7 @@ import type { PageLoad } from './$types';
 import type { FriendRequest } from '../../../types/friendRequest';
 import type { User } from '../../../types/user';
 import type { Friendship } from '../../../types/friendship';
-import { API } from "../../../constants/urls";
+import { API } from '../../../constants/urls';
 
 export const load: PageLoad = async () => {
 	try {
@@ -31,7 +31,7 @@ export const load: PageLoad = async () => {
 				suggestedFriends: suggestedFriends as User[]
 			}
 		};
-	} catch (error) {
+	} catch {
 		return {
 			status: 404,
 			error: new Error('Failed to load')

@@ -4,8 +4,8 @@
 	let { signIn }: { signIn: boolean } = $props();
 	import { setToken } from '../../../../stores/auth';
 	import FormField from './form-field.svelte';
-	import {API} from "../../../../constants/urls";
-	import {addToast} from "../../../../stores/toast";
+	import { API } from '../../../../constants/urls';
+	import { addToast } from '../../../../stores/toast';
 
 	let username = $state('');
 	let email = $state('');
@@ -27,8 +27,8 @@
 		let data;
 		let error: string;
 
-		const contentType = res.headers.get("content-type");
-		if (contentType && contentType.includes("application/json")) {
+		const contentType = res.headers.get('content-type');
+		if (contentType && contentType.includes('application/json')) {
 			data = await res.json();
 		} else {
 			error = await res.text();
@@ -66,8 +66,8 @@
 		let data;
 		let error: string;
 
-		const contentType = res.headers.get("content-type");
-		if (contentType && contentType.includes("application/json")) {
+		const contentType = res.headers.get('content-type');
+		if (contentType && contentType.includes('application/json')) {
 			data = await res.json();
 		} else {
 			error = await res.text();

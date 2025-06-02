@@ -8,12 +8,14 @@
 		friend,
 		isFriend,
 		activeFriend = $bindable(),
+		friendRequestSent,
 		friendToBeRemoved = $bindable(),
 		bgColor
 	}: {
 		friend: User;
 		isFriend: boolean;
 		activeFriend?: User | null;
+		friendRequestSent?: boolean;
 		friendToBeRemoved?: User | null;
 		bgColor?: string;
 	} = $props();
@@ -49,6 +51,10 @@
 			<button onclick={handleRemoveFriend} class="variant-filled-error btn h-9 w-32 text-sm"
 				>Odebrat z přátel</button
 			>
+		</div>
+	{:else if friendRequestSent}
+		<div class="variant-filled-surface pointer-events-none btn h-9 w-32 text-sm">
+			Žádost odeslána
 		</div>
 	{:else}
 		<button onclick={handleAddFriend} class="variant-filled-primary btn h-9 w-32 text-sm"

@@ -8,15 +8,18 @@
 	import type { FriendRequest } from '../../../types/friendRequest';
 	import type { Friendship } from '../../../types/friendship';
 	import RemoveFriendModal from './components/remove-friend-modal.svelte';
+	import Search from './components/search.svelte';
+	import { createFriendsSocket } from '$lib/socket';
+	import type { Socket } from 'socket.io-client';
+	import { addToast } from '../../../stores/toast';
 
-	let searchTerm = $state('');
-	let filter = $state('');
-	let debounceTimeout: number | null = $state(null);
-
-	let activeFriend: User | null = $state(null);
-	let friendToBeRemoved: User | null = $state(null);
-
+	let friendSocket: Socket | null = $state(null);
 	let { data }: PageProps = $props();
+
+	let filter = $state('');
+	let activeFriend: User | null = $state(null);
+
+	let friendToBeRemoved: User | null = $state(null);
 
 	let friendRequests: FriendRequest[] = $state([]);
 	let friendships: Friendship[] = $state([]);
@@ -27,21 +30,6 @@
 			friendRequests = data.data.friendRequest;
 		}
 	});
-
-	function handleSearch(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
-		if (!event.target) {
-			return;
-		}
-
-		searchTerm = (event.target as HTMLInputElement).value;
-		if (debounceTimeout) {
-			clearTimeout(debounceTimeout);
-		}
-		debounceTimeout = window.setTimeout(() => {
-			filter = searchTerm;
-			debounceTimeout = null;
-		}, 750);
-	}
 
 	function updateAfterFriendRequest(
 		gotAccepted: boolean,
@@ -71,6 +59,44 @@
 		);
 	}
 
+	$effect(() => {
+		if (!$auth.data?.id) {
+			return;
+		}
+
+		if (friendSocket === null) {
+			friendSocket = createFriendsSocket($auth.data.id);
+
+			friendSocket.on('friendRequestRejected', (friendRequest: FriendRequest) => {
+				addToast(
+					`Vaše žádost o přátelství uživateli ${friendRequest.receiver.username} byla zamítnuta`,
+					'error',
+					10000
+				);
+				updateAfterFriendRequest(false, friendRequest);
+			});
+			friendSocket.on(
+				'friendRequestAccepted',
+				(data: { friendRequest: FriendRequest; newFriend: Friendship }) => {
+					updateAfterFriendRequest(true, data.friendRequest, data.newFriend);
+				}
+			);
+
+			friendSocket.on('friendRequestSent', (friendRequest: FriendRequest) => {
+				addToast(
+					`Přišla vám nová žádost o přátelství od uživatele ${friendRequest.sender.username}`,
+					'success'
+				);
+				friendRequests.push(friendRequest);
+			});
+
+			friendSocket.on('friendRemoved', (friend: User) => {
+				addToast(`Uživatel ${friend.username} si vás odstranil z přátel`, 'error');
+				updateAfterFriendRemoved(friend);
+			});
+		}
+	});
+
 	// TODO: Implement pagination instead of scrollbar where it looks better
 </script>
 
@@ -79,10 +105,10 @@
 </svelte:head>
 
 {#if friendToBeRemoved}
-	<RemoveFriendModal bind:friend={friendToBeRemoved} {updateAfterFriendRemoved} />
+	<RemoveFriendModal bind:friend={friendToBeRemoved} {friendSocket} {updateAfterFriendRemoved} />
 {/if}
 {#if activeFriend}
-	<FriendRequestModal bind:friend={activeFriend} />
+	<FriendRequestModal bind:friend={activeFriend} bind:friendRequests bind:friendSocket />
 {/if}
 <div class="container mt-16 grid grid-cols-1 lg:grid-cols-2 gap-10">
 	<div>
@@ -90,16 +116,7 @@
 		<div
 			class="mt-5 rounded-md bg-gradient-to-tr from-tertiary-700 to-tertiary-500 p-5 shadow-sm shadow-primary-600"
 		>
-			<div class="flex items-center gap-2">
-				<label for="search" class="label text-sm font-bold">Vyhledat: </label>
-				<input
-					type="text"
-					name="search"
-					class="input !bg-surface-900 px-2 py-1"
-					placeholder="Jméno hráče"
-					oninput={handleSearch}
-				/>
-			</div>
+			<Search bind:filter />
 			<div class="mt-5 flex h-[30rem] flex-col gap-2 overflow-auto">
 				{#if data.data && $auth.data !== null}
 					{@const userId = $auth.data.id}
@@ -108,7 +125,14 @@
 						.filter((x) => x.username
 								.toLowerCase()
 								.includes(filter.toLowerCase())) as player}
-						<PlayerCard friend={player} isFriend={false} bind:activeFriend />
+						<PlayerCard
+							friend={player}
+							isFriend={false}
+							bind:activeFriend
+							friendRequestSent={friendRequests.some(
+								(fr) => fr.receiver.id === player.id
+							)}
+						/>
 					{/each}
 				{:else}
 					<p>Loading...</p>
@@ -145,9 +169,16 @@
 		<div>
 			<h2 class="font-heading text-4xl font-semibold">Žádosti o přátelství</h2>
 			<div class="mt-5 flex max-h-[15rem] flex-col gap-2 overflow-auto">
-				{#each friendRequests as request}
-					<FriendRequestTab friendRequest={request} {updateAfterFriendRequest} />
-				{/each}
+				{#if $auth.data?.id}
+					{@const userId = $auth.data.id}
+					{#each friendRequests.filter((fr) => fr.receiver.id === userId) as request}
+						<FriendRequestTab
+							friendRequest={request}
+							{updateAfterFriendRequest}
+							{friendSocket}
+						/>
+					{/each}
+				{/if}
 			</div>
 		</div>
 	</div>

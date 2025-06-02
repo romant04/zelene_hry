@@ -3,12 +3,19 @@
 	import { onMount } from 'svelte';
 	import { addToast } from '../../../../stores/toast';
 	import Spinner from '../../components/spinner.svelte';
-	import {API} from "../../../../constants/urls";
+	import { API } from '../../../../constants/urls';
+	import type { Socket } from 'socket.io-client';
+	import { auth } from '../../../../stores/auth';
 
 	let {
 		friend = $bindable(),
+		friendSocket = $bindable(),
 		updateAfterFriendRemoved
-	}: { friend: User | null; updateAfterFriendRemoved: (friend: User) => void } = $props();
+	}: {
+		friend: User | null;
+		friendSocket: Socket | null;
+		updateAfterFriendRemoved: (friend: User) => void;
+	} = $props();
 
 	let modal: HTMLDivElement | null = $state(null);
 	let loading = $state(false);
@@ -53,6 +60,7 @@
 		if (response.ok) {
 			updateAfterFriendRemoved(friend);
 			addToast('Přítel byl úspěšně odstraněn', 'success');
+			friendSocket?.emit('friendRemoved', { user: $auth.data, friend: friend.id }); // We use $auth.data?.id, because the other user needs to know who ended friendship with him
 			friend = null;
 			return;
 		}

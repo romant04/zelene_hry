@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { createServer } from "http";
 import { setupChatNamespace } from "./namespaces/chat";
+import { setupFriendsNamespace } from "./namespaces/friends";
 
 export function setupSocket(server: ReturnType<typeof createServer>) {
   const io = new Server(server, {
@@ -9,6 +10,7 @@ export function setupSocket(server: ReturnType<typeof createServer>) {
 
   // Attach each namespace
   setupChatNamespace(io);
+  setupFriendsNamespace(io);
 
   console.log("Socket.io initialized");
 }

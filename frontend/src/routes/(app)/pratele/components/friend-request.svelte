@@ -2,11 +2,13 @@
 	import type { FriendRequest } from '../../../../types/friendRequest';
 	import type { Friendship } from '../../../../types/friendship';
 	import { addToast } from '../../../../stores/toast';
-	import {API} from "../../../../constants/urls";
+	import { API } from '../../../../constants/urls';
+	import type { Socket } from 'socket.io-client';
 
 	let {
 		friendRequest,
-		updateAfterFriendRequest
+		updateAfterFriendRequest,
+		friendSocket
 	}: {
 		friendRequest: FriendRequest;
 		updateAfterFriendRequest: (
@@ -14,6 +16,7 @@
 			friendRequest: FriendRequest,
 			newFriend?: Friendship
 		) => void;
+		friendSocket: Socket | null;
 	} = $props();
 
 	async function handleAccept() {
@@ -30,6 +33,13 @@
 		if (response.ok) {
 			addToast('Úspěšne jste přijali jste žádost o přátelství', 'success');
 			updateAfterFriendRequest(true, friendRequest, data);
+
+			if (friendSocket) {
+				friendSocket.emit('friendRequestAccepted', {
+					friendRequest: friendRequest,
+					newFriend: data
+				});
+			}
 			return;
 		}
 
@@ -49,6 +59,10 @@
 		if (response.ok) {
 			addToast('Žádost o přátelství byla zamítnuta', 'success');
 			updateAfterFriendRequest(false, friendRequest);
+
+			if (friendSocket) {
+				friendSocket.emit('friendRequestRejected', friendRequest);
+			}
 			return;
 		}
 	}
