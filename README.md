@@ -20,3 +20,4 @@ Online herní platforma se sociálními prkvy. Je tvořena s myšlenkou náhradi
 - **Backend (API)** - Java Spring Boot
 - **Backend (websockets)** - Node.js Socket.io
 - **Databáze**: PostgreSQL
+- **RabbitMQ** - pro notifikace

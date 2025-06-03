@@ -12,6 +12,8 @@
 	import { createFriendsSocket } from '$lib/socket';
 	import type { Socket } from 'socket.io-client';
 	import { addToast } from '../../../stores/toast';
+	import { clearSocket } from '../../../utils/socket';
+	import { onDestroy } from 'svelte';
 
 	let friendSocket: Socket | null = $state(null);
 	let { data }: PageProps = $props();
@@ -40,8 +42,12 @@
 			return;
 		}
 
+		console.log(friendRequest);
+
 		friendRequests = friendRequests.filter(
-			(request) => request.sender.id !== friendRequest.sender.id
+			(request) =>
+				request.sender.id !== friendRequest.sender.id ||
+				request.receiver.id !== friendRequest.receiver.id
 		);
 
 		if (gotAccepted && newFriend) {
@@ -94,6 +100,13 @@
 				addToast(`Uživatel ${friend.username} si vás odstranil z přátel`, 'error');
 				updateAfterFriendRemoved(friend);
 			});
+		}
+	});
+
+	onDestroy(() => {
+		if (friendSocket) {
+			clearSocket(friendSocket);
+			friendSocket = null;
 		}
 	});
 

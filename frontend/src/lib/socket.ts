@@ -12,3 +12,9 @@ export const createFriendsSocket = (userId: number) => {
 		auth: { userId }
 	});
 };
+
+export const createNotificationSocket = (userId: number) => {
+	return io(`${WEBSOCKET}/notification`, {
+		auth: { userId }
+	});
+};
