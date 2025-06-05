@@ -42,8 +42,6 @@
 			return;
 		}
 
-		console.log(friendRequest);
-
 		friendRequests = friendRequests.filter(
 			(request) =>
 				request.sender.id !== friendRequest.sender.id ||

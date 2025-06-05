@@ -5,6 +5,7 @@ import { Friendship } from "../types/friendship";
 import { User } from "../types/user";
 import { emitOrNotify } from "../utils/emitOrNotify";
 import { NotificationMessage } from "../types/notificationMessage";
+import { v4 as uuidv4 } from "uuid";
 
 const NAMESPACE = "/friends";
 export function setupFriendsNamespace(io: Server) {
@@ -25,6 +26,7 @@ export function setupFriendsNamespace(io: Server) {
             const senderId = await getClientId(io, NAMESPACE, data.friendRequest.sender.id);
 
             const message: NotificationMessage = {
+                id: uuidv4(),
                 message: `Vaše žádost o přátelství uživateli ${data.friendRequest.receiver.username} byla akecptovaná.`,
                 redirectUrl: `/pratele`,
                 timestamp: new Date()
@@ -39,6 +41,7 @@ export function setupFriendsNamespace(io: Server) {
             const senderId = await getClientId(io, NAMESPACE, friendRequest.sender.id);
 
             const message: NotificationMessage = {
+                id: uuidv4(),
                 message: `Váše žádost o přátelství uživateli ${friendRequest.receiver.username} byla zamítnuta.`,
                 redirectUrl: `/pratele`,
                 timestamp: new Date()
@@ -54,6 +57,7 @@ export function setupFriendsNamespace(io: Server) {
             const receiverId = await getClientId(io, NAMESPACE, friendRequest.receiver.id);
 
             const message: NotificationMessage = {
+                id: uuidv4(),
                 message: `${friendRequest.sender.username} vám poslal žádost o přátelství.`,
                 redirectUrl: `/pratele`,
                 timestamp: new Date()
@@ -70,6 +74,7 @@ export function setupFriendsNamespace(io: Server) {
             const friendId = await getClientId(io, NAMESPACE, data.friend);
 
             const message: NotificationMessage = {
+                id: uuidv4(),
                 message: `${data.user.username} si vás odebral z přátel.`,
                 redirectUrl: `/pratele`,
                 timestamp: new Date()

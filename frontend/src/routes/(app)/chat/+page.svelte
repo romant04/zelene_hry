@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-	<title>Duelovky | chat</title>
+	<title>Duelovky | Chat</title>
 </svelte:head>
 
 {#if $auth.data !== null && data.data}

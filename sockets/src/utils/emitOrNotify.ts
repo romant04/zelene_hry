@@ -16,7 +16,6 @@ export async function sendNotification(routingKey: string, message: string) {
     await channel.assertExchange(exchange, 'topic', { durable: true });
 
     channel.publish(exchange, routingKey, Buffer.from(message), { persistent: true });
-    console.log(`Sent message with key "${routingKey}": ${message}`);
 
     setTimeout(() => {
         channel.close();

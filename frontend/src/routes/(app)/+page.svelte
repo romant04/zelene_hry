@@ -59,7 +59,7 @@
 </script>
 
 <svelte:head>
-	<title>Duelovky | Home</title>
+	<title>Duelovky</title>
 </svelte:head>
 
 <div class="h-full">

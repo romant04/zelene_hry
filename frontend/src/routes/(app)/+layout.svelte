@@ -7,9 +7,12 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import Toast from './components/toast.svelte';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount, setContext } from 'svelte';
 	import type { Socket } from 'socket.io-client';
 	import { createNotificationSocket } from '$lib/socket';
+	import type { NotificationMessage } from '../../types/notificationMessage';
+	import { clearSocket } from '../../utils/socket';
+	import { notifications, updateNotifications } from '../../stores/notifications';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -37,10 +40,28 @@
 	$effect(() => {
 		if (!notificationSocket && $auth.data?.id) {
 			notificationSocket = createNotificationSocket($auth.data.id);
+			setContext('notificationSocket', notificationSocket);
 
-			notificationSocket.on('notification', (notification) => {
-				console.log(notification);
+			notificationSocket.emit('fetchNotifications');
+
+			notificationSocket.on('notifications', (notifications: NotificationMessage[]) => {
+				updateNotifications(notifications);
 			});
+
+			notificationSocket.on('notification', (notification: NotificationMessage) => {
+				if ($notifications.some((n) => n.id === notification.id)) {
+					return; // Ignore duplicate notifications
+				}
+
+				updateNotifications([...$notifications, notification]);
+			});
+		}
+	});
+
+	onDestroy(() => {
+		if (notificationSocket) {
+			clearSocket(notificationSocket);
+			setContext('notificationSocket', null);
 		}
 	});
 </script>

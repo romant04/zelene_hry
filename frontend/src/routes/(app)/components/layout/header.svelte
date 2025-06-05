@@ -7,6 +7,8 @@
 	import MobileMenu from './mobile-menu.svelte';
 	import { headerLinks } from '../../../../constants/links';
 	import UserMenuModal from './user-menu/user-menu-modal.svelte';
+	import Notifications from './notifications.svelte';
+	import NotificationModal from './notification-modal.svelte';
 
 	let mobileMenuOpened = false;
 
@@ -44,6 +46,7 @@
 			} else {
 				header.style.transform = 'translateY(-100%)';
 				isOpenModal = false;
+				isOpenNotifications = false;
 			}
 		}
 
@@ -65,7 +68,9 @@
 	});
 
 	let isOpenModal = $state(false);
+	let isOpenNotifications = $state(false);
 	let modal: HTMLElement | undefined = $state(undefined);
+	let notificationModal: HTMLElement | undefined = $state(undefined);
 </script>
 
 <svelte:window bind:scrollY />
@@ -106,16 +111,21 @@
 
 		{#snippet trail()}
 			{#if isAuthenticated === 1 && $auth.data}
-				<div class="hidden md:block">
+				<div class="hidden md:block lg:hidden">
+					<UserMenu bind:isOpenModal bind:modal />
+				</div>
+				<Notifications bind:isOpenNotifications bind:modal={notificationModal} />
+				<div class="hidden lg:block">
 					<UserMenu bind:isOpenModal bind:modal />
 				</div>
 				<Icon
-					width="38"
+					width="30"
 					icon="heroicons-outline:menu-alt-3"
 					onclick={handleIsOpen}
-					class="cursor-pointer lg:hidden"
+					class="cursor-pointer lg:hidden !ml-1 sm:ml-auto"
 				/>
 			{:else if isAuthenticated === 2}
+				<Notifications bind:isOpenNotifications bind:modal={notificationModal} />
 				<Icon
 					width="38"
 					icon="heroicons-outline:menu-alt-3"
@@ -137,5 +147,8 @@
 
 {#if isOpenModal}
 	<UserMenuModal bind:modal bind:isOpen={isOpenModal} />
+{/if}
+{#if isOpenNotifications}
+	<NotificationModal bind:isOpenNotifications bind:modal={notificationModal} />
 {/if}
 <MobileMenu links={headerLinks} bind:isOpen {isAuthenticated} />
