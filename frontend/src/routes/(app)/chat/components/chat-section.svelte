@@ -5,8 +5,8 @@
 	import ChatBubble from './chat-bubble.svelte';
 	import type { Dm } from '../../../../types/dm';
 	import Spinner from '../../components/spinner.svelte';
-	import { createPopup } from "@picmo/popup-picker";
-	import "../custom-picker.css";
+	import { createPopup } from '@picmo/popup-picker';
+	import '../custom-picker.css';
 
 	let {
 		loading,
@@ -22,7 +22,7 @@
 		username: string;
 		chatContainer: HTMLDivElement | null;
 		messages: Dm[];
-		sendMessage: () => void;
+		sendMessage: (inputElement: HTMLInputElement | undefined) => void;
 		message: string;
 	} = $props();
 
@@ -32,22 +32,30 @@
 	$effect(() => {
 		if (triggerButton && !picker) {
 			console.log('Creating emoji picker');
-			picker = createPopup({}, {
-				triggerElement: triggerButton,
-				referenceElement: triggerButton,
-				position: 'top-start',
-				className: "picmo__dark",
-			});
+			picker = createPopup(
+				{},
+				{
+					triggerElement: triggerButton,
+					referenceElement: triggerButton,
+					position: 'top-start',
+					className: 'picmo__dark'
+				}
+			);
 
-			picker.addEventListener('emoji:select', (event: {emoji: string, hexcode: string, label: string}) => {
-				message += event.emoji;
-			});
+			picker.addEventListener(
+				'emoji:select',
+				(event: { emoji: string; hexcode: string; label: string }) => {
+					message += event.emoji;
+				}
+			);
 
 			picker.addEventListener('picker:open', () => {
 				console.log('Emoji picker opened');
 			});
 		}
 	});
+
+	let inputElement: HTMLInputElement | undefined = $state(undefined);
 </script>
 
 <div class="p-3 md:p-5 h-[calc(100vh-144px)] grid grid-rows-[auto,1fr,auto]">
@@ -82,14 +90,22 @@
 				<p>S tímto uživatelem jste si zatím neposlali žádnou zprávu</p>
 			{/if}
 		</div>
-		<form onsubmit={sendMessage} class="flex gap-1 mt-auto">
-			<button type="button" class="pr-2" bind:this={triggerButton} onclick={() => picker?.open()}>
-				<Icon
-						icon="bxs:smile"
-						width="24"
-				/>
+		<form onsubmit={() => sendMessage(inputElement)} class="flex gap-1 mt-auto">
+			<button
+				type="button"
+				class="pr-2"
+				bind:this={triggerButton}
+				onclick={() => picker?.open()}
+			>
+				<Icon icon="bxs:smile" width="24" />
 			</button>
-			<input type="text" class="input p-2" maxlength="300" bind:value={message} />
+			<input
+				bind:this={inputElement}
+				type="text"
+				class="input p-2"
+				maxlength="300"
+				bind:value={message}
+			/>
 			<button type="submit" class="btn variant-filled-primary w-36 rounded-md">
 				{#if loadingSending}
 					<Spinner w="w-5" h="h-5" fill="fill-white" />

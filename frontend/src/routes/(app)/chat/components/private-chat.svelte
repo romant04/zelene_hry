@@ -10,7 +10,7 @@
 	import { activeChat } from '../../../../stores/active-chat';
 	import ChatSection from './chat-section.svelte';
 	import { addToast } from '../../../../stores/toast';
-	import {API} from "../../../../constants/urls";
+	import { API } from '../../../../constants/urls';
 
 	let { friends }: { friends: User[] } = $props();
 	let chatSocket: Socket | null = null;
@@ -43,8 +43,8 @@
 		}, 500);
 	}
 
-	async function sendMessage() {
-		if (!$activeChat.activeChat || !$auth.data || !chatSocket) {
+	async function sendMessage(inputElement: HTMLInputElement | undefined) {
+		if (!$activeChat.activeChat || !$auth.data || !chatSocket || !inputElement) {
 			return;
 		}
 
@@ -70,6 +70,7 @@
 			})
 		});
 
+		inputElement.focus();
 		const data = (await response.json()) as Dm;
 		chatSocket.emit('sendMessage', data);
 	}
@@ -132,6 +133,7 @@
 
 	// Cleanup on component destroy
 	onDestroy(() => {
+		$activeChat.activeChat = null;
 		if (chatSocket) {
 			clearSocket(chatSocket);
 			chatSocket = null;

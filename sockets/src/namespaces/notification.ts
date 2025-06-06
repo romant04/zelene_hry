@@ -68,7 +68,7 @@ export function setupNotificationNamespace(io: Server) {
             }
         })
 
-        socket.on("acknowledge", async (notificationId: string) => {
+        socket.on("ack", async (notificationsId: string[] | string) => {
             const id = await getClientId(io, NAMESPACE, userId);
             if (!id) {
                 console.log(`No client ID found for user ${userId}, cannot fetch notifications.`);
@@ -76,9 +76,15 @@ export function setupNotificationNamespace(io: Server) {
             }
 
             const queue = getUserQueue(userId);
-            queue.delete(notificationId);
 
-            void ackNotification(notificationId)
+            if (typeof notificationsId === "string") {
+                notificationsId = [notificationsId];
+            }
+
+            for (const id of notificationsId) {
+                queue.delete(id);
+                void ackNotification(id)
+            }
         })
     });
 

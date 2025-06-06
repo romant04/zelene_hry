@@ -3,6 +3,7 @@
 	import { notifications, updateNotifications } from '../../../../stores/notifications';
 	import { getContext } from 'svelte';
 	import type { Socket } from 'socket.io-client';
+	import type { NotificationMessage } from '../../../../types/notificationMessage';
 
 	let {
 		isOpenNotifications = $bindable(),
@@ -24,12 +25,17 @@
 		return `Před ${seconds} sekund${seconds === 1 ? 'ou' : 'ami'}`;
 	}
 
-	function handleNotificationClick(id: string) {
+	function handleNotificationClick(notification: NotificationMessage) {
 		isOpenNotifications = false;
-		updateNotifications([...$notifications.filter((notification) => notification.id !== id)]);
+		if (notification.redirectUrl === '/chat') {
+			// If the notification is for chat, we don't need to update the notifications
+			// as it will be handled in the chat section.
+			return;
+		}
+		updateNotifications([...$notifications.filter((nt) => nt.id !== notification.id)]);
 
 		if (notificationSocket) {
-			notificationSocket.emit('acknowledge', id);
+			notificationSocket.emit('ack', notification.id);
 		}
 	}
 
@@ -51,7 +57,7 @@
 		{#each $notifications as notification}
 			<a
 				href={notification.redirectUrl}
-				onclick={() => handleNotificationClick(notification.id)}
+				onclick={() => handleNotificationClick(notification)}
 				class="bg-tertiary-700 flex flex-col justify-between min-h-20 p-2 rounded-md hover:bg-tertiary-800 cursor-pointer"
 			>
 				<p class="text-sm">{notification.message}</p>
