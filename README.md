@@ -9,6 +9,7 @@ Online herní platforma se sociálními prkvy. Je tvořena s myšlenkou náhradi
 - Systém přátel ✅
 - Privátní chatování ✅
 - Chatovací místnosti ❌
+- Notifikace ✅
 
 #### Herní ❌ 
 - 1v1 online hry
