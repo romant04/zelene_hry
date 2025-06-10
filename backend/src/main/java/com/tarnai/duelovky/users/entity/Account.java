@@ -1,6 +1,8 @@
 package com.tarnai.duelovky.users.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.tarnai.duelovky.chatGroups.entity.Chat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,6 +32,10 @@ public class Account implements UserDetails {
     @OneToOne()
     @JoinColumn(name = "admin_user_id", referencedColumnName = "user_id", nullable = true)
     private Admin admin;
+
+    @ManyToMany(mappedBy = "users")
+    @JsonBackReference
+    private List<Chat> chats;
 
     public Account(String username, String email, String password, Player player) {
         this.username = username;
