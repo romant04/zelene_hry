@@ -13,11 +13,12 @@
 	import { addToast } from '../../../../stores/toast';
 	import { API } from '../../../../constants/urls';
 	import Select from '../../components/select.svelte';
-	import type { Chatroom, Message } from '../../../../types/chat';
+	import type { ChatMessage, Chatroom, Message } from '../../../../types/chat';
 	import { isChatroom } from '../../../../utils/isChatroom.js';
+	import { createChatroomSocket } from '$lib/socket.js';
 
-	// TODO: Update sockets to handle both DMs and chatrooms properly
 	// TODO: Handle joining chat rooms
+	// TODO: Handle notifications
 
 	let {
 		friends,
@@ -88,7 +89,7 @@
 
 			inputElement.focus();
 			const data = (await response.json()) as Message;
-			chatSocket.emit('sendMessage', data);
+			chatSocket.emit('sendMessage', { message: data, room: $activeChat.activeChat });
 			return;
 		}
 
@@ -124,7 +125,10 @@
 					}
 				}
 			);
-			messages = await response.json();
+			const data: ChatMessage[] = await response.json();
+			messages = data.sort(
+				(a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
+			);
 			return;
 		}
 
@@ -167,7 +171,17 @@
 		}
 
 		if ($activeChat.activeChat && chatSocket === null && $auth.data?.id) {
-			chatSocket = createChatSocket($auth.data.id, $activeChat.activeChat.id);
+			if (isChatroom($activeChat.activeChat)) {
+				// If it's a chatroom, we need to create a socket for the chatroom
+				chatSocket = createChatroomSocket(
+					$auth.data,
+					$activeChat.activeChat.id,
+					$activeChat.activeChat.users
+				);
+			} else {
+				// If it's a DM, we create a socket for the DM
+				chatSocket = createChatSocket($auth.data.id, $activeChat.activeChat.id);
+			}
 		}
 	});
 
@@ -176,11 +190,19 @@
 			return;
 		}
 
-		chatSocket.on('receiveMessage', (data: Dm) => {
-			messages = [...messages, data];
-			loadingSending = false;
-			scrollToBottom();
-		});
+		if (isChatroom($activeChat.activeChat)) {
+			chatSocket.on('receiveMessage', (data: { message: ChatMessage; room: Chatroom }) => {
+				messages = [...messages, data.message];
+				loadingSending = false;
+				scrollToBottom();
+			});
+		} else {
+			chatSocket.on('receiveMessage', (data: Dm) => {
+				messages = [...messages, data];
+				loadingSending = false;
+				scrollToBottom();
+			});
+		}
 	});
 
 	// Cleanup on component destroy
