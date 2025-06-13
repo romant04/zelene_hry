@@ -7,6 +7,8 @@
 	import Spinner from '../../components/spinner.svelte';
 	import { createPopup } from '@picmo/popup-picker';
 	import '../custom-picker.css';
+	import type { Message } from '../../../../types/chat';
+	import { isChatroomMessage } from '../../../../utils/isChatroomMessage';
 
 	let {
 		loading,
@@ -21,7 +23,7 @@
 		loadingSending: boolean;
 		username: string;
 		chatContainer: HTMLDivElement | null;
-		messages: Dm[];
+		messages: Message[];
 		sendMessage: (inputElement: HTMLInputElement | undefined) => void;
 		message: string;
 	} = $props();
@@ -83,8 +85,13 @@
 			{#if loading}
 				<p>loading...</p>
 			{:else if $auth.data && messages.length > 0}
-				{#each messages as dm}
-					<ChatBubble message={dm.message} mine={dm.sender.id === $auth.data.id} />
+				{#each messages as message}
+					<ChatBubble
+						message={message.message}
+						sender={message.sender.username}
+						messageType={isChatroomMessage(message) ? 'group' : 'dm'}
+						mine={message.sender.id === $auth.data.id}
+					/>
 				{/each}
 			{:else}
 				<p>S tímto uživatelem jste si zatím neposlali žádnou zprávu</p>

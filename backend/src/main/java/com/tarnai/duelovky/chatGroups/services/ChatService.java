@@ -2,6 +2,7 @@ package com.tarnai.duelovky.chatGroups.services;
 
 import com.tarnai.duelovky.chatGroups.dto.ChatInputDto;
 import com.tarnai.duelovky.chatGroups.entity.Chat;
+import com.tarnai.duelovky.chatGroups.entity.Message;
 import com.tarnai.duelovky.chatGroups.repositories.ChatRepository;
 import com.tarnai.duelovky.users.entity.Account;
 import org.springframework.beans.factory.annotation.Autowired;

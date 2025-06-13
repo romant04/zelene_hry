@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Set;
 
 @Entity(name = "chats")
@@ -23,6 +24,10 @@ public class Chat {
 
     @Column(name = "public", nullable = false)
     private boolean isPublic = false;
+
+    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Message> messages;
 
     @ManyToMany
     @JoinTable(

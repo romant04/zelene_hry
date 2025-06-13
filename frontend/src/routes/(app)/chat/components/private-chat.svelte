@@ -6,20 +6,41 @@
 	import { onDestroy, tick } from 'svelte';
 	import { auth } from '../../../../stores/auth';
 	import ChatOption from './chat-option.svelte';
+	import ChatroomOption from './chatroom-option.svelte';
 	import { clearSocket } from '../../../../utils/socket';
 	import { activeChat } from '../../../../stores/active-chat';
 	import ChatSection from './chat-section.svelte';
 	import { addToast } from '../../../../stores/toast';
 	import { API } from '../../../../constants/urls';
+	import Select from '../../components/select.svelte';
+	import type { Chatroom, Message } from '../../../../types/chat';
+	import { isChatroom } from '../../../../utils/isChatroom.js';
 
-	let { friends }: { friends: User[] } = $props();
+	// TODO: It should be possible to route to this component with a specific chat type selected - now it defaults to 'dm' ~ maybe use a query parameter or store or context
+	// TODO: Update sockets to handle both DMs and chatrooms properly
+	// TODO: Handle joining chat rooms
+	let chatType = $state<'dm' | 'group'>('dm');
+
+	$effect(() => {
+		// When chatType changes, we need to clear the active chat
+		if (chatType) {
+			$activeChat.activeChat = null;
+		}
+	});
+
+	let { friends, chatRooms }: { friends: User[]; chatRooms: Chatroom[] } = $props();
+
+	$effect(() => {
+		console.log(chatRooms);
+	});
+
 	let chatSocket: Socket | null = null;
 
 	let filter = $state('');
 	let searchTerm = '';
 	let debounceTimeout: number | null = null;
 
-	let messages: Dm[] = $state([]);
+	let messages: Message[] = $state([]);
 	let message = $state('');
 	let loading = $state(true);
 
@@ -58,6 +79,28 @@
 
 		loadingSending = true;
 
+		if (chatType === 'group' && isChatroom($activeChat.activeChat)) {
+			// If it's a group chat, we need to send the message to the chatroom
+			const response = await fetch(
+				`${API}/api/secured/chats/${$activeChat.activeChat.id}/message`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${localStorage.getItem('token')}`
+					},
+					body: JSON.stringify({
+						message: tempMessage
+					})
+				}
+			);
+
+			inputElement.focus();
+			const data = (await response.json()) as Message;
+			chatSocket.emit('sendMessage', data);
+			return;
+		}
+
 		const response = await fetch(`${API}/api/secured/dms`, {
 			method: 'POST',
 			headers: {
@@ -76,6 +119,24 @@
 	}
 
 	async function fetchMessages(friendId: number) {
+		if (!$auth.data || !$activeChat.activeChat) {
+			return;
+		}
+
+		if (chatType === 'group' && isChatroom($activeChat.activeChat)) {
+			// If it's a group chat, we need to fetch messages from the chatroom
+			const response = await fetch(
+				`${API}/api/secured/chats/${$activeChat.activeChat.id}/messages`,
+				{
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem('token')}`
+					}
+				}
+			);
+			messages = await response.json();
+			return;
+		}
+
 		const response = await fetch(`${API}/api/secured/dms?userId=${friendId}`, {
 			headers: {
 				Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -144,25 +205,51 @@
 <div class="hidden md:grid grid-cols-[auto,1fr] h-[calc(100vh-72px)]">
 	<div class="bg-tertiary-600 py-5 px-4 w-80">
 		<h2 class="text-3xl font-semibold">Chaty</h2>
+
+		<Select
+			options={[
+				{
+					option: 'Privátní chaty',
+					value: 'dm',
+					defaultOption: true
+				},
+				{
+					option: 'Chatovací místnosti',
+					value: 'group'
+				}
+			]}
+			bind:value={chatType}
+			styles="mt-5 mb-10 bg-tertiary-700 p-2 rounded-sm"
+		/>
+
 		<input
-			placeholder="Vyhledat kamaráda..."
+			name="search"
+			placeholder={`Vyhledat ${chatType === 'dm' ? 'kamaráda' : 'místnost'}...`}
 			class="input !bg-tertiary-800 py-2 text-sm font-semibold px-2 mt-3"
 			type="text"
 			oninput={handleSearch}
 		/>
 		<div class="flex flex-col gap-[2px] mt-5">
-			{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
-				<ChatOption {friend} bind:loading />
-			{/each}
+			{#if chatType === 'dm'}
+				{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
+					<ChatOption {friend} bind:loading />
+				{/each}
+			{:else}
+				{#each chatRooms.filter((room) => room.name.includes(filter)) as room}
+					<ChatroomOption {room} bind:loading />
+				{/each}
+			{/if}
 		</div>
 	</div>
 
 	{#if $activeChat.activeChat !== null}
-		{@const username = $activeChat.activeChat.username}
+		{@const name = isChatroom($activeChat.activeChat)
+			? $activeChat.activeChat.name
+			: $activeChat.activeChat.username}
 		<ChatSection
 			{loading}
 			{loadingSending}
-			{username}
+			username={name}
 			{messages}
 			bind:message
 			bind:chatContainer
@@ -178,25 +265,48 @@
 			: 'w-0 px-0'} py-5 overflow-hidden transition-all duration-300 ease-out h-full"
 	>
 		<h2 class="text-3xl font-semibold">Chaty</h2>
+		<Select
+			options={[
+				{
+					option: 'Privátní chaty',
+					value: 'dm',
+					defaultOption: true
+				},
+				{
+					option: 'Chatovací místnosti',
+					value: 'group'
+				}
+			]}
+			bind:value={chatType}
+			styles="mt-5 mb-10 bg-tertiary-700 p-2 rounded-sm"
+		/>
 		<input
-			placeholder="Vyhledat kamaráda..."
+			placeholder={`Vyhledat ${chatType === 'dm' ? 'kamaráda' : 'místnost'}...`}
 			class="input !bg-tertiary-800 py-2 text-sm font-semibold px-2 mt-3"
 			type="text"
 			oninput={handleSearch}
 		/>
 		<div class="flex flex-col gap-[2px] mt-5">
-			{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
-				<ChatOption {friend} bind:loading />
-			{/each}
+			{#if chatType === 'dm'}
+				{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
+					<ChatOption {friend} bind:loading />
+				{/each}
+			{:else}
+				{#each chatRooms.filter((room) => room.name.includes(filter)) as room}
+					<ChatroomOption {room} bind:loading />
+				{/each}
+			{/if}
 		</div>
 	</div>
 
 	{#if $activeChat.activeChat !== null}
-		{@const username = $activeChat.activeChat.username}
+		{@const name = isChatroom($activeChat.activeChat)
+			? $activeChat.activeChat.name
+			: $activeChat.activeChat.username}
 		<ChatSection
 			{loading}
 			{loadingSending}
-			{username}
+			username={name}
 			{messages}
 			bind:message
 			bind:chatContainer={mobileChatContainer}

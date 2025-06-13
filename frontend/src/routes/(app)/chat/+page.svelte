@@ -16,6 +16,7 @@
 		friends={data.data.friendships.map((friendship) => {
 			return friendship.user1.id === userId ? friendship.user2 : friendship.user1;
 		})}
+		chatRooms={data.data.chatRooms}
 	/>
 {:else}
 	<p>Loading...</p>
