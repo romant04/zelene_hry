@@ -3,7 +3,6 @@
 	import { auth } from '../../../../stores/auth.js';
 	import Icon from '@iconify/svelte';
 	import ChatBubble from './chat-bubble.svelte';
-	import type { Dm } from '../../../../types/dm';
 	import Spinner from '../../components/spinner.svelte';
 	import { createPopup } from '@picmo/popup-picker';
 	import '../custom-picker.css';
@@ -33,7 +32,6 @@
 
 	$effect(() => {
 		if (triggerButton && !picker) {
-			console.log('Creating emoji picker');
 			picker = createPopup(
 				{},
 				{
@@ -79,7 +77,7 @@
 
 	<div class="flex h-[calc(100vh-144px)] justify-between flex-col gap-2">
 		<div
-			class="flex flex-col my-4 gap-1 overflow-auto max-h-[85%] px-5"
+			class="flex flex-col my-4 gap-1 overflow-auto h-full max-h-[85%] px-5"
 			bind:this={chatContainer}
 		>
 			{#if loading}

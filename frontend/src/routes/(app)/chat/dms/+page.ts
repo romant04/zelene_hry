@@ -1,7 +1,7 @@
 import type { PageLoad } from './$types';
-import type { Friendship } from '../../../types/friendship';
-import { API } from '../../../constants/urls';
-import type { Chatroom } from '../../../types/chat';
+import type { Friendship } from '../../../../types/friendship';
+import { API } from '../../../../constants/urls';
+import type { Chatroom } from '../../../../types/chat';
 
 export const load: PageLoad = async () => {
 	try {

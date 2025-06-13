@@ -7,7 +7,17 @@ export const headerLinks: Link[] = [
 	},
 	{
 		href: '/chat',
-		text: 'Chat'
+		text: 'Chat',
+		sublinks: [
+			{
+				href: '/chat/rooms',
+				text: 'Chatovací místnosti'
+			},
+			{
+				href: '/chat/dms',
+				text: 'Soukromé zprávy'
+			}
+		]
 	},
 	{
 		href: '/pratele',

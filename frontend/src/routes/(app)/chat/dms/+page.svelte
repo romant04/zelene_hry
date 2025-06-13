@@ -1,7 +1,7 @@
 <script lang="ts">
-	import PrivateChat from './components/private-chat.svelte';
-	import type { PageProps } from '../../../../.svelte-kit/types/src/routes/(app)/chat/$types';
-	import { auth } from '../../../stores/auth';
+	import PrivateChat from '../components/private-chat.svelte';
+	import type { PageProps } from '../../../../../.svelte-kit/types/src/routes/(app)/chat/dms/$types';
+	import { auth } from '../../../../stores/auth';
 
 	let { data }: PageProps = $props();
 </script>
@@ -17,6 +17,7 @@
 			return friendship.user1.id === userId ? friendship.user2 : friendship.user1;
 		})}
 		chatRooms={data.data.chatRooms}
+		chatType="dm"
 	/>
 {:else}
 	<p>Loading...</p>

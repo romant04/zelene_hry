@@ -5,11 +5,13 @@
 	let {
 		options,
 		value = $bindable(),
+		asLinks = false,
 		styles,
 		optionsColors
 	}: {
 		options: { option: string; value: string; defaultOption?: boolean }[];
-		value: string;
+		asLinks?: boolean;
+		value?: string;
 		styles?: string;
 		optionsColors?: { selected?: string; default?: string; hover?: string };
 	} = $props();
@@ -18,10 +20,8 @@
 	let isOpen = $state(false);
 
 	$effect(() => {
-		if (selected) {
+		if (selected && !asLinks) {
 			value = selected.value;
-		} else {
-			value = '';
 		}
 	});
 
@@ -30,8 +30,6 @@
 			const defaultOption = options.find((option) => option.defaultOption);
 			if (defaultOption) {
 				selected = defaultOption;
-			} else {
-				selected = options[0];
 			}
 		}
 	});
@@ -49,22 +47,39 @@
 	</button>
 
 	{#if isOpen}
-		<div transition:slide class="absolute left-0 top-full w-full z-10">
+		<div transition:slide class="absolute left-0 top-full w-full z-10 flex flex-col">
 			{#each options as option}
 				{@const selectedColor = optionsColors?.selected || 'bg-primary-800'}
 				{@const defaultColor = optionsColors?.default || 'bg-tertiary-800'}
 				{@const hoverColor = optionsColors?.hover || 'hover:bg-tertiary-500'}
-				<button
-					class="w-full text-left px-4 py-2 {hoverColor} {selected?.value === option.value
-						? selectedColor
-						: defaultColor}"
-					onclick={() => {
-						selected = option;
-						isOpen = false;
-					}}
-				>
-					{option.option}
-				</button>
+				{#if asLinks}
+					<a
+						class="w-full text-left px-4 py-2 {hoverColor} {selected?.value ===
+						option.value
+							? selectedColor
+							: defaultColor}"
+						href={option.value}
+						onclick={() => {
+							selected = option;
+							isOpen = false;
+						}}
+					>
+						{option.option}
+					</a>
+				{:else}
+					<button
+						class="w-full text-left px-4 py-2 {hoverColor} {selected?.value ===
+						option.value
+							? selectedColor
+							: defaultColor}"
+						onclick={() => {
+							selected = option;
+							isOpen = false;
+						}}
+					>
+						{option.option}
+					</button>
+				{/if}
 			{/each}
 		</div>
 	{/if}

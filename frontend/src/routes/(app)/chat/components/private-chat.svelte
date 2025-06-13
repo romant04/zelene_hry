@@ -16,23 +16,14 @@
 	import type { Chatroom, Message } from '../../../../types/chat';
 	import { isChatroom } from '../../../../utils/isChatroom.js';
 
-	// TODO: It should be possible to route to this component with a specific chat type selected - now it defaults to 'dm' ~ maybe use a query parameter or store or context
 	// TODO: Update sockets to handle both DMs and chatrooms properly
 	// TODO: Handle joining chat rooms
-	let chatType = $state<'dm' | 'group'>('dm');
 
-	$effect(() => {
-		// When chatType changes, we need to clear the active chat
-		if (chatType) {
-			$activeChat.activeChat = null;
-		}
-	});
-
-	let { friends, chatRooms }: { friends: User[]; chatRooms: Chatroom[] } = $props();
-
-	$effect(() => {
-		console.log(chatRooms);
-	});
+	let {
+		friends,
+		chatRooms,
+		chatType
+	}: { friends: User[]; chatRooms: Chatroom[]; chatType: 'dm' | 'group' } = $props();
 
 	let chatSocket: Socket | null = null;
 
@@ -210,15 +201,17 @@
 			options={[
 				{
 					option: 'Privátní chaty',
-					value: 'dm',
-					defaultOption: true
+					value: 'dms',
+					defaultOption: chatType === 'dm'
 				},
 				{
 					option: 'Chatovací místnosti',
-					value: 'group'
+					value: 'rooms',
+					defaultOption: chatType === 'group'
 				}
 			]}
-			bind:value={chatType}
+			value={chatType}
+			asLinks={true}
 			styles="mt-5 mb-10 bg-tertiary-700 p-2 rounded-sm"
 		/>
 
@@ -234,7 +227,7 @@
 				{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
 					<ChatOption {friend} bind:loading />
 				{/each}
-			{:else}
+			{:else if chatType === 'group'}
 				{#each chatRooms.filter((room) => room.name.includes(filter)) as room}
 					<ChatroomOption {room} bind:loading />
 				{/each}
@@ -269,15 +262,17 @@
 			options={[
 				{
 					option: 'Privátní chaty',
-					value: 'dm',
-					defaultOption: true
+					value: 'dms',
+					defaultOption: chatType === 'dm'
 				},
 				{
 					option: 'Chatovací místnosti',
-					value: 'group'
+					value: 'rooms',
+					defaultOption: chatType === 'group'
 				}
 			]}
-			bind:value={chatType}
+			value={chatType}
+			asLinks={true}
 			styles="mt-5 mb-10 bg-tertiary-700 p-2 rounded-sm"
 		/>
 		<input
@@ -291,7 +286,7 @@
 				{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
 					<ChatOption {friend} bind:loading />
 				{/each}
-			{:else}
+			{:else if chatType === 'group'}
 				{#each chatRooms.filter((room) => room.name.includes(filter)) as room}
 					<ChatroomOption {room} bind:loading />
 				{/each}
