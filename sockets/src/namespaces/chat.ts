@@ -37,7 +37,7 @@ export function setupChatNamespace(io: Server) {
       const notificationMessage: NotificationMessage = {
         id: uuidv4(),
         message: `Obdrželi jste novou zprávu od uživatele ${message.sender.username}`,
-        redirectUrl: `/chat`,
+        redirectUrl: `/chat/dms`,
         timestamp: new Date(),
       };
 

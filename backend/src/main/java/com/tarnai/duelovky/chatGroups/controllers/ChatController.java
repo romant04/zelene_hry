@@ -36,15 +36,15 @@ public class ChatController {
         chatService.createChat(chatInputDto);
     }
 
-    @PostMapping("/addUser")
-    public void addUserToChat(@RequestParam Long chatId, @RequestParam Long userId) {
+    @PostMapping("/{chatId}/addUser")
+    public ChatDto addUserToChat(@PathVariable Long chatId, @RequestBody Long userId) {
         Optional<Account> account = userService.getUserById(userId);
 
         if (account.isEmpty()) {
             throw new IllegalArgumentException("User not found!");
         }
 
-        chatService.addUserToChat(chatId, account.get());
+        return chatService.addUserToChat(chatId, account.get());
     }
 
     @PostMapping("/{chatId}/message")

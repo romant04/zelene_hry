@@ -20,7 +20,7 @@
 				.filter(
 					(notification) =>
 						notification.message.includes(friend.username) &&
-						notification.redirectUrl === '/chat'
+						notification.redirectUrl === '/chat/dms'
 				)
 				.map((notification) => notification.id)
 		);
@@ -28,7 +28,7 @@
 			$notifications.filter(
 				(notification) =>
 					!notification.message.includes(friend.username) ||
-					notification.redirectUrl !== '/chat'
+					notification.redirectUrl !== '/chat/dms'
 			)
 		);
 		loading = true;
@@ -38,7 +38,7 @@
 		$notifications.filter(
 			(notification) =>
 				notification.message.includes(friend.username) &&
-				notification.redirectUrl === '/chat'
+				notification.redirectUrl === '/chat/dms'
 		).length
 	);
 </script>

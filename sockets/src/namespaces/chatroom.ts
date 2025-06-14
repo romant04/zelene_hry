@@ -17,12 +17,11 @@ export function setupChatroomNamespace(io: Server) {
         const chatId = socket.handshake.auth?.chatId;
         const usr: User[] = socket.handshake.auth?.users;
 
-        if (usr) {
+        if (usr) { // We need to do everytime someone joins, because at the time the list of members can change
             usr.forEach((u: User) => {
                 users.set(u.id, u);
             });
         }
-        users.set(user.id, user);
 
         if (!user || !chatId) {
             console.log("Missing userId or chatId, disconnecting...");
@@ -62,7 +61,7 @@ export function setupChatroomNamespace(io: Server) {
 
                 // We need to handle this one by one, because we don't know which user is online
                 const friendSocketId = await getClientId(io, NAMESPACE, id);
-                await emitOrNotify(`room.${chatId}`, friendSocketId, notificationMessage, () => {
+                await emitOrNotify(`user.${id}.room.${chatId}`, friendSocketId, notificationMessage, () => {
                     chatroomNamespace.to(friendSocketId!).emit("receiveMessage", data);
                 });
             }

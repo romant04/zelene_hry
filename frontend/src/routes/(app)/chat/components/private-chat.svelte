@@ -17,9 +17,6 @@
 	import { isChatroom } from '../../../../utils/isChatroom.js';
 	import { createChatroomSocket } from '$lib/socket.js';
 
-	// TODO: Handle joining chat rooms
-	// TODO: Handle notifications
-
 	let {
 		friends,
 		chatRooms,
@@ -27,6 +24,22 @@
 	}: { friends: User[]; chatRooms: Chatroom[]; chatType: 'dm' | 'group' } = $props();
 
 	let chatSocket: Socket | null = null;
+	let isMemberOfChatroom = $state(false);
+
+	$effect(() => {
+		if (chatType === 'dm') {
+			isMemberOfChatroom = true; // In DMs, the user is always a member of the chat
+			return;
+		}
+
+		if ($activeChat.activeChat && isChatroom($activeChat.activeChat)) {
+			isMemberOfChatroom = $activeChat.activeChat.users.some(
+				(user) => user.id === $auth.data?.id
+			);
+		} else {
+			isMemberOfChatroom = false;
+		}
+	});
 
 	let filter = $state('');
 	let searchTerm = '';
@@ -170,7 +183,7 @@
 			chatSocket = null;
 		}
 
-		if ($activeChat.activeChat && chatSocket === null && $auth.data?.id) {
+		if ($activeChat.activeChat && chatSocket === null && $auth.data?.id && isMemberOfChatroom) {
 			if (isChatroom($activeChat.activeChat)) {
 				// If it's a chatroom, we need to create a socket for the chatroom
 				chatSocket = createChatroomSocket(
@@ -265,6 +278,7 @@
 			{loading}
 			{loadingSending}
 			username={name}
+			bind:isMemberOfChatroom
 			{messages}
 			bind:message
 			bind:chatContainer
@@ -324,6 +338,7 @@
 			{loading}
 			{loadingSending}
 			username={name}
+			bind:isMemberOfChatroom
 			{messages}
 			bind:message
 			bind:chatContainer={mobileChatContainer}

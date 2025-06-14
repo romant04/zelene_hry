@@ -19,6 +19,22 @@
 	let selected = $state<{ option: string; value: string } | null>(null);
 	let isOpen = $state(false);
 
+	function clickOutside(node: HTMLElement, handler: () => void) {
+		const onClick = (event: MouseEvent) => {
+			if (!node.contains(event.target as Node)) {
+				handler();
+			}
+		};
+
+		document.addEventListener('click', onClick, true);
+
+		return {
+			destroy() {
+				document.removeEventListener('click', onClick, true);
+			}
+		};
+	}
+
 	$effect(() => {
 		if (selected && !asLinks) {
 			value = selected.value;
@@ -35,7 +51,7 @@
 	});
 </script>
 
-<div class="relative {styles}">
+<div class="relative {styles}" use:clickOutside={() => (isOpen = false)}>
 	<button class="flex justify-between w-full" onclick={() => (isOpen = !isOpen)}>
 		<span>{selected?.option}</span>
 		<Icon
