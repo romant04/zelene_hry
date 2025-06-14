@@ -1,17 +1,21 @@
 <script lang="ts">
-	import { clearActiveChat } from '../../../../stores/active-chat.js';
+	import { activeChat, clearActiveChat, setActiveChat } from '../../../../stores/active-chat.js';
 	import { auth } from '../../../../stores/auth.js';
 	import Icon from '@iconify/svelte';
 	import ChatBubble from './chat-bubble.svelte';
-	import type { Dm } from '../../../../types/dm';
 	import Spinner from '../../components/spinner.svelte';
 	import { createPopup } from '@picmo/popup-picker';
 	import '../custom-picker.css';
+	import type { Message } from '../../../../types/chat';
+	import { isChatroomMessage } from '../../../../utils/isChatroomMessage';
+	import { addToast } from '../../../../stores/toast';
+	import { API } from '../../../../constants/urls';
 
 	let {
 		loading,
 		loadingSending,
 		username,
+		isMemberOfChatroom = $bindable(),
 		chatContainer = $bindable(),
 		messages,
 		sendMessage,
@@ -20,8 +24,9 @@
 		loading: boolean;
 		loadingSending: boolean;
 		username: string;
+		isMemberOfChatroom: boolean;
 		chatContainer: HTMLDivElement | null;
-		messages: Dm[];
+		messages: Message[];
 		sendMessage: (inputElement: HTMLInputElement | undefined) => void;
 		message: string;
 	} = $props();
@@ -31,7 +36,6 @@
 
 	$effect(() => {
 		if (triggerButton && !picker) {
-			console.log('Creating emoji picker');
 			picker = createPopup(
 				{},
 				{
@@ -55,6 +59,26 @@
 		}
 	});
 
+	async function handleJoinChatroom() {
+		const res = await fetch(`${API}/api/secured/chats/${$activeChat.activeChat?.id}/addUser`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${localStorage.getItem('token')}`
+			},
+			body: JSON.stringify($auth.data?.id)
+		});
+
+		if (res.ok) {
+			const data = await res.json();
+			setActiveChat(data);
+			isMemberOfChatroom = true;
+			addToast('Úspěšně jste se připojili do chatovací místnosti', 'success');
+		} else {
+			addToast('Nastala chyba při připojování do chatovací místnosti', 'error');
+		}
+	}
+
 	let inputElement: HTMLInputElement | undefined = $state(undefined);
 </script>
 
@@ -75,44 +99,62 @@
 		</div>
 	</div>
 
-	<div class="flex h-[calc(100vh-144px)] justify-between flex-col gap-2">
-		<div
-			class="flex flex-col my-4 gap-1 overflow-auto max-h-[85%] px-5"
-			bind:this={chatContainer}
-		>
-			{#if loading}
-				<p>loading...</p>
-			{:else if $auth.data && messages.length > 0}
-				{#each messages as dm}
-					<ChatBubble message={dm.message} mine={dm.sender.id === $auth.data.id} />
-				{/each}
-			{:else}
-				<p>S tímto uživatelem jste si zatím neposlali žádnou zprávu</p>
-			{/if}
-		</div>
-		<form onsubmit={() => sendMessage(inputElement)} class="flex gap-1 mt-auto">
-			<button
-				type="button"
-				class="pr-2"
-				bind:this={triggerButton}
-				onclick={() => picker?.open()}
+	{#if isMemberOfChatroom}
+		<div class="flex h-[calc(100vh-144px)] justify-between flex-col gap-2">
+			<div
+				class="flex flex-col my-4 gap-1 overflow-auto h-full max-h-[85%] px-5"
+				bind:this={chatContainer}
 			>
-				<Icon icon="bxs:smile" width="24" />
-			</button>
-			<input
-				bind:this={inputElement}
-				type="text"
-				class="input p-2"
-				maxlength="300"
-				bind:value={message}
-			/>
-			<button type="submit" class="btn variant-filled-primary w-36 rounded-md">
-				{#if loadingSending}
-					<Spinner w="w-5" h="h-5" fill="fill-white" />
+				{#if loading}
+					<p>loading...</p>
+				{:else if $auth.data && messages.length > 0}
+					{#each messages as message}
+						<ChatBubble
+							message={message.message}
+							sender={message.sender.username}
+							messageType={isChatroomMessage(message) ? 'group' : 'dm'}
+							mine={message.sender.id === $auth.data.id}
+						/>
+					{/each}
 				{:else}
-					Poslat
+					<p>S tímto uživatelem jste si zatím neposlali žádnou zprávu</p>
 				{/if}
-			</button>
-		</form>
-	</div>
+			</div>
+			<form onsubmit={() => sendMessage(inputElement)} class="flex gap-1 mt-auto">
+				<button
+					type="button"
+					class="pr-2"
+					bind:this={triggerButton}
+					onclick={() => picker?.open()}
+				>
+					<Icon icon="bxs:smile" width="24" />
+				</button>
+				<input
+					bind:this={inputElement}
+					type="text"
+					class="input p-2"
+					maxlength="300"
+					bind:value={message}
+				/>
+				<button type="submit" class="btn variant-filled-primary w-36 rounded-md">
+					{#if loadingSending}
+						<Spinner w="w-5" h="h-5" fill="fill-white" />
+					{:else}
+						Poslat
+					{/if}
+				</button>
+			</form>
+		</div>
+	{:else}
+		<div class="flex flex-col gap-5 justify-center items-center">
+			<p class="text-2xl max-w-[420px] text-center">
+				Nejste členem této skupiny, pokud chcete zde chatovat musíte se připojit
+			</p>
+			<button
+				onclick={handleJoinChatroom}
+				class="btn variant-filled-primary text-lg w-72 h-16"
+				>Připojit se do chatovací místnosti</button
+			>
+		</div>
+	{/if}
 </div>

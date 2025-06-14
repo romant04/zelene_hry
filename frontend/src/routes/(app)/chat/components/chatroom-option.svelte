@@ -1,55 +1,57 @@
 <script lang="ts">
-	import type { User } from '../../../../types/user';
 	import { setActiveChat } from '../../../../stores/active-chat';
 	import { activeChat } from '../../../../stores/active-chat';
-	import { notifications, updateNotifications } from '../../../../stores/notifications';
 	import { getContext } from 'svelte';
 	import type { Socket } from 'socket.io-client';
+	import type { Chatroom } from '../../../../types/chat';
+	import { notifications, updateNotifications } from '../../../../stores/notifications';
 
-	let { friend, loading = $bindable() }: { friend: User; loading: boolean } = $props();
+	let { room, loading = $bindable() }: { room: Chatroom; loading: boolean } = $props();
 	const notificationSocket: Socket = getContext('notificationSocket');
 
 	function handleChatSelect() {
-		setActiveChat(friend);
+		setActiveChat(room);
 		if (!notificationSocket) {
 			return;
 		}
+
 		notificationSocket.emit(
 			'ack',
 			$notifications
 				.filter(
 					(notification) =>
-						notification.message.includes(friend.username) &&
-						notification.redirectUrl === '/chat/dms'
+						notification.message.includes(room.name) &&
+						notification.redirectUrl === '/chat/rooms'
 				)
 				.map((notification) => notification.id)
 		);
 		updateNotifications(
 			$notifications.filter(
 				(notification) =>
-					!notification.message.includes(friend.username) ||
-					notification.redirectUrl !== '/chat/dms'
+					!notification.message.includes(room.name) ||
+					notification.redirectUrl !== '/chat/rooms'
 			)
 		);
+
 		loading = true;
 	}
 
 	let unreadMessages = $derived(
 		$notifications.filter(
 			(notification) =>
-				notification.message.includes(friend.username) &&
-				notification.redirectUrl === '/chat/dms'
+				notification.message.includes(room.name) &&
+				notification.redirectUrl === '/chat/rooms'
 		).length
 	);
 </script>
 
 <button
 	onclick={handleChatSelect}
-	class="{$activeChat.activeChat?.id === friend.id
+	class="{$activeChat.activeChat?.id === room.id
 		? 'bg-tertiary-700'
 		: 'bg-tertiary-800'} text-left flex items-center px-4 py-3 hover:bg-tertiary-700 rounded-sm"
 >
-	<span class="text-lg font-semibold">{friend.username}</span>
+	<span class="text-lg font-semibold">{room.name}</span>
 
 	{#if unreadMessages > 0}
 		<span

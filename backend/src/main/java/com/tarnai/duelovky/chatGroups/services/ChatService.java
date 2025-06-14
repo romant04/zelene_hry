@@ -1,7 +1,9 @@
 package com.tarnai.duelovky.chatGroups.services;
 
+import com.tarnai.duelovky.chatGroups.dto.ChatDto;
 import com.tarnai.duelovky.chatGroups.dto.ChatInputDto;
 import com.tarnai.duelovky.chatGroups.entity.Chat;
+import com.tarnai.duelovky.chatGroups.entity.Message;
 import com.tarnai.duelovky.chatGroups.repositories.ChatRepository;
 import com.tarnai.duelovky.users.entity.Account;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +38,10 @@ public class ChatService {
         return chatRepository.findAll();
     }
 
-    public void addUserToChat(Long chatId, Account user) {
+    public ChatDto addUserToChat(Long chatId, Account user) {
         Chat chat = getChatById(chatId);
         chat.getUsers().add(user);
         chatRepository.save(chat);
+        return new ChatDto(chat);
     }
 }

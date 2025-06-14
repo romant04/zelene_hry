@@ -27,7 +27,7 @@
 
 	function handleNotificationClick(notification: NotificationMessage) {
 		isOpenNotifications = false;
-		if (notification.redirectUrl === '/chat') {
+		if (notification.redirectUrl.includes('/chat')) {
 			// If the notification is for chat, we don't need to update the notifications
 			// as it will be handled in the chat section.
 			return;

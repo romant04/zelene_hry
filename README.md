@@ -8,7 +8,7 @@ Online herní platforma se sociálními prkvy. Je tvořena s myšlenkou náhradi
 - Přihlašování ✅
 - Systém přátel ✅
 - Privátní chatování ✅
-- Chatovací místnosti ❌
+- Chatovací místnosti ✅
 - Notifikace ✅
 
 #### Herní ❌ 

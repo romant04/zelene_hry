@@ -9,6 +9,7 @@
 	import UserMenuModal from './user-menu/user-menu-modal.svelte';
 	import Notifications from './notifications.svelte';
 	import NotificationModal from './notification-modal.svelte';
+	import Link from './link.svelte';
 
 	let mobileMenuOpened = false;
 
@@ -95,13 +96,8 @@
 			</a>
 		{/snippet}
 		<ul class="hidden gap-16 lg:flex">
-			{#each headerLinks as { href, text }}
-				<li class="group">
-					<a
-						class="relative text-xl after:absolute after:-bottom-[2px] after:left-0 after:h-[2px] after:w-0 after:rounded-sm after:bg-success-500 after:transition-all after:duration-[200ms] after:ease-out group-hover:after:w-[105%]"
-						{href}>{text}</a
-					>
-				</li>
+			{#each headerLinks as link}
+				<Link {link} />
 			{/each}
 		</ul>
 

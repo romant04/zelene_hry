@@ -10,7 +10,7 @@ import java.util.Set;
 @Getter
 @Setter
 public class ChatDto {
-    private Long chatId;
+    private Long id;
     private String name;
     private boolean isPublic;
     private Set<AccountDto> users;
@@ -19,7 +19,7 @@ public class ChatDto {
     }
 
     public ChatDto(Chat chat) {
-        this.chatId = chat.getChatId();
+        this.id = chat.getChatId();
         this.name = chat.getName();
         this.isPublic = chat.isPublic();
         this.users = chat.getUsers().stream()

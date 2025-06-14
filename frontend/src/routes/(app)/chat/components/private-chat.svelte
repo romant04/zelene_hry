@@ -6,20 +6,46 @@
 	import { onDestroy, tick } from 'svelte';
 	import { auth } from '../../../../stores/auth';
 	import ChatOption from './chat-option.svelte';
+	import ChatroomOption from './chatroom-option.svelte';
 	import { clearSocket } from '../../../../utils/socket';
 	import { activeChat } from '../../../../stores/active-chat';
 	import ChatSection from './chat-section.svelte';
 	import { addToast } from '../../../../stores/toast';
 	import { API } from '../../../../constants/urls';
+	import Select from '../../components/select.svelte';
+	import type { ChatMessage, Chatroom, Message } from '../../../../types/chat';
+	import { isChatroom } from '../../../../utils/isChatroom.js';
+	import { createChatroomSocket } from '$lib/socket.js';
 
-	let { friends }: { friends: User[] } = $props();
+	let {
+		friends,
+		chatRooms,
+		chatType
+	}: { friends: User[]; chatRooms: Chatroom[]; chatType: 'dm' | 'group' } = $props();
+
 	let chatSocket: Socket | null = null;
+	let isMemberOfChatroom = $state(false);
+
+	$effect(() => {
+		if (chatType === 'dm') {
+			isMemberOfChatroom = true; // In DMs, the user is always a member of the chat
+			return;
+		}
+
+		if ($activeChat.activeChat && isChatroom($activeChat.activeChat)) {
+			isMemberOfChatroom = $activeChat.activeChat.users.some(
+				(user) => user.id === $auth.data?.id
+			);
+		} else {
+			isMemberOfChatroom = false;
+		}
+	});
 
 	let filter = $state('');
 	let searchTerm = '';
 	let debounceTimeout: number | null = null;
 
-	let messages: Dm[] = $state([]);
+	let messages: Message[] = $state([]);
 	let message = $state('');
 	let loading = $state(true);
 
@@ -58,6 +84,28 @@
 
 		loadingSending = true;
 
+		if (chatType === 'group' && isChatroom($activeChat.activeChat)) {
+			// If it's a group chat, we need to send the message to the chatroom
+			const response = await fetch(
+				`${API}/api/secured/chats/${$activeChat.activeChat.id}/message`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${localStorage.getItem('token')}`
+					},
+					body: JSON.stringify({
+						message: tempMessage
+					})
+				}
+			);
+
+			inputElement.focus();
+			const data = (await response.json()) as Message;
+			chatSocket.emit('sendMessage', { message: data, room: $activeChat.activeChat });
+			return;
+		}
+
 		const response = await fetch(`${API}/api/secured/dms`, {
 			method: 'POST',
 			headers: {
@@ -76,6 +124,27 @@
 	}
 
 	async function fetchMessages(friendId: number) {
+		if (!$auth.data || !$activeChat.activeChat) {
+			return;
+		}
+
+		if (chatType === 'group' && isChatroom($activeChat.activeChat)) {
+			// If it's a group chat, we need to fetch messages from the chatroom
+			const response = await fetch(
+				`${API}/api/secured/chats/${$activeChat.activeChat.id}/messages`,
+				{
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem('token')}`
+					}
+				}
+			);
+			const data: ChatMessage[] = await response.json();
+			messages = data.sort(
+				(a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
+			);
+			return;
+		}
+
 		const response = await fetch(`${API}/api/secured/dms?userId=${friendId}`, {
 			headers: {
 				Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -114,8 +183,18 @@
 			chatSocket = null;
 		}
 
-		if ($activeChat.activeChat && chatSocket === null && $auth.data?.id) {
-			chatSocket = createChatSocket($auth.data.id, $activeChat.activeChat.id);
+		if ($activeChat.activeChat && chatSocket === null && $auth.data?.id && isMemberOfChatroom) {
+			if (isChatroom($activeChat.activeChat)) {
+				// If it's a chatroom, we need to create a socket for the chatroom
+				chatSocket = createChatroomSocket(
+					$auth.data,
+					$activeChat.activeChat.id,
+					$activeChat.activeChat.users
+				);
+			} else {
+				// If it's a DM, we create a socket for the DM
+				chatSocket = createChatSocket($auth.data.id, $activeChat.activeChat.id);
+			}
 		}
 	});
 
@@ -124,11 +203,19 @@
 			return;
 		}
 
-		chatSocket.on('receiveMessage', (data: Dm) => {
-			messages = [...messages, data];
-			loadingSending = false;
-			scrollToBottom();
-		});
+		if (isChatroom($activeChat.activeChat)) {
+			chatSocket.on('receiveMessage', (data: { message: ChatMessage; room: Chatroom }) => {
+				messages = [...messages, data.message];
+				loadingSending = false;
+				scrollToBottom();
+			});
+		} else {
+			chatSocket.on('receiveMessage', (data: Dm) => {
+				messages = [...messages, data];
+				loadingSending = false;
+				scrollToBottom();
+			});
+		}
 	});
 
 	// Cleanup on component destroy
@@ -144,25 +231,54 @@
 <div class="hidden md:grid grid-cols-[auto,1fr] h-[calc(100vh-72px)]">
 	<div class="bg-tertiary-600 py-5 px-4 w-80">
 		<h2 class="text-3xl font-semibold">Chaty</h2>
+
+		<Select
+			options={[
+				{
+					option: 'Privátní chaty',
+					value: 'dms',
+					defaultOption: chatType === 'dm'
+				},
+				{
+					option: 'Chatovací místnosti',
+					value: 'rooms',
+					defaultOption: chatType === 'group'
+				}
+			]}
+			value={chatType}
+			asLinks={true}
+			styles="mt-5 mb-10 bg-tertiary-700 p-2 rounded-sm"
+		/>
+
 		<input
-			placeholder="Vyhledat kamaráda..."
+			name="search"
+			placeholder={`Vyhledat ${chatType === 'dm' ? 'kamaráda' : 'místnost'}...`}
 			class="input !bg-tertiary-800 py-2 text-sm font-semibold px-2 mt-3"
 			type="text"
 			oninput={handleSearch}
 		/>
 		<div class="flex flex-col gap-[2px] mt-5">
-			{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
-				<ChatOption {friend} bind:loading />
-			{/each}
+			{#if chatType === 'dm'}
+				{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
+					<ChatOption {friend} bind:loading />
+				{/each}
+			{:else if chatType === 'group'}
+				{#each chatRooms.filter((room) => room.name.includes(filter)) as room}
+					<ChatroomOption {room} bind:loading />
+				{/each}
+			{/if}
 		</div>
 	</div>
 
 	{#if $activeChat.activeChat !== null}
-		{@const username = $activeChat.activeChat.username}
+		{@const name = isChatroom($activeChat.activeChat)
+			? $activeChat.activeChat.name
+			: $activeChat.activeChat.username}
 		<ChatSection
 			{loading}
 			{loadingSending}
-			{username}
+			username={name}
+			bind:isMemberOfChatroom
 			{messages}
 			bind:message
 			bind:chatContainer
@@ -178,25 +294,51 @@
 			: 'w-0 px-0'} py-5 overflow-hidden transition-all duration-300 ease-out h-full"
 	>
 		<h2 class="text-3xl font-semibold">Chaty</h2>
+		<Select
+			options={[
+				{
+					option: 'Privátní chaty',
+					value: 'dms',
+					defaultOption: chatType === 'dm'
+				},
+				{
+					option: 'Chatovací místnosti',
+					value: 'rooms',
+					defaultOption: chatType === 'group'
+				}
+			]}
+			value={chatType}
+			asLinks={true}
+			styles="mt-5 mb-10 bg-tertiary-700 p-2 rounded-sm"
+		/>
 		<input
-			placeholder="Vyhledat kamaráda..."
+			placeholder={`Vyhledat ${chatType === 'dm' ? 'kamaráda' : 'místnost'}...`}
 			class="input !bg-tertiary-800 py-2 text-sm font-semibold px-2 mt-3"
 			type="text"
 			oninput={handleSearch}
 		/>
 		<div class="flex flex-col gap-[2px] mt-5">
-			{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
-				<ChatOption {friend} bind:loading />
-			{/each}
+			{#if chatType === 'dm'}
+				{#each friends.filter((friend) => friend.username.includes(filter)) as friend}
+					<ChatOption {friend} bind:loading />
+				{/each}
+			{:else if chatType === 'group'}
+				{#each chatRooms.filter((room) => room.name.includes(filter)) as room}
+					<ChatroomOption {room} bind:loading />
+				{/each}
+			{/if}
 		</div>
 	</div>
 
 	{#if $activeChat.activeChat !== null}
-		{@const username = $activeChat.activeChat.username}
+		{@const name = isChatroom($activeChat.activeChat)
+			? $activeChat.activeChat.name
+			: $activeChat.activeChat.username}
 		<ChatSection
 			{loading}
 			{loadingSending}
-			{username}
+			username={name}
+			bind:isMemberOfChatroom
 			{messages}
 			bind:message
 			bind:chatContainer={mobileChatContainer}
