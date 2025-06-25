@@ -1,6 +1,7 @@
 package com.tarnai.duelovky.users.repositories;
 
 import com.tarnai.duelovky.users.entity.Account;
+import com.tarnai.duelovky.users.entity.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,4 +16,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     List<Account> findByUsername(String username);
     List<Account> findByEmail(String email);
+
+    @Query("SELECT a FROM accounts a WHERE a.admin.id = :adminId")
+    List<Account> findByAdminId(@Param("adminId") Long adminId);
 }

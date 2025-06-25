@@ -1,0 +1,1 @@
+DROP TRIGGER trg_chat_restrictions_dates ON chat_restrictions;

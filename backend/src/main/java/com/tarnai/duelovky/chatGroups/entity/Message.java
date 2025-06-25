@@ -21,7 +21,7 @@ public class Message {
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
-    private Account userId;
+    private Account user;
 
     @ManyToOne
     @JoinColumn(name = "chat_id", referencedColumnName = "chat_id")
@@ -34,9 +34,9 @@ public class Message {
         // Default constructor for JPA
     }
 
-    public Message(String message, Account userId, Chat chat, Date sentAt) {
+    public Message(String message, Account user, Chat chat, Date sentAt) {
         this.message = message;
-        this.userId = userId;
+        this.user = user;
         this.chat = chat;
         this.sentAt = sentAt;
     }

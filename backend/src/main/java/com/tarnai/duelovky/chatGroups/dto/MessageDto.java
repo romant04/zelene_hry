@@ -20,7 +20,7 @@ public class MessageDto {
     public MessageDto(Message message) {
         this.messageId = message.getMessageId();
         this.message = message.getMessage();
-        this.sender = new AccountDto(message.getUserId());
+        this.sender = new AccountDto(message.getUser());
         this.chatId = message.getChat().getChatId();
         this.sentAt = message.getSentAt();
     }

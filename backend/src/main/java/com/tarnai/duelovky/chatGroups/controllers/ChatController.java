@@ -1,10 +1,9 @@
 package com.tarnai.duelovky.chatGroups.controllers;
 
-import com.tarnai.duelovky.chatGroups.dto.ChatDto;
-import com.tarnai.duelovky.chatGroups.dto.ChatInputDto;
-import com.tarnai.duelovky.chatGroups.dto.MessageDto;
-import com.tarnai.duelovky.chatGroups.dto.MessageInputDto;
+import com.tarnai.duelovky.chatGroups.dto.*;
 import com.tarnai.duelovky.chatGroups.entity.Chat;
+import com.tarnai.duelovky.chatGroups.entity.ChatRestrictionId;
+import com.tarnai.duelovky.chatGroups.services.ChatRestrictionService;
 import com.tarnai.duelovky.chatGroups.services.ChatService;
 import com.tarnai.duelovky.chatGroups.services.MessageService;
 import com.tarnai.duelovky.users.entity.Account;
@@ -23,12 +22,14 @@ public class ChatController {
     private final ChatService chatService;
     private final UserService userService;
     private final MessageService messageService;
+    private final ChatRestrictionService chatRestrictionService;
 
     @Autowired
-    public ChatController(ChatService chatService, UserService userService, MessageService messageService) {
+    public ChatController(ChatService chatService, UserService userService, MessageService messageService, ChatRestrictionService chatRestrictionService) {
         this.chatService = chatService;
         this.userService = userService;
         this.messageService = messageService;
+        this.chatRestrictionService = chatRestrictionService;
     }
 
     @PostMapping
@@ -58,6 +59,27 @@ public class ChatController {
         return new MessageDto(messageService.addMessageToChat(messageInputDto, chatId, account.get()));
     }
 
+    @PostMapping("/{chatId}/restrictUser")
+    public ChatRestrictionDto restrictUserInChat(@PathVariable Long chatId, @Valid @RequestBody ChatRestrictionInputDto chatRestrictionInputDto, Authentication authentication) {
+        Optional<Account> account = userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst();
+        if (account.isEmpty()) {
+            throw new IllegalArgumentException("User not found!");
+        }
+
+        Chat chat = chatService.getChatById(chatId);
+        if (chat == null) {
+            throw new IllegalArgumentException("Chat not found with ID: " + chatId);
+        }
+
+        return chatRestrictionService.createChatRestriction(chatRestrictionInputDto, account.get().getId(), chatId);
+    }
+
+
+    @GetMapping("/{chatId}/restrictions")
+    public List<ChatRestrictionDto> getChatRestrictions(@PathVariable Long chatId) {
+        return chatRestrictionService.getChatRestrictionsOfChat(chatId);
+    }
+
     @GetMapping
     public List<ChatDto> getAllChats() {
         return chatService.getAllChats().stream()
@@ -76,6 +98,11 @@ public class ChatController {
         return chat.getMessages().stream()
                 .map(MessageDto::new)
                 .toList();
+    }
+
+    @DeleteMapping("/restrictions")
+    public void deleteChatRestriction(@RequestBody ChatRestrictionId chatRestrictionId) {
+        chatRestrictionService.deleteChatRestriction(chatRestrictionId.getChatId(), chatRestrictionId.getUserId(), chatRestrictionId.getStartAt());
     }
 }
 
