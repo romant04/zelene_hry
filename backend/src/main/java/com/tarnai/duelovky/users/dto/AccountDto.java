@@ -13,14 +13,14 @@ public class AccountDto {
     private String username;
     private String email;
 
-    private Player player;
-    private Admin admin;
+    private PlayerDto player;
+    private AdminDto admin;
 
     public AccountDto(Account account) {
         this.id = account.getId();
         this.username = account.getUsername();
         this.email = account.getEmail();
-        this.player = account.getPlayer();
-        this.admin = account.getAdmin();
+        this.player = account.getPlayer() != null ? new PlayerDto(account.getPlayer()) : null;
+        this.admin = account.getAdmin() != null ? new AdminDto(account.getAdmin()) : null;
     }
 }
