@@ -9,7 +9,7 @@ export interface Chatroom {
 }
 
 export interface ChatMessage {
-	id: number;
+	messageId: number;
 	message: string;
 	sentAt: Date;
 	chatId: number;

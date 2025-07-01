@@ -3,6 +3,7 @@ package com.tarnai.duelovky.chatGroups.controllers;
 import com.tarnai.duelovky.chatGroups.dto.*;
 import com.tarnai.duelovky.chatGroups.entity.Chat;
 import com.tarnai.duelovky.chatGroups.entity.ChatRestrictionId;
+import com.tarnai.duelovky.chatGroups.entity.Message;
 import com.tarnai.duelovky.chatGroups.services.ChatRestrictionService;
 import com.tarnai.duelovky.chatGroups.services.ChatService;
 import com.tarnai.duelovky.chatGroups.services.MessageService;
@@ -10,6 +11,7 @@ import com.tarnai.duelovky.users.entity.Account;
 import com.tarnai.duelovky.users.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -103,6 +105,22 @@ public class ChatController {
     @DeleteMapping("/restrictions")
     public void deleteChatRestriction(@RequestBody ChatRestrictionId chatRestrictionId) {
         chatRestrictionService.deleteChatRestriction(chatRestrictionId.getChatId(), chatRestrictionId.getUserId(), chatRestrictionId.getStartAt());
+    }
+
+    @DeleteMapping("messages/{id}")
+    public ResponseEntity<String> deleteMessage(@PathVariable Long id) {
+        if (id == null) {
+            return ResponseEntity.badRequest().body("Message ID cannot be null");
+        }
+
+        Optional<Message> message = messageService.getMessageById(id);
+
+        if (message.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        messageService.deleteMessage(id);
+        return ResponseEntity.ok().build();
     }
 }
 

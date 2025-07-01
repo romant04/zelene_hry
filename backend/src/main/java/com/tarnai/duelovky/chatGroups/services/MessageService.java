@@ -7,9 +7,11 @@ import com.tarnai.duelovky.chatGroups.repositories.ChatRepository;
 import com.tarnai.duelovky.chatGroups.repositories.MessageRepository;
 import com.tarnai.duelovky.users.entity.Account;
 import com.tarnai.duelovky.users.repositories.AccountRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class MessageService {
@@ -32,5 +34,13 @@ public class MessageService {
         messageRepository.save(newMessage);
 
         return newMessage;
+    }
+
+    public Optional<Message> getMessageById(Long id) {
+        return messageRepository.findById(id);
+    }
+
+    public void deleteMessage(Long id) {
+        messageRepository.deleteById(id);
     }
 }

@@ -59,13 +59,18 @@ export function setupChatroomNamespace(io: Server) {
                     continue; // Skip the sender
                 }
 
-                // We need to handle this one by one, because we don't know which user is online
+                // We need to handle this one by one, because we don't know which user is online - might be worth it to create 2 maps (online and offline),
+                // managing 2 maps could be more demanding than just iterating through all users though
                 const friendSocketId = await getClientId(io, NAMESPACE, id);
                 await emitOrNotify(`user.${id}.room.${chatId}`, friendSocketId, notificationMessage, () => {
                     chatroomNamespace.to(friendSocketId!).emit("receiveMessage", data);
                 });
             }
         });
+
+        socket.on("messageDeleted", (data: { messageId: number }) => {
+            chatroomNamespace.to(roomId).emit("messageDeleted", data);
+        })
     });
 
     console.log("Chat namespace initialized.");

@@ -16,6 +16,8 @@
 	import type { ChatMessage, Chatroom, Message } from '../../../../types/chat';
 	import { isChatroom } from '../../../../utils/isChatroom.js';
 	import { createChatroomSocket } from '$lib/socket.js';
+	import { chatSocket, clearChatSocket, setChatSocket } from '../../../../stores/chat-socket';
+	import { isChatroomMessage } from '../../../../utils/isChatroomMessage';
 
 	let {
 		friends,
@@ -23,7 +25,6 @@
 		chatType
 	}: { friends: User[]; chatRooms: Chatroom[]; chatType: 'dm' | 'group' } = $props();
 
-	let chatSocket: Socket | null = null;
 	let isMemberOfChatroom = $state(false);
 
 	$effect(() => {
@@ -70,7 +71,7 @@
 	}
 
 	async function sendMessage(inputElement: HTMLInputElement | undefined) {
-		if (!$activeChat.activeChat || !$auth.data || !chatSocket || !inputElement) {
+		if (!$activeChat.activeChat || !$auth.data || !$chatSocket.chatSocket || !inputElement) {
 			return;
 		}
 
@@ -102,7 +103,10 @@
 
 			inputElement.focus();
 			const data = (await response.json()) as Message;
-			chatSocket.emit('sendMessage', { message: data, room: $activeChat.activeChat });
+			$chatSocket.chatSocket.emit('sendMessage', {
+				message: data,
+				room: $activeChat.activeChat
+			});
 			return;
 		}
 
@@ -120,7 +124,7 @@
 
 		inputElement.focus();
 		const data = (await response.json()) as Dm;
-		chatSocket.emit('sendMessage', data);
+		$chatSocket.chatSocket.emit('sendMessage', data);
 	}
 
 	async function fetchMessages(friendId: number) {
@@ -178,39 +182,49 @@
 	});
 
 	$effect(() => {
-		if ($activeChat.activeChat && chatSocket !== null) {
-			clearSocket(chatSocket);
-			chatSocket = null;
-		}
-
-		if ($activeChat.activeChat && chatSocket === null && $auth.data?.id && isMemberOfChatroom) {
+		if (
+			$activeChat.activeChat &&
+			$chatSocket.chatSocket === null &&
+			$auth.data?.id &&
+			isMemberOfChatroom
+		) {
 			if (isChatroom($activeChat.activeChat)) {
 				// If it's a chatroom, we need to create a socket for the chatroom
-				chatSocket = createChatroomSocket(
-					$auth.data,
-					$activeChat.activeChat.id,
-					$activeChat.activeChat.users
+				setChatSocket(
+					createChatroomSocket(
+						$auth.data,
+						$activeChat.activeChat.id,
+						$activeChat.activeChat.users
+					)
 				);
 			} else {
 				// If it's a DM, we create a socket for the DM
-				chatSocket = createChatSocket($auth.data.id, $activeChat.activeChat.id);
+				setChatSocket(createChatSocket($auth.data.id, $activeChat.activeChat.id));
 			}
 		}
 	});
 
 	$effect(() => {
-		if (!$auth.data?.id || !$activeChat.activeChat?.id || chatSocket === null) {
+		if (!$auth.data?.id || !$activeChat.activeChat?.id || $chatSocket.chatSocket === null) {
 			return;
 		}
 
 		if (isChatroom($activeChat.activeChat)) {
-			chatSocket.on('receiveMessage', (data: { message: ChatMessage; room: Chatroom }) => {
-				messages = [...messages, data.message];
-				loadingSending = false;
-				scrollToBottom();
+			$chatSocket.chatSocket.on(
+				'receiveMessage',
+				(data: { message: ChatMessage; room: Chatroom }) => {
+					messages = [...messages, data.message];
+					loadingSending = false;
+					scrollToBottom();
+				}
+			);
+			$chatSocket.chatSocket.on('messageDeleted', (data: { messageId: number }) => {
+				messages = messages.filter(
+					(message) => isChatroomMessage(message) && message.messageId !== data.messageId
+				);
 			});
 		} else {
-			chatSocket.on('receiveMessage', (data: Dm) => {
+			$chatSocket.chatSocket.on('receiveMessage', (data: Dm) => {
 				messages = [...messages, data];
 				loadingSending = false;
 				scrollToBottom();
@@ -221,9 +235,9 @@
 	// Cleanup on component destroy
 	onDestroy(() => {
 		$activeChat.activeChat = null;
-		if (chatSocket) {
-			clearSocket(chatSocket);
-			chatSocket = null;
+		if ($chatSocket.chatSocket) {
+			clearSocket($chatSocket.chatSocket);
+			clearChatSocket();
 		}
 	});
 </script>

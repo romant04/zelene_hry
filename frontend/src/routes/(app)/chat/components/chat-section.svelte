@@ -110,10 +110,8 @@
 				{:else if $auth.data && messages.length > 0}
 					{#each messages as message}
 						<ChatBubble
-							message={message.message}
-							sender={message.sender.username}
+							{message}
 							messageType={isChatroomMessage(message) ? 'group' : 'dm'}
-							mine={message.sender.id === $auth.data.id}
 						/>
 					{/each}
 				{:else}
