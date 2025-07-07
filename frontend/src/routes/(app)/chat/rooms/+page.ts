@@ -2,6 +2,7 @@ import type { PageLoad } from './$types';
 import type { Friendship } from '../../../../types/friendship';
 import { API } from '../../../../constants/urls';
 import type { Chatroom } from '../../../../types/chat';
+import type { Restriction } from '../../../../types/restriction';
 
 export const load: PageLoad = async () => {
 	try {
@@ -15,11 +16,16 @@ export const load: PageLoad = async () => {
 				Authorization: `Bearer ${localStorage.getItem('token')}`
 			}
 		}).then((res) => res.json());
-
+		const restrictions = await fetch(`${API}/api/secured/chats/restrictions`, {
+			headers: {
+				Authorization: `Bearer ${localStorage.getItem('token')}`
+			}
+		}).then((res) => res.json());
 		return {
 			data: {
 				friendships: friendships as Friendship[],
-				chatRooms: chatRooms as Chatroom[]
+				chatRooms: chatRooms as Chatroom[],
+				restrictions: restrictions as Restriction[]
 			}
 		};
 	} catch {

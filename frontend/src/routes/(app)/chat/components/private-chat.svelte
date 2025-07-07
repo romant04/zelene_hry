@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { User } from '../../../../types/user';
-	import { Socket } from 'socket.io-client';
 	import { createChatSocket } from '$lib/socket';
 	import type { Dm } from '../../../../types/dm';
 	import { onDestroy, tick } from 'svelte';
@@ -18,18 +17,27 @@
 	import { createChatroomSocket } from '$lib/socket.js';
 	import { chatSocket, clearChatSocket, setChatSocket } from '../../../../stores/chat-socket';
 	import { isChatroomMessage } from '../../../../utils/isChatroomMessage';
+	import type { Restriction } from '../../../../types/restriction';
 
 	let {
 		friends,
 		chatRooms,
-		chatType
-	}: { friends: User[]; chatRooms: Chatroom[]; chatType: 'dm' | 'group' } = $props();
+		chatType,
+		restrictions
+	}: {
+		friends: User[];
+		chatRooms: Chatroom[];
+		chatType: 'dm' | 'group';
+		restrictions: Restriction[];
+	} = $props();
 
 	let isMemberOfChatroom = $state(false);
+	let restriction = $state<Restriction | null>(null);
 
 	$effect(() => {
 		if (chatType === 'dm') {
 			isMemberOfChatroom = true; // In DMs, the user is always a member of the chat
+			restriction = null;
 			return;
 		}
 
@@ -37,6 +45,12 @@
 			isMemberOfChatroom = $activeChat.activeChat.users.some(
 				(user) => user.id === $auth.data?.id
 			);
+			restriction =
+				restrictions.find(
+					(restriction) =>
+						restriction.chatId === $activeChat.activeChat?.id &&
+						restriction.userId === $auth.data?.id
+				) || null;
 		} else {
 			isMemberOfChatroom = false;
 		}
@@ -186,7 +200,8 @@
 			$activeChat.activeChat &&
 			$chatSocket.chatSocket === null &&
 			$auth.data?.id &&
-			isMemberOfChatroom
+			isMemberOfChatroom &&
+			!restriction
 		) {
 			if (isChatroom($activeChat.activeChat)) {
 				// If it's a chatroom, we need to create a socket for the chatroom
@@ -293,6 +308,7 @@
 			{loadingSending}
 			username={name}
 			bind:isMemberOfChatroom
+			{restriction}
 			{messages}
 			bind:message
 			bind:chatContainer
@@ -353,6 +369,7 @@
 			{loadingSending}
 			username={name}
 			bind:isMemberOfChatroom
+			{restriction}
 			{messages}
 			bind:message
 			bind:chatContainer={mobileChatContainer}

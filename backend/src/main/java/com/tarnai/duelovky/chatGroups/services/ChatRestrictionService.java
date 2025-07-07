@@ -43,8 +43,8 @@ public class ChatRestrictionService {
         return new ChatRestrictionDto(savedChatRestriction);
     }
 
-    public List<ChatRestrictionDto> getChatRestrictionsOfChat(Long chatId) {
-        List<ChatRestriction> chatRestrictions = chatRestrictionRepository.findAllByChatId(chatId);
+    public List<ChatRestrictionDto> getChatRestrictionsOfChat() {
+        List<ChatRestriction> chatRestrictions = chatRestrictionRepository.findAll();
         if (chatRestrictions.isEmpty()) {
             return List.of();
         }

@@ -5,6 +5,7 @@
 	import { isChatroomMessage } from '../../../../utils/isChatroomMessage';
 	import { API } from '../../../../constants/urls';
 	import { chatSocket } from '../../../../stores/chat-socket';
+	import { restrictionOverlay } from '../../../../stores/restriction-overlay';
 
 	let { message, messageType }: { message: Message; messageType: 'dm' | 'group' } = $props();
 
@@ -56,6 +57,12 @@
 		});
 	}
 
+	function openRestrictionOverlay() {
+		$restrictionOverlay.user = message.sender;
+		$restrictionOverlay.isOpen = true;
+		isOpen = false;
+	}
+
 	let isOpen = $state(false);
 </script>
 
@@ -101,7 +108,9 @@
 							onclick={handleMessageDelete}
 							class="hover:bg-tertiary-700 py-1 px-3 rounded-lg">Smazat zprávu</button
 						>
-						<button class="hover:bg-tertiary-700 py-1 px-3 rounded-lg">Zabanovat</button
+						<button
+							onclick={openRestrictionOverlay}
+							class="hover:bg-tertiary-700 py-1 px-3 rounded-lg">Zabanovat</button
 						>
 					</div>
 				{/if}

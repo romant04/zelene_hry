@@ -2,6 +2,7 @@
 	import PrivateChat from '../components/private-chat.svelte';
 	import type { PageProps } from '../../../../../.svelte-kit/types/src/routes/(app)/chat/rooms/$types';
 	import { auth } from '../../../../stores/auth';
+	import RestrictionOverlay from '../components/restriction-overlay.svelte';
 
 	let { data }: PageProps = $props();
 </script>
@@ -11,12 +12,14 @@
 </svelte:head>
 
 {#if $auth.data !== null && data.data}
+	<RestrictionOverlay />
 	{@const userId = $auth.data.id}
 	<PrivateChat
 		chatRooms={data.data.chatRooms}
 		friends={data.data.friendships.map((friendship) => {
 			return friendship.user1.id === userId ? friendship.user2 : friendship.user1;
 		})}
+		restrictions={data.data.restrictions}
 		chatType="group"
 	/>
 {:else}

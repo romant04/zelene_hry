@@ -77,9 +77,9 @@ public class ChatController {
     }
 
 
-    @GetMapping("/{chatId}/restrictions")
-    public List<ChatRestrictionDto> getChatRestrictions(@PathVariable Long chatId) {
-        return chatRestrictionService.getChatRestrictionsOfChat(chatId);
+    @GetMapping("/restrictions")
+    public List<ChatRestrictionDto> getChatRestrictions() {
+        return chatRestrictionService.getChatRestrictionsOfChat();
     }
 
     @GetMapping
