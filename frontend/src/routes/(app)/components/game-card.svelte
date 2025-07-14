@@ -1,11 +1,9 @@
 <script lang="ts">
-	import type { gameTag } from '../../../types/game';
-
 	export let image: string;
 	export let title: string;
 	export let perex: string;
 
-	export let tags: gameTag[];
+	export let categories: string[];
 
 	let card: HTMLElement | undefined;
 	function handleAnimation(e: MouseEvent) {
@@ -48,11 +46,15 @@
 			alt=""
 		/>
 		<div class="flex h-[12.5rem] flex-col rounded-b-md bg-tertiary-600 p-4">
-			<h3 class="text-3xl font-semibold">{title}</h3>
+			<h3 class="text-4xl font-semibold mb-1">{title}</h3>
 			<p class="line-clamp-5 text-sm tracking-tight">{perex}</p>
 			<p class="mt-auto flex gap-1">
-				{#each tags as tag}
-					<span class="{tag.tagColor} text-[0.85rem]">#{tag.tagName}</span>
+				{#each categories as category, i}
+					<span
+						class="{i % 2 === 0
+							? 'text-success-500'
+							: 'text-secondary-400'} text-[0.85rem]">#{category}</span
+					>
 				{/each}
 			</p>
 		</div>
