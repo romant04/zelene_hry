@@ -55,6 +55,7 @@
 							: images.slovniFotbal}
 				<GameCard
 					{image}
+					id={game.gameId}
 					perex={game.perex}
 					title={game.name}
 					categories={game.gameCategories.map((category) => category.name)}

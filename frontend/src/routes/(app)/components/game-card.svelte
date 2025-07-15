@@ -1,9 +1,11 @@
 <script lang="ts">
-	export let image: string;
-	export let title: string;
-	export let perex: string;
-
-	export let categories: string[];
+	let {
+		id,
+		image,
+		title,
+		perex,
+		categories
+	}: { id: number; image: string; title: string; perex: string; categories: string[] } = $props();
 
 	let card: HTMLElement | undefined;
 	function handleAnimation(e: MouseEvent) {
@@ -37,7 +39,7 @@
 		bind:this={card}
 		onmousemove={handleAnimation}
 		onmouseleave={handleAnimationEnd}
-		href="game-detail.html"
+		href="/game-detail/{id}"
 	>
 		<img
 			loading="lazy"
