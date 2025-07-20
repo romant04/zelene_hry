@@ -81,6 +81,18 @@
 				socket?.emit('joinGame');
 				goto(`/game/${slugify(data.game.name)}`);
 			});
+
+			socket.on('alreadyInMatchmaking', () => {
+				addToast(
+					'Již máte otevřené okno s touto hrou. Prosím vyvarujte se připojování více her najednou.',
+					'warning',
+					3000
+				);
+				isMatchmakingOpen = false;
+				setTimeout(() => {
+					goto('/');
+				}, 3000);
+			});
 		}
 	});
 

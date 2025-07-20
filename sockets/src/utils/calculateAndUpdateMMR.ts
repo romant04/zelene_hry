@@ -23,6 +23,7 @@ export async function calculateAndUpdateMMR(
 
     const winnerMMR = gameData?.players.find(player => player.id === winnerId)?.mmr;
     const loserMMR = gameData?.players.find(player => player.id === loserId)?.mmr;
+    GameRoomsMap.delete(gameId);
 
     if (winnerMMR === undefined || loserMMR === undefined) {
         console.error("MMR calculation failed: Player MMR not found.");

@@ -316,6 +316,7 @@ export default class MainScene extends Phaser.Scene {
 
 			if (card.rank === 'sedma') {
 				this.sedmaCount++;
+				this.eso = false;
 			}
 			if (card.rank === 'eso') {
 				this.eso = true;

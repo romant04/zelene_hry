@@ -43,6 +43,13 @@ export function setupMatchmakingNamespace(io: Server) {
 
         const mmrData = user?.player?.mmr.find(g => g.gameId === gameId);
 
+        if (users.get(`${gameId}_${user.id}`)) {
+            console.log(`User ${user.username} already in matchmaking for game ${gameId}, disconnecting...`);
+            socket.emit("alreadyInMatchmaking")
+            socket.disconnect();
+            return;
+        }
+
         if (!user || !gameId || !mmrData) {
             console.log("Invalid connection information, disconnecting...");
             socket.disconnect();
@@ -67,7 +74,7 @@ export function setupMatchmakingNamespace(io: Server) {
 
         socket.emit("usersInQueue", queueSize.get(gameId) || 0);
 
-        let interval: NodeJS.Timeout;
+        let interval: NodeJS.Timeout | null;
         socket.on("startMatchmaking", () => {
             queueSize.set(gameId, (queueSize.get(gameId) || 0) + 1);
             matchmakingNamespace.emit("usersInQueue", queueSize.get(gameId) || 0);
@@ -96,7 +103,8 @@ export function setupMatchmakingNamespace(io: Server) {
                 matchedUserIds.add(match.id);
 
                 console.log(`Matched ${userData.username} with ${match.username}`);
-                clearInterval(interval);
+                clearInterval(interval!);
+                interval = null;
 
                 users.delete(key);
                 users.delete(`${gameId}_${match.id}`);
@@ -118,7 +126,7 @@ export function setupMatchmakingNamespace(io: Server) {
                     }],
                 };
                 GameRoomsMap.set(roomKey, gameData);
-                queueSize.set(gameId, (queueSize.get(gameId) || 0) - 2);
+                queueSize.set(gameId, (queueSize.get(gameId) || 0) - 1); // We decrement just by one, because the other one will get decrement by disconnect
 
                 const matchSocketId = await getClientId(io, NAMESPACE, match.id);
                 if (!matchSocketId) {
@@ -130,7 +138,6 @@ export function setupMatchmakingNamespace(io: Server) {
                     gameId: roomKey,
                     playerToken,
                 });
-
                 matchmakingNamespace.to(matchSocketId).emit("matchFound", {
                     gameId: roomKey,
                     playerToken: match.token,
@@ -144,7 +151,8 @@ export function setupMatchmakingNamespace(io: Server) {
 
         socket.on("cancelMatchmaking", () => {
             console.log(`User ${userData.username} cancelled matchmaking for game ${gameId}`);
-            clearInterval(interval);
+            clearInterval(interval!);
+            interval = null;
             users.delete(key);
             matchedUserIds.delete(userData.id);
             queueSize.set(gameId, (queueSize.get(gameId) || 0) - 1);
@@ -152,7 +160,13 @@ export function setupMatchmakingNamespace(io: Server) {
         })
 
         socket.on("disconnect", () => {
-            clearInterval(interval);
+            if (interval) {
+                console.log(interval)
+                console.log("queue decremented for user");
+                queueSize.set(gameId, (queueSize.get(gameId) || 0) - 1);
+
+                clearInterval(interval!);
+            }
             users.delete(key);
             matchedUserIds.delete(userData.id);
         });

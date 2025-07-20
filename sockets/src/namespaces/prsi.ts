@@ -112,7 +112,6 @@ export function setupPrsiNamespace(io: Server) {
                 const winnerName = player!.name;
                 prsiNamespace.to(gameId).emit("gameOver", winnerName);
                 PrsiGameData.delete(gameId);
-                GameRoomsMap.delete(gameId);
 
                 void calculateAndUpdateMMR(gameId, id, enemy!.id)
 
@@ -156,7 +155,6 @@ export function setupPrsiNamespace(io: Server) {
                 const winnerName = player!.name;
                 prsiNamespace.to(gameId).emit("gameOver", winnerName);
                 PrsiGameData.delete(gameId);
-                GameRoomsMap.delete(gameId);
 
                 void calculateAndUpdateMMR(gameId, id, enemy!.id)
 
