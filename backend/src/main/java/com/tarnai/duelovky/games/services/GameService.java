@@ -3,6 +3,7 @@ package com.tarnai.duelovky.games.services;
 import com.tarnai.duelovky.games.dto.GameCategoryDto;
 import com.tarnai.duelovky.games.dto.GameDto;
 import com.tarnai.duelovky.games.dto.GamePreviewDto;
+import com.tarnai.duelovky.games.entity.Game;
 import com.tarnai.duelovky.games.repositories.GameRepository;
 import org.springframework.stereotype.Service;
 
@@ -26,9 +27,8 @@ public class GameService {
                 .toList();
     }
 
-    public GameDto getGameById(Long gameId) {
+    public Game getGameById(Long gameId) {
         return gameRepository.findById(gameId)
-                .map(GameDto::new)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found!"));
     }
 }

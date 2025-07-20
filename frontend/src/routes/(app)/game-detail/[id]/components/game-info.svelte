@@ -36,10 +36,9 @@
 					.sort((a, b) => a.gameInfoId - b.gameInfoId) as info}
 					{#each info.gameInfo.split('\n') as line}
 						{#if line.includes('-')}
-							<p class="flex items-center gap-4">
-								<span class="block bg-white w-[5px] h-[5px] rounded-full"></span>
-								{info.gameInfo.slice(1)}
-							</p>
+							<ul class="list-disc ml-5 mb-1">
+								<li>{info.gameInfo.slice(1)}</li>
+							</ul>
 						{:else}
 							<p class="mt-2 font-bold">{info.gameInfo}</p>
 						{/if}
@@ -54,10 +53,9 @@
 					.sort((a, b) => a.gameInfoId - b.gameInfoId) as info}
 					{#each info.gameInfo.split('\n') as line}
 						{#if line.includes('-')}
-							<p class="flex items-center gap-4">
-								<span class="block bg-white w-[5px] h-[5px] rounded-full"></span>
-								{info.gameInfo.slice(1)}
-							</p>
+							<ul class="list-disc ml-5 mb-1">
+								<li>{info.gameInfo.slice(1)}</li>
+							</ul>
 						{/if}
 					{/each}
 				{/each}

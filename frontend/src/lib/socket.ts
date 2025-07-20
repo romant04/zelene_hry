@@ -25,3 +25,15 @@ export const createNotificationSocket = (userId: number) => {
 		auth: { userId }
 	});
 };
+
+export const createMatchmakingSocket = (user: User, gameId: number) => {
+	return io(`${WEBSOCKET}/matchmaking`, {
+		auth: { user, gameId }
+	});
+};
+
+export const createPrsiSocket = (token: string, gameId: string) => {
+	return io(`${WEBSOCKET}/prsi`, {
+		auth: { token, gameId }
+	});
+};

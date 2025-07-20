@@ -19,8 +19,7 @@ public class Admin {
     @Column(name = "permission_level")
     private Integer permissionLevel;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    @OneToOne(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Account account;
 

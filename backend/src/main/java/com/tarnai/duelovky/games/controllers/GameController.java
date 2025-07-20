@@ -26,6 +26,6 @@ public class GameController {
 
     @GetMapping("/{gameId}")
     public GameDto getGameById(@PathVariable Long gameId) {
-        return gameService.getGameById(gameId);
+        return new GameDto(gameService.getGameById(gameId));
     }
 }

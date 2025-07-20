@@ -4,25 +4,10 @@
 	import { addToast } from '../../../../stores/toast';
 	import { activeChat } from '../../../../stores/active-chat';
 	import { API } from '../../../../constants/urls';
+	import { clickOutside } from '../../../../utils/clickOutside';
 
 	let reason = $state('');
 	let duration = $state('');
-
-	function clickOutside(node: HTMLElement, handler: () => void) {
-		const onClick = (event: MouseEvent) => {
-			if (!node.contains(event.target as Node)) {
-				handler();
-			}
-		};
-
-		document.addEventListener('click', onClick, true);
-
-		return {
-			destroy() {
-				document.removeEventListener('click', onClick, true);
-			}
-		};
-	}
 
 	async function handleAddRestriction() {
 		if (!$restrictionOverlay.user) {
