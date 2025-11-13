@@ -14,10 +14,12 @@
 	import MatchmakingOverlay from './components/matchmaking-overlay.svelte';
 	import { onDestroy } from 'svelte';
 	import { slugify } from '../../../../utils/slugify';
+	import ChallengeFriendOverlay from './components/challenge-friend-overlay.svelte';
 
 	let { data }: PageProps = $props();
 	let socket: Socket | null = $state(null);
 	let isMatchmakingOpen = $state(false);
+	let isChallengeFriendOpen = $state(false);
 
 	const images = {
 		slovniFotbal: slovniFotbal,
@@ -110,6 +112,10 @@
 		socket?.emit('startMatchmaking');
 	}
 
+	async function handleChallengeFriend() {
+		isChallengeFriendOpen = true;
+	}
+
 	onDestroy(() => {
 		if (socket) {
 			socket.disconnect();
@@ -123,6 +129,7 @@
 </svelte:head>
 
 <MatchmakingOverlay bind:isOpen={isMatchmakingOpen} {socket} />
+<ChallengeFriendOverlay bind:isOpen={isChallengeFriendOpen} game={data.game} />
 {#if data.game}
 	<div class="container flex flex-col gap-20 mt-10 w-[min(64rem,100%)]">
 		<div
@@ -159,6 +166,7 @@
 							>Hrát hned</button
 						>
 						<button
+							onclick={handleChallengeFriend}
 							class="button px-8 py-[6px] rounded-sm font-bold variant-filled-secondary !bg-secondary-600 !text-white uppercase hover:!bg-secondary-500"
 							>Vyzvat kamaráda</button
 						>

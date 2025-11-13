@@ -2,7 +2,7 @@
 	import type { Link } from '../../../../types/link';
 	import Icon from '@iconify/svelte';
 
-	let { link }: { link: Link; isOpen: boolean } = $props();
+	let { link }: { link: Link } = $props();
 </script>
 
 <li class="group relative cursor-pointer flex items-center gap-1">

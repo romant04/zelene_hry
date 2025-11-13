@@ -27,7 +27,7 @@
 	{#each $toast as { id, type, message, duration }}
 		<div
 			transition:fly={{ y: -50, opacity: 0, duration: 400 }}
-			class="fixed max-w-28 flex items-center gap-2 z-50 top-6 right-6 min-w-64 p-4 pr-8 rounded-md bg-tertiary-700 text-white"
+			class="fixed max-w-28 flex items-center gap-2 z-[999] top-6 right-6 min-w-64 p-4 pr-8 rounded-md bg-tertiary-700 text-white"
 		>
 			<Icon icon={toastIcon[type]} width="24" class="{iconColor[type]} min-w-[24px]" />
 			<span id={`${type}-${id}`} class={message.length > 50 ? 'text-sm' : 'text-base'}

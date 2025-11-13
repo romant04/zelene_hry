@@ -3,7 +3,7 @@ import { Message } from "../types/message";
 import { getClientId } from "../utils/getClient";
 import { v4 as uuidv4 } from "uuid";
 import { NotificationMessage } from "../types/notificationMessage";
-import {emitOrNotify} from "../utils/emitOrNotify";
+import { emitOrNotify } from "../utils/emitOrNotify";
 
 export function setupChatNamespace(io: Server) {
   const chatNamespace = io.of("/chat");
@@ -30,7 +30,9 @@ export function setupChatNamespace(io: Server) {
       const userSocketId = await getClientId(io, "/chat", userId);
 
       if (!userSocketId) {
-        console.log(`No socket ID found for user ${userId}, cannot send message.`);
+        console.log(
+          `No socket ID found for user ${userId}, cannot send message.`,
+        );
         return;
       }
 
@@ -44,9 +46,14 @@ export function setupChatNamespace(io: Server) {
       // We notify the sender everytime
       chatNamespace.to(userSocketId).emit("receiveMessage", message);
 
-      await emitOrNotify(`user.${friendId}.chat.message`, friendSocketId, notificationMessage, () => {
-        chatNamespace.to(friendSocketId!).emit("receiveMessage", message);
-      });
+      await emitOrNotify(
+        `user.${friendId}.chat.message`,
+        friendSocketId,
+        notificationMessage,
+        () => {
+          chatNamespace.to(friendSocketId!).emit("receiveMessage", message);
+        },
+      );
     });
 
     socket.on("disconnect", () => {

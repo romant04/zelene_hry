@@ -32,6 +32,12 @@ export const createMatchmakingSocket = (user: User, gameId: number) => {
 	});
 };
 
+export const createFriendChallengeSocket = (user: User, queueCode: string, gameId: number) => {
+	return io(`${WEBSOCKET}/friend-challenge`, {
+		auth: { user, queueCode, gameId }
+	});
+};
+
 export const createPrsiSocket = (token: string, gameId: string) => {
 	return io(`${WEBSOCKET}/prsi`, {
 		auth: { token, gameId }

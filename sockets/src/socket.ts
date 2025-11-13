@@ -2,11 +2,12 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 import { setupChatNamespace } from "./namespaces/chat";
 import { setupFriendsNamespace } from "./namespaces/friends";
-import {setupNotificationNamespace} from "./namespaces/notification";
-import {setupChatroomNamespace} from "./namespaces/chatroom";
-import {setupMatchmakingNamespace} from "./namespaces/matchmaking";
+import { setupNotificationNamespace } from "./namespaces/notification";
+import { setupChatroomNamespace } from "./namespaces/chatroom";
+import { setupMatchmakingNamespace } from "./namespaces/matchmaking";
 import { GameData } from "./types/game";
-import {setupPrsiNamespace} from "./namespaces/prsi";
+import { setupPrsiNamespace } from "./namespaces/prsi";
+import { setupFriendChallengeNamespace } from "./namespaces/friendChallenge";
 
 // Key = game+room
 export const GameRoomsMap: Map<string, GameData> = new Map(); // Maps individual games to data
@@ -23,6 +24,7 @@ export function setupSocket(server: ReturnType<typeof createServer>) {
   setupChatroomNamespace(io);
   setupMatchmakingNamespace(io);
   setupPrsiNamespace(io);
+  setupFriendChallengeNamespace(io);
 
   console.log("Socket.io initialized");
 }

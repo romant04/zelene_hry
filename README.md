@@ -8,13 +8,14 @@ Online herní platforma se sociálními prkvy. Je tvořena s myšlenkou náhradi
 - Přihlašování ✅
 - Systém přátel ✅
 - Privátní chatování ✅
-- Chatovací místnosti ✅
+- Chatovací místnosti + správa ✅
 - Notifikace ✅
 
-#### Herní ❌ 
-- 1v1 online hry
-- Matchmaking, ranking
-- Vytvoření soukromé hry pomocí kódu
+#### Herní  
+- 1v1 online hry ❌ (Prší ✅)
+- Matchmaking ✅
+- Ranking system ❌
+- Vytvoření soukromé hry pomocí kódu ✅
 
 ## Technologie
 - **Frontend** - Svelte 5
