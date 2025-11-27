@@ -23,3 +23,12 @@ Online herní platforma se sociálními prkvy. Je tvořena s myšlenkou náhradi
 - **Backend (websockets)** - Node.js Socket.io
 - **Databáze**: PostgreSQL
 - **RabbitMQ** - pro notifikace
+
+## Návod ke spuštění lokálně
+1. Naklonujte repozitář
+2. Doplňte `.env` soubory pro jednotlivé části aplikace (backend, sockets) podle `.env.example`
+3. Spusťte příkaz make run-dev pro spuštění všech částí aplikace pomocí Dockeru
+   ```bash
+   make run-dev
+   ```
+4. Aplikace by měla být dostupná na `http://localhost:5173`
