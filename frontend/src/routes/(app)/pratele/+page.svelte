@@ -1,7 +1,6 @@
 <script lang="ts">
 	import PlayerCard from './components/player-card.svelte';
 	import FriendRequestTab from './components/friend-request.svelte';
-	import type { PageProps } from '../../../../.svelte-kit/types/src/routes/(app)/pratele/$types';
 	import { auth } from '../../../stores/auth';
 	import FriendRequestModal from './components/friend-request-modal.svelte';
 	import type { User } from '../../../types/user';
@@ -14,9 +13,10 @@
 	import { addToast } from '../../../stores/toast';
 	import { clearSocket } from '../../../utils/socket';
 	import { onDestroy } from 'svelte';
+	import type { FetchedSocialData } from './+page';
 
 	let friendSocket: Socket | null = $state(null);
-	let { data }: PageProps = $props();
+	let { data }: { data: { data: FetchedSocialData } } = $props();
 
 	let filter = $state('');
 	let activeFriend: User | null = $state(null);
@@ -29,7 +29,7 @@
 	$effect(() => {
 		if (data.data) {
 			friendships = data.data.friendships;
-			friendRequests = data.data.friendRequest;
+			friendRequests = data.data.friendRequests;
 		}
 	});
 

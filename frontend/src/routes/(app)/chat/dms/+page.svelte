@@ -1,9 +1,15 @@
 <script lang="ts">
 	import PrivateChat from '../components/private-chat.svelte';
-	import type { PageProps } from '../../../../../.svelte-kit/types/src/routes/(app)/chat/dms/$types';
 	import { auth } from '../../../../stores/auth';
+	import type { FetchedDmData } from './+page';
 
-	let { data }: PageProps = $props();
+	let {
+		data
+	}: {
+		data: {
+			data: FetchedDmData;
+		};
+	} = $props();
 </script>
 
 <svelte:head>
@@ -18,6 +24,7 @@
 		})}
 		chatRooms={data.data.chatRooms}
 		chatType="dm"
+		restrictions={[]}
 	/>
 {:else}
 	<p>Loading...</p>
