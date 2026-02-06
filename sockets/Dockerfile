@@ -1,18 +1,30 @@
-# Use Node 20 with Alpine for a lightweight image
-FROM node:20-alpine
-
-# Set working directory
+# --- Stage 1: Build ---
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy package.json and install dependencies
-COPY package.json package-lock.json ./
-RUN npm install
+# Install dependencies
+COPY package*.json ./
+RUN npm ci
 
-# Copy TypeScript source files
+# Copy source and build TypeScript
 COPY . .
-
-# Build TypeScript
 RUN npm run build
 
-# Start the WebSocket server
+# --- Stage 2: Runtime ---
+FROM node:20-alpine
+WORKDIR /app
+
+# Copy ONLY the production-ready files
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+
+# Tell Node this is production
+ENV NODE_ENV=production
+
+# Render assigns a dynamic port; your app MUST use process.env.PORT
+# We'll use 10000 as a standard Render default fallback
+ENV PORT=10000
+EXPOSE 10000
+
 CMD ["node", "dist/server.js"]
