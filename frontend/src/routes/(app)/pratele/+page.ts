@@ -1,7 +1,8 @@
+import { browser } from '$app/environment';
+import { error, redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import { socialCache } from '$lib/cache/socials';
 import { API } from '../../../constants/urls';
-import { error } from '@sveltejs/kit';
 import type { Friendship } from '../../../types/friendship';
 import type { FriendRequest } from '../../../types/friendRequest';
 import type { User } from '../../../types/user';
@@ -13,33 +14,39 @@ export interface FetchedSocialData {
 	isCached: boolean;
 }
 
-export const load = async ({ fetch }) => {
-	const cache = get(socialCache);
-	const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+export const load = async ({ fetch, data }) => {
+	// 1. Priority: Token from Server Data, Fallback: LocalStorage
+	const token = data?.token || (browser ? localStorage.getItem('token') : null);
 
-	console.log(cache);
-	// 1. Check if we have fresh data in the store
-	if (cache.friendships && Date.now() - cache.lastFetched < CACHE_DURATION) {
-		return { data: cache };
+	if (!token) {
+		throw redirect(303, '/login');
 	}
 
-	try {
-		// 2. If not, fetch it
-		const token = localStorage.getItem('token');
+	// 2. Cache check (Browser Only)
+	if (browser) {
+		const cache = get(socialCache);
+		if (cache.friendships && Date.now() - cache.lastFetched < 300000) {
+			return { data: cache };
+		}
+	}
 
-		const res = await fetch(`${API}/api/secured/socialDashboard`, {
-			headers: { Authorization: `Bearer ${token}` }
-		});
+	// 3. Fetching
+	const res = await fetch(`${API}/api/secured/socialDashboard`, {
+		headers: { Authorization: `Bearer ${token}` }
+	});
 
-		const newData = (await res.json()) as FetchedSocialData;
+	if (!res.ok) {
+		// If API says token is invalid, clear cookie/redirect
+		if (res.status === 401) throw redirect(303, '/login');
+		throw error(res.status, 'Backend Error');
+	}
 
-		// 3. Update the store for the NEXT time they click
+	const newData = (await res.json()) as FetchedSocialData;
+
+	// 4. Update Store (Browser Only)
+	if (browser) {
 		socialCache.set({ ...newData, lastFetched: Date.now() });
-
-		return {
-			data: newData
-		};
-	} catch {
-		throw error(500, 'Failed to load social data');
 	}
+
+	return { data: newData };
 };

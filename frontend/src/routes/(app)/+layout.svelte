@@ -4,8 +4,7 @@
 	import AppFooter from './components/layout/layout-footer.svelte';
 	import Header from './components/layout/header.svelte';
 	import { auth, updateUserState } from '../../stores/auth';
-	import { goto } from '$app/navigation';
-	import { navigating, page } from '$app/state';
+	import { navigating } from '$app/state';
 	import Toast from './components/toast.svelte';
 	import { onDestroy, onMount, setContext } from 'svelte';
 	import type { Socket } from 'socket.io-client';
@@ -24,16 +23,6 @@
 	onMount(() => {
 		if (localStorage.getItem('out-of-service')) {
 			updateUserState(); // Test if service is back online
-		}
-	});
-
-	const protectedRoutes = ['/chat', '/pratele'];
-	$effect(() => {
-		if (
-			$auth.data === null &&
-			protectedRoutes.some((route) => page.url.pathname.includes(route))
-		) {
-			goto('/login');
 		}
 	});
 

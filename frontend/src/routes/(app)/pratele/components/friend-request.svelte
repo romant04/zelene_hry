@@ -4,6 +4,7 @@
 	import { addToast } from '../../../../stores/toast';
 	import { API } from '../../../../constants/urls';
 	import type { Socket } from 'socket.io-client';
+	import { socialCache } from '$lib/cache/socials';
 
 	let {
 		friendRequest,
@@ -32,6 +33,7 @@
 		const data = await response.json();
 		if (response.ok) {
 			addToast('Úspěšne jste přijali jste žádost o přátelství', 'success');
+			socialCache.clear();
 			updateAfterFriendRequest(true, friendRequest, data);
 
 			if (friendSocket) {
@@ -58,6 +60,7 @@
 
 		if (response.ok) {
 			addToast('Žádost o přátelství byla zamítnuta', 'success');
+			socialCache.clear();
 			updateAfterFriendRequest(false, friendRequest);
 
 			if (friendSocket) {

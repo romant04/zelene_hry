@@ -30,7 +30,7 @@
 
 	function handleChatRedirect() {
 		setActiveChat(friend);
-		goto('/chat');
+		goto('/chat/dms');
 	}
 </script>
 

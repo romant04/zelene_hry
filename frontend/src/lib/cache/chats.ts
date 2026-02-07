@@ -10,10 +10,23 @@ interface ChatsCache {
 	lastFetched: number;
 }
 
-// Cache data for friends page
-export const chatsCache: Writable<ChatsCache> = writable({
+const initialChatsCache: ChatsCache = {
 	friendships: null,
 	chatRooms: null,
 	restrictions: null,
 	lastFetched: 0
-});
+};
+
+// Cache data for friends page
+const { subscribe, set, update }: Writable<ChatsCache> = writable(initialChatsCache);
+
+// 3. Export a custom object that includes the default methods + your new ones
+export const chatsCache = {
+	subscribe,
+	set,
+	update,
+	clear: () => {
+		console.log('Cleaning chats cache...');
+		set(initialChatsCache);
+	}
+};

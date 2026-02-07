@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { User } from '../types/user';
 import { goto } from '$app/navigation';
-import {API} from "../constants/urls";
+import { API } from '../constants/urls';
 
 // User store
 export const auth = writable<{ token: string | null; data: User | null; loaded: boolean }>({
@@ -67,6 +67,7 @@ if (browser) {
 // Function to set the token (e.g., after login)
 export function setToken(token: string) {
 	if (browser) {
+		document.cookie = `token=${token}; path=/; max-age=604800; SameSite=Lax; Secure`;
 		localStorage.setItem('token', token);
 		updateUserState(); // Update user state immediately
 	}
@@ -75,6 +76,7 @@ export function setToken(token: string) {
 // Function to clear the token (e.g., after logout)
 export function clearToken() {
 	if (browser) {
+		document.cookie = `token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`; // Clear cookie
 		localStorage.removeItem('token');
 		updateUserState(); // Update user state immediately
 	}

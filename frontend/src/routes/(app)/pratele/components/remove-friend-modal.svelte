@@ -6,6 +6,7 @@
 	import { API } from '../../../../constants/urls';
 	import type { Socket } from 'socket.io-client';
 	import { auth } from '../../../../stores/auth';
+	import { socialCache } from '$lib/cache/socials';
 
 	let {
 		friend = $bindable(),
@@ -58,6 +59,7 @@
 		loading = false;
 
 		if (response.ok) {
+			socialCache.clear();
 			updateAfterFriendRemoved(friend);
 			addToast('Přítel byl úspěšně odstraněn', 'success');
 			friendSocket?.emit('friendRemoved', { user: $auth.data, friend: friend.id }); // We use $auth.data?.id, because the other user needs to know who ended friendship with him

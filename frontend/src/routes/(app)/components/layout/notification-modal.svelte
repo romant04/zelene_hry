@@ -4,6 +4,9 @@
 	import { getContext } from 'svelte';
 	import type { Socket } from 'socket.io-client';
 	import type { NotificationMessage } from '../../../../types/notificationMessage';
+	import { socialCache } from '$lib/cache/socials';
+	import { chatsCache } from '$lib/cache/chats';
+	import { goto } from '$app/navigation';
 
 	let {
 		isOpenNotifications = $bindable(),
@@ -26,10 +29,15 @@
 	}
 
 	function handleNotificationClick(notification: NotificationMessage) {
+		socialCache.clear();
+		chatsCache.clear();
+
 		isOpenNotifications = false;
 		if (notification.redirectUrl.includes('/chat')) {
 			// If the notification is for chat, we don't need to update the notifications
 			// as it will be handled in the chat section.
+			goto(notification.redirectUrl);
+
 			return;
 		}
 		updateNotifications([...$notifications.filter((nt) => nt.id !== notification.id)]);
@@ -37,6 +45,8 @@
 		if (notificationSocket) {
 			notificationSocket.emit('ack', notification.id);
 		}
+
+		goto(notification.redirectUrl);
 	}
 
 	function deleteAllNotifications() {
@@ -55,16 +65,15 @@
 >
 	<div class="flex flex-col gap-2 overflow-y-auto max-h-full">
 		{#each $notifications as notification}
-			<a
-				href={notification.redirectUrl}
+			<button
 				onclick={() => handleNotificationClick(notification)}
 				class="bg-tertiary-700 flex flex-col justify-between min-h-20 p-2 rounded-md hover:bg-tertiary-800 cursor-pointer"
 			>
-				<p class="text-sm">{notification.message}</p>
+				<span class="text-sm">{notification.message}</span>
 				<small class="text-xs text-gray-400"
 					>{getTimeDifference(new Date(), new Date(notification.timestamp))}</small
 				>
-			</a>
+			</button>
 		{/each}
 		{#if $notifications.length === 0}
 			<p class="text-center text-gray-400">Žádná oznámení</p>

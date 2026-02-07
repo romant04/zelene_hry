@@ -6,6 +6,7 @@
 	import { API } from '../../../../constants/urls';
 	import type { FriendRequest } from '../../../../types/friendRequest';
 	import type { Socket } from 'socket.io-client';
+	import { socialCache } from '$lib/cache/socials';
 
 	let {
 		friend = $bindable(),
@@ -62,6 +63,7 @@
 		loading = false;
 
 		if (response.ok) {
+			socialCache.clear();
 			friend = null;
 			addToast('Žádost o přátelství byla úspěšně odeslána', 'success');
 			friendSocket?.emit('friendRequestSent', data);

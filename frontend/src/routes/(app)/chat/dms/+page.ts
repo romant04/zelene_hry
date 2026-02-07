@@ -4,25 +4,31 @@ import { API } from '../../../../constants/urls';
 import type { Chatroom } from '../../../../types/chat';
 import { chatsCache } from '$lib/cache/chats';
 import { get } from 'svelte/store';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { browser } from '$app/environment';
 
 export interface FetchedDmData {
 	friendships: Friendship[];
 	chatRooms: Chatroom[];
 }
 
-export const load: PageLoad = async () => {
-	const cache = get(chatsCache);
-	const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+export const load: PageLoad = async ({ fetch, data }) => {
+	const token = data?.token || (browser ? localStorage.getItem('token') : null);
 
-	// 1. Check if we have fresh data in the store
-	if (cache.chatRooms && Date.now() - cache.lastFetched < CACHE_DURATION) {
-		return { data: cache };
+	if (!token) {
+		throw redirect(303, '/login');
+	}
+
+	if (browser) {
+		const cache = get(chatsCache);
+		const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+		if (cache.chatRooms && Date.now() - cache.lastFetched < CACHE_DURATION) {
+			return { data: cache };
+		}
 	}
 
 	try {
-		// 2. If not, fetch it
-		const token = localStorage.getItem('token');
 		const headers = { Authorization: `Bearer ${token}` };
 
 		const [friendships, chatRooms] = await Promise.all([
@@ -37,8 +43,9 @@ export const load: PageLoad = async () => {
 			lastFetched: Date.now()
 		};
 
-		// 3. Update the store for the NEXT time they click
-		chatsCache.set(newData);
+		if (browser) {
+			chatsCache.set(newData);
+		}
 
 		return { data: newData as FetchedDmData };
 	} catch {

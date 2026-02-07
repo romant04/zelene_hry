@@ -95,11 +95,13 @@
 </script>
 
 <div
-	class="mx-auto mt-12 grid w-[80%] grid-cols-1 items-center justify-center lg:min-h-[80vh] lg:grid-cols-[60%,40%]"
+	class="mx-auto mt-12 grid w-[75%] grid-cols-1 items-center justify-center lg:min-h-[80vh] lg:grid-cols-[60%,40%]"
 >
 	<div
-		class="flex h-[24rem] w-full flex-col items-center justify-center gap-4 rounded-t-md bg-tertiary-700 px-6 py-8 lg:h-[30rem] lg:gap-8 lg:rounded-l-md lg:rounded-t-none"
+		class="flex h-[24rem] relative overflow-hidden w-full flex-col items-center justify-center gap-4 rounded-t-md bg-tertiary-700 px-6 py-8 lg:h-[30rem] xl:h-[36rem] lg:gap-8 lg:rounded-l-md lg:rounded-t-none"
 	>
+		<div class="absolute -top-20 -left-20 bg-tertiary-600 w-52 h-52 rounded-full"></div>
+
 		<h2 class="text-center font-heading text-2xl font-bold lg:text-4xl">
 			{signIn ? 'Přihlásit se' : 'Registrovat se'}
 		</h2>
@@ -136,12 +138,18 @@
 	</div>
 
 	<div
-		class="flex h-[18rem] flex-col items-center justify-center rounded-b-md bg-secondary-600 px-6 py-8 lg:h-[30rem] lg:rounded-b-none lg:rounded-r-md"
+		class="flex h-[18rem] relative overflow-hidden flex-col items-center justify-center rounded-b-md bg-primary-600 px-6 py-8 lg:h-[30rem] xl:h-[36rem] lg:rounded-b-none lg:rounded-r-md"
 	>
+		<div class="absolute -bottom-20 -right-20 bg-primary-500 w-52 h-52 rounded-full"></div>
+
 		<h2 class="text-center font-heading text-2xl font-bold lg:text-4xl">
 			{signIn ? 'Ještě nemáte účet ?' : 'Už máte svůj účet ?'}
 		</h2>
-		<p>{signIn ? 'Vytvořte si ho nyní' : 'Přihlaště se k němu'}</p>
+		<p class="max-w-60 text-center">
+			{signIn
+				? 'Vytvořte si ho nyní a přidejte se k aktivní hráčské komunitě'
+				: 'Přihlašte se nyní ať můžete pokračovat v duelování'}
+		</p>
 		<a
 			href={signIn ? '/register' : '/login'}
 			class="btn mt-5 h-12 w-full max-w-56 bg-tertiary-700"
