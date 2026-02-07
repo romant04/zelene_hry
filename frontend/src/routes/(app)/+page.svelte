@@ -27,6 +27,10 @@
 
 <svelte:head>
 	<title>Duelovky</title>
+	<meta
+		name="description"
+		content="Chceš si zahrát klasícké 1v1 online hry jako Horolezci, Prší nebo Slovní fotbal. Tady je najdeš všechny na jednom místě"
+	/>
 </svelte:head>
 
 <div class="h-full">
