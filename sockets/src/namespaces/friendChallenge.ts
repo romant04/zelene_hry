@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-import { User } from "../types/user";
+import { PlayerStats, User } from "../types/user";
 import { v4 as uuidv4 } from "uuid";
 import { GameData } from "../types/game";
 import { GameRoomsMap } from "../socket";
@@ -10,6 +10,7 @@ interface FriendChallengeQueueUser {
   username: string;
   token: string;
   mmr: number;
+  playerStats: PlayerStats;
   ready: boolean;
 }
 interface FriendChallengeQueue {
@@ -70,6 +71,15 @@ export function setupFriendChallengeNamespace(io: Server) {
         username: user.username,
         token: uuidv4(),
         mmr: user.player?.mmr.find((m) => m.gameId === gameId)?.mmr || 0,
+        playerStats: user.player?.playerStats?.find(
+          (x) => x.gameId === gameId,
+        ) ?? {
+          gameId: gameId,
+          userId: user.id,
+          gamesPlayed: 0,
+          playTimeMinutes: 0,
+          winRatio: 0,
+        },
         ready: true,
       });
       queue.readyCounter++;
@@ -85,6 +95,7 @@ export function setupFriendChallengeNamespace(io: Server) {
         const roomKey = `${gameId}_${me.username}${enemy.username}`;
         const gameData: GameData = {
           roomKey: roomKey,
+          gameStartTime: Date.now(),
           isPrivate: true,
           players: [
             {
@@ -92,12 +103,14 @@ export function setupFriendChallengeNamespace(io: Server) {
               name: me.username,
               token: me.token,
               mmr: me.mmr,
+              playerStats: me.playerStats,
             },
             {
               id: enemy.id,
               name: enemy.username,
               token: enemy.token,
               mmr: enemy.mmr,
+              playerStats: enemy.playerStats,
             },
           ],
         };
@@ -127,6 +140,15 @@ export function setupFriendChallengeNamespace(io: Server) {
             username: user.username,
             token: uuidv4(),
             mmr: user.player?.mmr.find((m) => m.gameId === gameId)?.mmr || 0,
+            playerStats: user.player?.playerStats?.find(
+              (x) => x.gameId === gameId,
+            ) ?? {
+              gameId: gameId,
+              userId: user.id,
+              gamesPlayed: 0,
+              playTimeMinutes: 0,
+              winRatio: 0,
+            },
             ready: true,
           },
         ],
@@ -145,11 +167,7 @@ export function setupFriendChallengeNamespace(io: Server) {
       const userIndex = queue.users.findIndex((u) => u.username === username);
       if (userIndex === -1) return;
 
-      console.log(activeQueues);
-
       activeQueues.delete(queueCode);
-
-      console.log(activeQueues);
     });
 
     // * This ready logic is currently not in use since the game starts as soon as both players join the queue

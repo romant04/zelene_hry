@@ -29,6 +29,9 @@ public class PlayerStats {
     @Column(name = "games_played")
     private Integer gamesPlayed;
 
+    @Column(name = "play_time_minutes")
+    private Integer playTimeMinutes;
+
     @Column(name = "win_ratio")
     private Double winRatio;
 }

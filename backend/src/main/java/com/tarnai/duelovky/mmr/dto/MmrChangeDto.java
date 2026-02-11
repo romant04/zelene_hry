@@ -16,5 +16,5 @@ public class MmrChangeDto {
     private Integer mmr;
 
     @NotBlank
-    private String MMR_SECRET;
+    private String mmrSecret;
 }

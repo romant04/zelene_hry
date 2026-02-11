@@ -14,6 +14,8 @@ public class PlayerStatsInputDto {
     private Integer gamesPlayed;
     @NotNull
     private Double winRatio;
+    @NotNull
+    private Integer playTimeMinutes;
 
     @NotBlank
     private String mmrSecret; // We can use the same secret as for MMR

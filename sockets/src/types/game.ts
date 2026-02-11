@@ -1,11 +1,15 @@
+import { PlayerStats } from "./user";
+
 export type GameData = {
   roomKey: string; // Unique identifier for the game
+  gameStartTime: number;
   isPrivate?: boolean; // If set to true the game won't update the MMR
   players: {
     id: number; // Unique identifier for the player
     name: string; // Name of the player
     token: string; // Token for the player (auth)
     mmr: number;
+    playerStats: PlayerStats;
   }[];
 };
 

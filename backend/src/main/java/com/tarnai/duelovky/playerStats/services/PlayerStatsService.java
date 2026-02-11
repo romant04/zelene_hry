@@ -28,7 +28,7 @@ public class PlayerStatsService {
 
     public PlayerStatsDto getPlayerStats(Long userId, Long gameId) {
         return playerStatsRepository.findById(new MmrId(userId, gameId)).stream().findFirst()
-                .map(x -> new PlayerStatsDto(x.getUser(), x.getGame(), x.getGamesPlayed(), x.getWinRatio()))
+                .map(x -> new PlayerStatsDto(x.getUser(), x.getGame(), x.getGamesPlayed(), x.getWinRatio(), x.getPlayTimeMinutes()))
                 .orElse(null);
     }
 
@@ -49,8 +49,8 @@ public class PlayerStatsService {
             throw new IllegalArgumentException("Game not found with ID: " + playerStatsInputDto.getGameId());
         }
 
-        PlayerStats playerStats = new PlayerStats(player, game, playerStatsInputDto.getGamesPlayed(), playerStatsInputDto.getWinRatio());
+        PlayerStats playerStats = new PlayerStats(player, game, playerStatsInputDto.getGamesPlayed(), playerStatsInputDto.getPlayTimeMinutes(), playerStatsInputDto.getWinRatio());
         PlayerStats savedPlayerStats = playerStatsRepository.save(playerStats);
-        return new PlayerStatsDto(savedPlayerStats.getUser(), savedPlayerStats.getGame(), savedPlayerStats.getGamesPlayed(), savedPlayerStats.getWinRatio());
+        return new PlayerStatsDto(savedPlayerStats.getUser(), savedPlayerStats.getGame(), savedPlayerStats.getGamesPlayed(), savedPlayerStats.getWinRatio(), savedPlayerStats.getPlayTimeMinutes());
     }
 }
