@@ -59,8 +59,8 @@ public class MmrController {
 
     @PostMapping("/mmr/update")
     public MmrDto updateMmr(@Valid @RequestBody MmrChangeDto mmrChangeDto) {
-        if (!mmrChangeDto.getMMR_SECRET().equals(secret)) {
-            System.out.println(mmrChangeDto.getMMR_SECRET());
+        if (!mmrChangeDto.getMmrSecret().equals(secret)) {
+            System.out.println(mmrChangeDto.getMmrSecret());
             System.out.println(secret);
             throw new IllegalArgumentException("Invalid MMR secret provided.");
         }

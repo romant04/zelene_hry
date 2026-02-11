@@ -9,12 +9,13 @@
 	import type { Socket } from 'socket.io-client';
 	import { createMatchmakingSocket } from '$lib/socket';
 	import { addToast } from '../../../../stores/toast';
-	import type { MMR } from '../../../../types/user';
+	import type { MMR, User } from '../../../../types/user';
 	import { API } from '../../../../constants/urls';
 	import MatchmakingOverlay from './components/matchmaking-overlay.svelte';
 	import { onDestroy } from 'svelte';
 	import { slugify } from '../../../../utils/slugify';
 	import ChallengeFriendOverlay from './components/challenge-friend-overlay.svelte';
+	import { redirect } from '@sveltejs/kit';
 
 	let { data }: PageProps = $props();
 	let socket: Socket | null = $state(null);
@@ -47,6 +48,32 @@
 		$auth.data!.player!.mmr.push(mmr);
 	}
 
+	async function syncDataAndJoin() {
+		try {
+			// 1. Refresh the local auth state from your Spring Boot API
+			const res = await fetch(`${API}/api/secured/user`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${localStorage.getItem('token')}`
+				}
+			});
+			if (!res.ok) {
+				addToast('Vypršela platnost přihlášení', 'error');
+				redirect(303, '/login');
+			}
+			const syncedData = (await res.json()) as User;
+			console.log(syncedData);
+			$auth.data = syncedData;
+
+			// Only join after we have the latest auth data
+			isMatchmakingOpen = true;
+			socket?.emit('startMatchmaking');
+		} catch (err) {
+			console.error('Could not refresh auth before matchmaking', err);
+		}
+	}
+
 	let playersInQueue = $state(0);
 
 	$effect(() => {
@@ -70,6 +97,7 @@
 			console.log('Player has MMR, no need to initialize');
 
 			console.log('Creating matchmaking socket');
+
 			socket = createMatchmakingSocket($auth.data, data.game.gameId);
 
 			socket.on('usersInQueue', (count: number) => {
@@ -108,8 +136,7 @@
 			return;
 		}
 
-		isMatchmakingOpen = true;
-		socket?.emit('startMatchmaking');
+		void syncDataAndJoin();
 	}
 
 	async function handleChallengeFriend() {

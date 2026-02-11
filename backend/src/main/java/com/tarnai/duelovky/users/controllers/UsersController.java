@@ -29,8 +29,6 @@ public class UsersController {
 
     @GetMapping("/user")
     public AccountDto getUser(Authentication authentication) {
-        System.out.println(authentication.getName());
-        System.out.println(userService.getUsersBySearchTerm(authentication.getName()));
         return userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst().map(AccountDto::new).orElse(null);
     }
 }

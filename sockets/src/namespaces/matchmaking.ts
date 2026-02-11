@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io";
-import { User } from "../types/user";
+import { PlayerStats, User } from "../types/user";
 import { GameRoomsMap } from "../socket";
 import { GameData } from "../types/game";
 import { v4 as uuidv4 } from "uuid";
@@ -9,6 +9,7 @@ interface MatchmakingUser {
   id: number;
   username: string;
   mmr: number;
+  playerStats: PlayerStats;
   margin: number;
   token: string;
 }
@@ -45,6 +46,9 @@ export function setupMatchmakingNamespace(io: Server) {
     const gameId: number = socket.handshake.auth?.gameId;
 
     const mmrData = user?.player?.mmr.find((g) => g.gameId === gameId);
+    const playerStats = user?.player?.playerStats?.find(
+      (g) => g.gameId === gameId,
+    );
 
     if (users.get(`${gameId}_${user.id}`)) {
       console.log(
@@ -70,6 +74,13 @@ export function setupMatchmakingNamespace(io: Server) {
       id: user.id,
       username: user.username,
       mmr: mmrData.mmr,
+      playerStats: playerStats ?? {
+        gameId: gameId,
+        userId: user.id,
+        gamesPlayed: 0,
+        playTimeMinutes: 0,
+        winRatio: 0,
+      },
       margin: 0,
       token: playerToken,
     });
@@ -118,22 +129,30 @@ export function setupMatchmakingNamespace(io: Server) {
 
         const gameData: GameData = {
           roomKey: roomKey,
+          gameStartTime: Date.now(),
           players: [
             {
               id: user.id,
               name: user.username,
               token: playerToken,
               mmr: userData.mmr,
+              playerStats: userData.playerStats,
             },
             {
               id: match.id,
               name: match.username,
               token: match.token,
               mmr: match.mmr,
+              playerStats: match.playerStats,
             },
           ],
         };
         GameRoomsMap.set(roomKey, gameData);
+        console.log(
+          GameRoomsMap.get(roomKey)?.players.forEach((x) =>
+            console.log("GamesPlayed: " + x.playerStats.gamesPlayed),
+          ),
+        );
         queueSize.set(gameId, (queueSize.get(gameId) || 0) - 1); // We decrement just by one, because the other one will get decrement by disconnect
 
         const matchSocketId = await getClientId(io, NAMESPACE, match.id);
@@ -155,6 +174,8 @@ export function setupMatchmakingNamespace(io: Server) {
 
     socket.on("joinGame", () => {
       matchedUserIds.delete(userData.id);
+      // Disconnect both users, so when they start matchmaking again they will be forced to sync data again (player stats)
+      socket.disconnect();
     });
 
     socket.on("cancelMatchmaking", () => {

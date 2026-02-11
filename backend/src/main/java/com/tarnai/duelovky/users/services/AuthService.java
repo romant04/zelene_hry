@@ -32,7 +32,7 @@ public class AuthService {
     }
 
     public Account signup(RegisterDto input) {
-        Player player = new Player(0);
+        Player player = new Player();
         player = playerRepository.save(player);
         Account user = new Account(input.getUsername(), input.getEmail(), passwordEncoder.encode(input.getPassword()));
         user.setPlayer(player);

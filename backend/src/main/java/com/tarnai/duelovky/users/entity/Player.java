@@ -2,6 +2,7 @@ package com.tarnai.duelovky.users.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.tarnai.duelovky.mmr.entity.Mmr;
+import com.tarnai.duelovky.playerStats.entity.PlayerStats;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,9 +20,6 @@ public class Player {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "play_time")
-    private Integer playTime;
-
     @OneToOne(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Account account;
@@ -34,7 +32,11 @@ public class Player {
     @JsonManagedReference
     private List<Mmr> mmr;
 
-    public Player(Integer playTime) {
-        this.playTime = playTime;
-    }
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @JsonManagedReference
+    private List<PlayerStats> playerStats;
 }
