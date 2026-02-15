@@ -6,11 +6,14 @@
 	import FormField from './form-field.svelte';
 	import { API } from '../../../../constants/urls';
 	import { addToast } from '../../../../stores/toast';
+	import Spinner from '../spinner.svelte';
 
 	let username = $state('');
 	let email = $state('');
 	let password = $state('');
 	let password2 = $state('');
+
+	let loading = $state(false);
 
 	async function handleSignIn() {
 		const res = await fetch(`${API}/auth/login`, {
@@ -83,14 +86,17 @@
 		}
 	}
 
-	function handleSubmit(e: Event) {
+	async function handleSubmit(e: Event) {
 		e.preventDefault();
 
+		loading = true;
 		if (signIn) {
-			handleSignIn();
+			await handleSignIn();
 		} else {
-			handleSignUp();
+			await handleSignUp();
 		}
+
+		loading = false;
 	}
 </script>
 
@@ -132,7 +138,11 @@
 				/>
 			{/if}
 			<button type="submit" class="btn mt-2 h-11 w-full bg-primary-600 text-white">
-				{signIn ? 'Přihlásit se' : 'Registrovat se'}
+				{#if loading}
+					<Spinner />
+				{:else}
+					{signIn ? 'Přihlásit se' : 'Registrovat se'}
+				{/if}
 			</button>
 		</form>
 	</div>
@@ -153,7 +163,8 @@
 		<a
 			href={signIn ? '/register' : '/login'}
 			class="btn mt-5 h-12 w-full max-w-56 bg-tertiary-700"
-			>{signIn ? 'Registrovat se' : 'Přihlásit se'}</a
 		>
+			{signIn ? 'Registrovat se' : 'Přihlásit se'}
+		</a>
 	</div>
 </div>
