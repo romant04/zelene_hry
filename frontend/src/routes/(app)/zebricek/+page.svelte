@@ -50,7 +50,7 @@
 </svelte:head>
 
 <div class="mt-12 flex flex-col justify-center items-center">
-	<h1 class="text-4xl font-bold font-heading">
+	<h1 class="text-3xl sm:text-4xl text-center font-bold font-heading">
 		{activeGameId === 'all'
 			? 'Žebříček celkově nejlepších hráčů'
 			: `Žebříček nejlepších hráčů ${data.data.games.find((x) => x.gameId.toString() === activeGameId)?.name}`}
@@ -67,18 +67,18 @@
 		bind:value={activeGameId}
 		styles="mt-5 bg-tertiary-700 py-2 px-4  w-[180px] rounded-sm"
 	/>
-	<div class="flex gap-16 mt-16">
-		<Winner name={topPlayers[1].name} position={2} MMR={topPlayers[1].MMR} styles="mt-8" />
+	<div class="flex gap-x-16 gap-y-2 mt-10 md:mt-16 justify-center flex-wrap px-5">
+		<Winner name={topPlayers[1].name} position={2} MMR={topPlayers[1].MMR} styles="md:mt-8" />
 		<Winner name={topPlayers[0].name} position={1} MMR={topPlayers[0].MMR} />
-		<Winner name={topPlayers[2].name} position={3} MMR={topPlayers[2].MMR} styles="mt-12" />
+		<Winner name={topPlayers[2].name} position={3} MMR={topPlayers[2].MMR} styles="md:mt-12" />
 	</div>
 
-	<table class="w-3/5 mt-12 rounded-md overflow-hidden">
+	<table class="w-11/12 sm:w-4/5 lg:w-3/5 mt-12 rounded-md overflow-hidden">
 		<thead class="bg-primary-500 text-lg">
 			<tr>
-				<th class="border-r-2 py-1 border-gray-200 w-36">Pozice</th>
-				<th class="border-r-2 border-gray-200">Jméno</th>
-				<th class="w-64">Skóre</th>
+				<th class="border-r-2 py-1 border-gray-200 w-fit px-2 lg:w-36">Pozice</th>
+				<th class="border-r-2 border-gray-200 w-max">Jméno</th>
+				<th class="w-fit lg:w-64 px-2">Skóre</th>
 			</tr>
 		</thead>
 		<tbody>

@@ -24,13 +24,13 @@
 
 <div class="{styles} flex flex-col items-center">
 	<div
-		class="w-28 h-28 relative bg-primary-400 rounded-full uppercase text-3xl flex justify-center items-center font-bold"
+		class="w-20 h-20 sm:w-28 sm:h-28 relative bg-primary-400 rounded-full uppercase text-2xl sm:text-3xl flex justify-center items-center font-bold"
 	>
 		{name.slice(0, 2)}
-		<Icon icon="solar:cup-bold" width="36" class="{cupColor} absolute bottom-0" />
+		<Icon icon="solar:cup-bold" class="{cupColor} absolute bottom-0 sm:text-4xl text-2xl" />
 	</div>
 	<div
-		class="bg-tertiary-500 w-44 relative -top-5 gap-2 -z-10 rounded-lg px-5 pt-6 pb-4 flex justify-center flex-col items-center"
+		class="bg-tertiary-500 w-36 sm:w-44 relative -top-5 gap-2 -z-10 rounded-lg px-5 pt-6 pb-4 flex justify-center flex-col items-center"
 	>
 		<h2 class="text-md">{name}</h2>
 		<p class="text-xl font-bold">{MMR} MMR</p>
