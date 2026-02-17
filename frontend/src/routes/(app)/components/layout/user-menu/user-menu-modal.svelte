@@ -3,6 +3,11 @@
 	import { fly } from 'svelte/transition';
 	import { auth } from '../../../../../stores/auth.js';
 	import { clearToken } from '../../../../../stores/auth.js';
+	import { profileCache } from '$lib/cache/profile';
+	import { socialCache } from '$lib/cache/socials';
+	import { chatsCache } from '$lib/cache/chats';
+	import { protectedRoutes } from '../../../../../constants/protectedRoutes';
+	import { goto } from '$app/navigation';
 
 	let {
 		modal = $bindable(),
@@ -11,7 +16,18 @@
 
 	function handleSignOut() {
 		isOpen = false;
+		profileCache.clear();
+		socialCache.clear();
+		chatsCache.clear();
 		clearToken();
+
+		// Redirect to home if the user is currently on a protected route
+		const isProtected = protectedRoutes.some((route) =>
+			window.location.pathname.startsWith(route)
+		);
+		if (isProtected) {
+			goto('/', { replaceState: true });
+		}
 	}
 
 	function handleClose() {

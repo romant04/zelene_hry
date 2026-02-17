@@ -2,14 +2,13 @@ import { browser } from '$app/environment';
 import { error, redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import { API } from '../../../constants/urls';
-import type { MMR, User } from '../../../types/user';
-import { mmrCache } from '$lib/cache/mmr';
+import type { User } from '../../../types/user';
 import type { Game } from '../../../types/game';
+import { profileCache } from '$lib/cache/profile';
 
-export interface FetchedMMRs {
-	MMRs: MMR[];
+export interface FetchedProfile {
+	user: User;
 	games: Game[];
-	users: User[];
 }
 
 export const load = async ({ fetch, data }) => {
@@ -20,8 +19,8 @@ export const load = async ({ fetch, data }) => {
 	}
 
 	if (browser) {
-		const cache = get(mmrCache);
-		if (cache.MMRs && Date.now() - cache.lastFetched < 300000) {
+		const cache = get(profileCache);
+		if (cache.user && Date.now() - cache.lastFetched < 300000) {
 			return { data: cache };
 		}
 	}
@@ -29,27 +28,25 @@ export const load = async ({ fetch, data }) => {
 	// 3. Fetching
 	try {
 		const headers = { Authorization: `Bearer ${token}` };
-		const [mmrs, games, users] = await Promise.all([
-			fetch(`${API}/api/secured/mmr`, { headers }).then((res) => res.json()),
-			fetch(`${API}/api/games`, { headers }).then((res) => res.json()),
-			fetch(`${API}/api/secured/users`, { headers }).then((res) => res.json())
+		const [user, games] = await Promise.all([
+			fetch(`${API}/api/secured/user`, { headers }).then((res) => res.json()),
+			fetch(`${API}/api/games`, { headers }).then((res) => res.json())
 		]);
 
 		const newData = {
-			MMRs: mmrs as MMR[],
+			user: user as User,
 			games: games as Game[],
-			users: users as User[],
 			lastFetched: Date.now()
 		};
 
 		// 4. Update Store (Browser Only)
 		if (browser) {
-			mmrCache.set({ ...newData, lastFetched: Date.now() });
+			profileCache.set({ ...newData, lastFetched: Date.now() });
 		}
 
 		return { data: newData };
 	} catch (err) {
-		console.error('Error fetching MMR data:', err);
-		throw error(500, 'Failed to load MMR data');
+		console.error('Error fetching profile data:', err);
+		throw error(500, 'Failed to load profile data');
 	}
 };

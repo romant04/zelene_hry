@@ -14,7 +14,7 @@ export interface MMR {
 export interface Player {
 	id: number;
 	mmr: MMR[];
-	playerStats: PlayerStats;
+	playerStats: PlayerStats[];
 }
 export interface Admin {
 	id: number;

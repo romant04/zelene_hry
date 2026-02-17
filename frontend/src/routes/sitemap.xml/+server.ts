@@ -6,6 +6,7 @@ export const GET = async () => {
 		'chat/rooms',
 		'login',
 		'register',
+		'profil',
 		'pratele',
 		'game-detail/1',
 		'game-detail/2',
