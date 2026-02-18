@@ -79,6 +79,12 @@
 <div class="chart-wrapper">
 	<h2 class="font-heading font-bold text-4xl mb-5">Celkový herní čas</h2>
 
+	{#if totalMins === 0}
+		<p class="text-2xl font-semibold text-error-400">Zatím jste neodehrál žádné hry</p>
+		<a class="btn variant-filled-primary mt-5 text-lg font-semibold w-40" href="/#hry"
+			>Jít hrát</a
+		>
+	{/if}
 	<div class="container">
 		<svg width={size} height={size} viewBox="0 0 {size} {size}">
 			<g transform="rotate(-90 {center} {center})">

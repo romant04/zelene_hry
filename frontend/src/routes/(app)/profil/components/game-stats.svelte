@@ -37,7 +37,7 @@
 		<div class="flex flex-col gap-4 font-bold text-xl lg:text-2xl">
 			{#if activePlayerStats}
 				<p>
-					{activePlayerStats.winRatio * 100}% winrate
+					{(activePlayerStats.winRatio * 100).toFixed(2)}% winrate
 				</p>
 				<p>
 					{activePlayerStats.gamesPlayed} odehraných her

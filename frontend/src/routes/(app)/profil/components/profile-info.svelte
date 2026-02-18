@@ -33,7 +33,9 @@
 			{#if user.player}
 				<p>
 					Odehraný čas: <span class="font-semibold"
-						>{getSumOfPlayedTime(user.player.playerStats)}</span
+						>{getSumOfPlayedTime(user.player.playerStats) === ''
+							? '0m'
+							: getSumOfPlayedTime(user.player.playerStats)}</span
 					>
 				</p>
 				<p>
