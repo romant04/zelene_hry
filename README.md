@@ -14,7 +14,7 @@ Online herní platforma se sociálními prkvy. Je tvořena s myšlenkou náhradi
 #### Herní  
 - 1v1 online hry ❌ (Prší ✅)
 - Matchmaking ✅
-- Ranking system ❌
+- Ranking system ✅
 - Vytvoření soukromé hry pomocí kódu ✅
 
 ## Technologie
