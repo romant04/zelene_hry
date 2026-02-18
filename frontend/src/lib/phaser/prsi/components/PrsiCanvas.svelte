@@ -9,6 +9,8 @@
 	import { gameOver } from '../../../../stores/prsi/game-over';
 	import { goto } from '$app/navigation';
 	import { disconnect } from '../../../../stores/prsi/disconnect';
+	import { profileCache } from '$lib/cache/profile';
+	import { mmrCache } from '$lib/cache/mmr';
 
 	let {
 		socket,
@@ -63,6 +65,8 @@
 
 	function handleRedirect() {
 		$gameOver.gameOver = false;
+		profileCache.clear();
+		mmrCache.clear();
 		goto('/');
 	}
 
