@@ -1,7 +1,15 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import type { Socket } from 'socket.io-client';
 
 	let game: Phaser.Game;
+
+	let {
+		socket,
+		token,
+		playerName,
+		enemyName
+	}: { socket: Socket; token: string; playerName: string; enemyName: string } = $props();
 
 	onMount(async () => {
 		const Phaser = await import('phaser');
@@ -40,3 +48,6 @@
 	id="phaser-container"
 	class="w-full h-full overflow-hidden flex justify-center items-center bg-[#377723]"
 ></div>
+<div>
+	<p>{playerName}</p>
+</div>
