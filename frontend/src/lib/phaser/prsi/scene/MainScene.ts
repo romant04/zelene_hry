@@ -23,6 +23,9 @@ function getTextureFromSuit(suit: string) {
 	}
 }
 
+const TOP_TOKEN_POSITION = 0.25;
+const BOTTOM_TOKEN_POSITION = 0.65;
+
 export default class MainScene extends Phaser.Scene {
 	private socket: Socket;
 	private token: string;
@@ -76,7 +79,9 @@ export default class MainScene extends Phaser.Scene {
 					this.drawCard(tempSedmaCount >= 1);
 				}
 				this.turnToken?.changePosition(
-					this.myTurn ? this.cameras.main.height * 0.55 : this.cameras.main.height * 0.25
+					this.myTurn
+						? this.cameras.main.height * BOTTOM_TOKEN_POSITION
+						: this.cameras.main.height * TOP_TOKEN_POSITION
 				);
 			});
 			i++;
@@ -114,14 +119,17 @@ export default class MainScene extends Phaser.Scene {
 		this.turnToken = new TurnToken(
 			this,
 			this.cameras.main.width * 0.7,
-			this.myTurn ? this.cameras.main.height * 0.55 : this.cameras.main.height * 0.25,
+			this.myTurn
+				? this.cameras.main.height * BOTTOM_TOKEN_POSITION
+				: this.cameras.main.height * TOP_TOKEN_POSITION,
 			texture
 		).setInteractive();
 		this.turnToken.on('pointerdown', () => {
 			if (this.isEffectActive && this.eso) {
 				this.myTurn = false;
 				this.socket.emit('turnSkipped');
-				this.turnToken?.changePosition(this.cameras.main.height * 0.25);
+				this.turnToken?.deactivateToken();
+				this.turnToken?.changePosition(this.cameras.main.height * TOP_TOKEN_POSITION);
 				this.eso = false; // Reset eso effect after skipping turn
 			}
 		});
@@ -241,7 +249,7 @@ export default class MainScene extends Phaser.Scene {
 
 				const texture = getTextureFromSuit(card.suit);
 				this.turnToken?.changeTexture(texture);
-				this.turnToken?.changePosition(this.cameras.main.height * 0.25);
+				this.turnToken?.changePosition(this.cameras.main.height * TOP_TOKEN_POSITION);
 
 				if (card.rank !== 'svrsek') {
 					this.svrsek = null; // Reset svrsek effect if not played
@@ -272,7 +280,7 @@ export default class MainScene extends Phaser.Scene {
 			this.redrawEnemyHand();
 
 			this.myTurn = true;
-			this.turnToken?.changePosition(this.cameras.main.height * 0.55);
+			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
 			this.isEffectActive = false;
 			this.sedmaCount = 0;
 
@@ -300,7 +308,7 @@ export default class MainScene extends Phaser.Scene {
 
 		this.socket.on('turnSkipped', () => {
 			this.myTurn = true;
-			this.turnToken?.changePosition(this.cameras.main.height * 0.55);
+			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
 			this.isEffectActive = false;
 			this.eso = false; // Reset eso effect after skipping turn
 		});
@@ -311,7 +319,7 @@ export default class MainScene extends Phaser.Scene {
 			this.redrawEnemyHand();
 
 			this.myTurn = true;
-			this.turnToken?.changePosition(this.cameras.main.height * 0.55);
+			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
 			this.isEffectActive = true;
 
 			if (card.rank === 'sedma') {
@@ -320,6 +328,10 @@ export default class MainScene extends Phaser.Scene {
 			}
 			if (card.rank === 'eso') {
 				this.eso = true;
+				// If eso is played and player doesn't have a eso token should activate
+				if (!this.hand.some((c) => c.rank === 'eso')) {
+					this.turnToken?.activateToken();
+				}
 			}
 			if (card.rank !== 'svrsek') {
 				this.svrsek = null;
@@ -351,7 +363,7 @@ export default class MainScene extends Phaser.Scene {
 			this.myTurn = true;
 			const texture = getTextureFromSuit(data.suit);
 			this.turnToken?.changeTexture(texture);
-			this.turnToken?.changePosition(this.cameras.main.height * 0.55);
+			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
 		});
 		this.socket.on('suitChange', (suit: string) => {
 			this.svrsek = suit;

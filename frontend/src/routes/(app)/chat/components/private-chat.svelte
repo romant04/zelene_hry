@@ -156,6 +156,7 @@
 					}
 				}
 			);
+
 			const data: ChatMessage[] = await response.json();
 			messages = data.sort(
 				(a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
@@ -186,7 +187,7 @@
 	});
 
 	$effect(() => {
-		if ($activeChat.activeChat && friends.length > 0) {
+		if ($activeChat.activeChat && (friends.length > 0 || chatRooms.length > 0)) {
 			async function init(id: number) {
 				await fetchMessages(id);
 				loading = false;
