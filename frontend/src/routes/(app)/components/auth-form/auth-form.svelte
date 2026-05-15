@@ -108,7 +108,7 @@
 	>
 		<div class="absolute -top-20 -left-20 bg-tertiary-600 w-52 h-52 rounded-full"></div>
 
-		<h2 class="text-center font-heading text-2xl font-bold lg:text-4xl">
+		<h2 class="text-center font-heading z-10 text-2xl font-bold lg:text-4xl">
 			{signIn ? 'Přihlásit se' : 'Registrovat se'}
 		</h2>
 		<form
@@ -162,7 +162,7 @@
 		</p>
 		<a
 			href={signIn ? '/register' : '/login'}
-			class="btn mt-5 h-12 w-full max-w-56 bg-tertiary-700"
+			class="btn mt-5 h-12 w-full z-10 max-w-56 bg-tertiary-700"
 		>
 			{signIn ? 'Registrovat se' : 'Přihlásit se'}
 		</a>
