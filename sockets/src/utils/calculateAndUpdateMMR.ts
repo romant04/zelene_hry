@@ -78,7 +78,7 @@ export async function calculateAndUpdateMMR(
   const newLoserMMR = Math.max(0, loserMMR + loserGain);
 
   const res = await fetch(`${process.env.API_URL}/api/mmr/update`, {
-    method: "POST",
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
@@ -95,7 +95,7 @@ export async function calculateAndUpdateMMR(
   }
 
   const res2 = await fetch(`${process.env.API_URL}/api/mmr/update`, {
-    method: "POST",
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },

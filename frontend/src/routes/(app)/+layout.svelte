@@ -9,9 +9,10 @@
 	import { onDestroy, onMount, setContext } from 'svelte';
 	import type { Socket } from 'socket.io-client';
 	import { createNotificationSocket } from '$lib/socket';
-	import type { NotificationMessage } from '../../types/notificationMessage';
 	import { clearSocket } from '../../utils/socket';
 	import { notifications, updateNotifications } from '../../stores/notifications';
+	import type { Notification } from '../../types/notificationMessage';
+	import { API } from '../../constants/urls';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -26,19 +27,30 @@
 		}
 	});
 
+	async function fetchNotifications() {
+		if (!$auth.data?.id) return;
+
+		const res = await fetch(`${API}/api/notifications`, {
+			headers: {
+				Authorization: `Bearer ${localStorage.getItem('token')}`
+			}
+		});
+
+		if (res.ok) {
+			const data = await res.json();
+			console.log(data);
+			updateNotifications(data);
+		}
+	}
 	$effect(() => {
 		if (!notificationSocket && $auth.data?.id) {
 			notificationSocket = createNotificationSocket($auth.data.id);
 			setContext('notificationSocket', notificationSocket);
 
-			notificationSocket.emit('fetchNotifications');
+			fetchNotifications();
 
-			notificationSocket.on('notifications', (notifications: NotificationMessage[]) => {
-				updateNotifications(notifications);
-			});
-
-			notificationSocket.on('notification', (notification: NotificationMessage) => {
-				if ($notifications.some((n) => n.id === notification.id)) {
+			notificationSocket.on('receiveNotification', (notification: Notification) => {
+				if ($notifications.some((n) => n.notificationId === notification.notificationId)) {
 					return; // Ignore duplicate notifications
 				}
 

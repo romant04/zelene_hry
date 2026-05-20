@@ -1,19 +1,16 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	import { notifications, updateNotifications } from '../../../../stores/notifications';
-	import { getContext } from 'svelte';
-	import type { Socket } from 'socket.io-client';
-	import type { NotificationMessage } from '../../../../types/notificationMessage';
+	import type { Notification } from '../../../../types/notificationMessage';
 	import { socialCache } from '$lib/cache/socials';
 	import { chatsCache } from '$lib/cache/chats';
 	import { goto } from '$app/navigation';
+	import { API } from '../../../../constants/urls';
 
 	let {
 		isOpenNotifications = $bindable(),
 		modal = $bindable()
 	}: { isOpenNotifications: boolean; modal: HTMLElement | undefined } = $props();
-
-	const notificationSocket: Socket = getContext('notificationSocket');
 
 	function getTimeDifference(date1: Date, date2: Date) {
 		const diff = Math.abs(date2.getTime() - date1.getTime());
@@ -28,7 +25,7 @@
 		return `Před ${seconds} sekund${seconds === 1 ? 'ou' : 'ami'}`;
 	}
 
-	function handleNotificationClick(notification: NotificationMessage) {
+	async function handleNotificationClick(notification: Notification) {
 		socialCache.clear();
 		chatsCache.clear();
 
@@ -36,24 +33,39 @@
 		if (notification.redirectUrl.includes('/chat')) {
 			// If the notification is for chat, we don't need to update the notifications
 			// as it will be handled in the chat section.
-			goto(notification.redirectUrl);
+			await goto(notification.redirectUrl);
 
 			return;
 		}
-		updateNotifications([...$notifications.filter((nt) => nt.id !== notification.id)]);
+		updateNotifications([
+			...$notifications.filter((nt) => nt.notificationId !== notification.notificationId)
+		]);
 
-		if (notificationSocket) {
-			notificationSocket.emit('ack', notification.id);
-		}
+		const res = await fetch(
+			`${API}/api/notifications?notificationId=${notification.notificationId}`,
+			{
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${localStorage.getItem('token')}`
+				}
+			}
+		);
+		console.log(res);
 
-		goto(notification.redirectUrl);
+		await goto(notification.redirectUrl);
 	}
 
-	function deleteAllNotifications() {
+	async function deleteAllNotifications() {
 		updateNotifications([]);
-		if (notificationSocket) {
-			notificationSocket.emit('ackAll');
-		}
+		const res = await fetch(`${API}/api/notifications/ack-all`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${localStorage.getItem('token')}`
+			}
+		});
+		console.log(res);
 	}
 </script>
 
@@ -71,7 +83,7 @@
 			>
 				<span class="text-sm">{notification.message}</span>
 				<small class="text-xs text-gray-400"
-					>{getTimeDifference(new Date(), new Date(notification.timestamp))}</small
+					>{getTimeDifference(new Date(), new Date(notification.createdAt))}</small
 				>
 			</button>
 		{/each}

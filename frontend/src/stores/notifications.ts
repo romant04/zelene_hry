@@ -1,13 +1,13 @@
 import { writable } from 'svelte/store';
 
-import type { NotificationMessage } from '../types/notificationMessage';
+import type { Notification } from '../types/notificationMessage';
 
-export const notifications = writable<NotificationMessage[]>([]);
+export const notifications = writable<Notification[]>([]);
 
-export function updateNotifications(newNotifications: NotificationMessage[]) {
+export function updateNotifications(newNotifications: Notification[]) {
 	notifications.set(newNotifications);
 }
 
 export function removeNotification(id: string) {
-	notifications.update((n) => n.filter((notification) => notification.id !== id));
+	notifications.update((n) => n.filter((notification) => notification.notificationId !== id));
 }

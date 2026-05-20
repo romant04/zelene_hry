@@ -57,7 +57,7 @@ public class MmrController {
         return mmrService.saveMmr(mmrInputDto);
     }
 
-    @PostMapping("/mmr/update")
+    @PutMapping("/mmr/update")
     public MmrDto updateMmr(@Valid @RequestBody MmrChangeDto mmrChangeDto) {
         if (!mmrChangeDto.getMmrSecret().equals(secret)) {
             System.out.println(mmrChangeDto.getMmrSecret());

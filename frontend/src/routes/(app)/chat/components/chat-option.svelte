@@ -3,26 +3,33 @@
 	import { setActiveChat } from '../../../../stores/active-chat';
 	import { activeChat } from '../../../../stores/active-chat';
 	import { notifications, updateNotifications } from '../../../../stores/notifications';
-	import { getContext } from 'svelte';
-	import type { Socket } from 'socket.io-client';
+	import { API } from '../../../../constants/urls';
+	import type { Notification } from '../../../../types/notificationMessage';
 
 	let { friend, loading = $bindable() }: { friend: User; loading: boolean } = $props();
-	const notificationSocket: Socket = getContext('notificationSocket');
 
+	async function acknowledgeNotifications(notifications: Notification[]) {
+		await Promise.all(
+			notifications.map((notification) =>
+				fetch(`${API}/api/notifications?notificationId=${notification.notificationId}`, {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${localStorage.getItem('token')}`
+					}
+				})
+			)
+		);
+	}
 	function handleChatSelect() {
 		setActiveChat(friend);
-		if (!notificationSocket) {
-			return;
-		}
-		notificationSocket.emit(
-			'ack',
-			$notifications
-				.filter(
-					(notification) =>
-						notification.message.includes(friend.username) &&
-						notification.redirectUrl === '/chat/dms'
-				)
-				.map((notification) => notification.id)
+
+		acknowledgeNotifications(
+			$notifications.filter(
+				(notification) =>
+					notification.message.includes(friend.username) &&
+					notification.redirectUrl === '/chat/dms'
+			)
 		);
 		updateNotifications(
 			$notifications.filter(
