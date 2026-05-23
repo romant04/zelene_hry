@@ -1,12 +1,12 @@
 import { Server, Socket } from "socket.io";
 import { Message } from "../types/message";
 import { getClientId } from "../utils/getClient";
-import { v4 as uuidv4 } from "uuid";
-import { NotificationMessage } from "../types/notificationMessage";
-import { emitOrNotify } from "../utils/emitOrNotify";
+import { deliverToUser } from "../utils/deliverToUser";
+import { createNotification } from "./notification";
 
+const NAMESPACE = "/chat";
 export function setupChatNamespace(io: Server) {
-  const chatNamespace = io.of("/chat");
+  const chatNamespace = io.of(NAMESPACE);
 
   chatNamespace.on("connection", (socket: Socket) => {
     const userId = socket.handshake.auth?.userId;
@@ -26,8 +26,7 @@ export function setupChatNamespace(io: Server) {
 
     // Handle messages within the room
     socket.on("sendMessage", async (message: Message) => {
-      const friendSocketId = await getClientId(io, "/chat", friendId);
-      const userSocketId = await getClientId(io, "/chat", userId);
+      const userSocketId = await getClientId(io, NAMESPACE, userId);
 
       if (!userSocketId) {
         console.log(
@@ -36,23 +35,22 @@ export function setupChatNamespace(io: Server) {
         return;
       }
 
-      const notificationMessage: NotificationMessage = {
-        id: uuidv4(),
-        message: `Obdrželi jste novou zprávu od uživatele ${message.sender.username}`,
-        redirectUrl: `/chat/dms`,
-        timestamp: new Date(),
-      };
-
       // We notify the sender everytime
       chatNamespace.to(userSocketId).emit("receiveMessage", message);
 
-      await emitOrNotify(
-        `user.${friendId}.chat.message`,
-        friendSocketId,
-        notificationMessage,
-        () => {
-          chatNamespace.to(friendSocketId!).emit("receiveMessage", message);
-        },
+      await deliverToUser(
+        io,
+        NAMESPACE,
+        friendId,
+        "receiveMessage",
+        message,
+        () =>
+          createNotification(
+            `Obdrželi jste novou zprávu od uživatele ${message.sender.username}`,
+            friendId,
+            `/chat/dms`,
+            "DM",
+          ),
       );
     });
 

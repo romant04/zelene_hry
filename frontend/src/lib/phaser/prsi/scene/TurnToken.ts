@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
 
 export class TurnToken extends Phaser.GameObjects.Sprite {
+	private glowFx: Phaser.FX.Glow | null = null;
+	private glowTween: Phaser.Tweens.Tween | null = null;
+
 	constructor(
 		scene: Phaser.Scene,
 		x: number,
@@ -24,5 +27,30 @@ export class TurnToken extends Phaser.GameObjects.Sprite {
 			duration: 300,
 			ease: 'Power2'
 		});
+	}
+
+	activateToken() {
+		if (this.glowFx) return; // Already active
+
+		this.glowFx = this.postFX.addGlow(0xffd700, 0, 0);
+		this.glowTween = this.scene.tweens.add({
+			targets: this.glowFx,
+			outerStrength: 8,
+			innerStrength: 4,
+			duration: 700,
+			yoyo: true,
+			repeat: -1
+		});
+	}
+
+	deactivateToken() {
+		if (!this.glowFx) return;
+
+		this.glowTween?.stop();
+
+		this.postFX.remove(this.glowFx);
+
+		this.glowFx = null;
+		this.glowTween = null;
 	}
 }

@@ -47,22 +47,8 @@ public class PlayerStatsController {
     // This should be only called via Node.js socket server
     @PostMapping("/playerStats/update")
     public PlayerStatsDto updatePlayerStats(@RequestBody PlayerStatsInputDto playerStatsInputDto) {
-        System.out.println(playerStatsInputDto.getMmrSecret());
-        System.out.println(secret);
-
         if (!playerStatsInputDto.getMmrSecret().equals(secret)) {
-            System.out.println(playerStatsInputDto.getMmrSecret());
-            System.out.println(secret);
             throw new IllegalArgumentException("Invalid MMR secret provided.");
-        }
-
-        Optional<Account> user = userService.getUserById(playerStatsInputDto.getUserId());
-        if (user.isEmpty()) {
-            throw new IllegalArgumentException("User not found with ID: " + playerStatsInputDto.getUserId());
-        }
-        Player player = user.get().getPlayer();
-        if (player == null) {
-            throw new IllegalArgumentException("Player not found for user with ID: " + playerStatsInputDto.getUserId());
         }
 
         return playerStatsService.setPlayerStats(playerStatsInputDto);

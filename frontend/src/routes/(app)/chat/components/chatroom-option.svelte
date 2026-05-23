@@ -1,29 +1,35 @@
 <script lang="ts">
 	import { setActiveChat } from '../../../../stores/active-chat';
 	import { activeChat } from '../../../../stores/active-chat';
-	import { getContext } from 'svelte';
-	import type { Socket } from 'socket.io-client';
 	import type { Chatroom } from '../../../../types/chat';
 	import { notifications, updateNotifications } from '../../../../stores/notifications';
+	import type { Notification } from '../../../../types/notificationMessage';
+	import { API } from '../../../../constants/urls';
 
 	let { room, loading = $bindable() }: { room: Chatroom; loading: boolean } = $props();
-	const notificationSocket: Socket = getContext('notificationSocket');
 
+	async function acknowledgeNotifications(notifications: Notification[]) {
+		await Promise.all(
+			notifications.map((notification) =>
+				fetch(`${API}/api/notifications?notificationId=${notification.notificationId}`, {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${localStorage.getItem('token')}`
+					}
+				})
+			)
+		);
+	}
 	function handleChatSelect() {
 		setActiveChat(room);
-		if (!notificationSocket) {
-			return;
-		}
 
-		notificationSocket.emit(
-			'ack',
-			$notifications
-				.filter(
-					(notification) =>
-						notification.message.includes(room.name) &&
-						notification.redirectUrl === '/chat/rooms'
-				)
-				.map((notification) => notification.id)
+		acknowledgeNotifications(
+			$notifications.filter(
+				(notification) =>
+					notification.message.includes(room.name) &&
+					notification.redirectUrl === '/chat/rooms'
+			)
 		);
 		updateNotifications(
 			$notifications.filter(

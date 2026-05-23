@@ -3,89 +3,98 @@ import { FriendRequest } from "../types/friendRequest";
 import { getClientId } from "../utils/getClient";
 import { Friendship } from "../types/friendship";
 import { User } from "../types/user";
-import { emitOrNotify } from "../utils/emitOrNotify";
-import { NotificationMessage } from "../types/notificationMessage";
-import { v4 as uuidv4 } from "uuid";
+import { createNotification, notifyUser } from "./notification";
+import { deliverToUser } from "../utils/deliverToUser";
 
 const NAMESPACE = "/friends";
 export function setupFriendsNamespace(io: Server) {
-    const friendsNamespace = io.of(NAMESPACE);
+  const friendsNamespace = io.of(NAMESPACE);
 
-    friendsNamespace.on("connection", (socket: Socket) => {
-        const userId = socket.handshake.auth?.userId;
-        if (!userId) {
-            console.log("Missing userId, disconnecting...");
-            socket.disconnect();
-            return;
-        }
+  friendsNamespace.on("connection", (socket: Socket) => {
+    const userId = socket.handshake.auth?.userId;
+    if (!userId) {
+      console.log("Missing userId, disconnecting...");
+      socket.disconnect();
+      return;
+    }
 
-        socket.data.userId = userId;
+    socket.data.userId = userId;
 
-        // Emit to the other user when his friend request is accepted
-        socket.on("friendRequestAccepted", async (data: {friendRequest: FriendRequest, newFriend: Friendship}) => {
-            const senderId = await getClientId(io, NAMESPACE, data.friendRequest.sender.id);
+    // Emit to the other user when his friend request is accepted
+    socket.on(
+      "friendRequestAccepted",
+      async (data: { friendRequest: FriendRequest; newFriend: Friendship }) => {
+        await deliverToUser(
+          io,
+          NAMESPACE,
+          data.friendRequest.sender.id,
+          "friendRequestAccepted",
+          data,
+          () =>
+            createNotification(
+              `Vaše žádost o přátelství uživateli ${data.friendRequest.receiver.username} byla akecptovaná.`,
+              data.friendRequest.sender.id,
+              "/pratele",
+              "FRIENDS",
+            ),
+        );
+      },
+    );
 
-            const message: NotificationMessage = {
-                id: uuidv4(),
-                message: `Vaše žádost o přátelství uživateli ${data.friendRequest.receiver.username} byla akecptovaná.`,
-                redirectUrl: `/pratele`,
-                timestamp: new Date()
-            }
-
-            await emitOrNotify(`user.${data.friendRequest.sender.id}.friend.request`, senderId, message, () => {
-                friendsNamespace.to(senderId!).emit("friendRequestAccepted", data); // We can use ! here because the function is called only when senderId is defined inside the emitOrNotify function
-            })
-        });
-        // Emit to the other user when his friend request is rejected
-        socket.on("friendRequestRejected", async (friendRequest: FriendRequest) => {
-            const senderId = await getClientId(io, NAMESPACE, friendRequest.sender.id);
-
-            const message: NotificationMessage = {
-                id: uuidv4(),
-                message: `Váše žádost o přátelství uživateli ${friendRequest.receiver.username} byla zamítnuta.`,
-                redirectUrl: `/pratele`,
-                timestamp: new Date()
-            }
-
-            await emitOrNotify(`user.${friendRequest.sender.id}.friend.request`, senderId, message, () => {
-                friendsNamespace.to(senderId!).emit("friendRequestRejected", friendRequest); // We can use ! here because the function is called only when senderId is defined inside the emitOrNotify function
-            })
-        });
-
-        // Emit to the other user when a new friend request is sent (here the sender knows about it but not the receiver)
-        socket.on("friendRequestSent", async (friendRequest: FriendRequest) => {
-            const receiverId = await getClientId(io, NAMESPACE, friendRequest.receiver.id);
-
-            const message: NotificationMessage = {
-                id: uuidv4(),
-                message: `${friendRequest.sender.username} vám poslal žádost o přátelství.`,
-                redirectUrl: `/pratele`,
-                timestamp: new Date()
-            }
-
-            await emitOrNotify(`user.${friendRequest.receiver.id}.friend.request`, receiverId, message, () => {
-                friendsNamespace.to(receiverId!).emit("friendRequestSent", friendRequest);
-            })
-
-        })
-
-        // Emit to the other user when friendship ends
-        socket.on("friendRemoved", async (data: {friend: number, user: User}) => {
-            const friendId = await getClientId(io, NAMESPACE, data.friend);
-
-            const message: NotificationMessage = {
-                id: uuidv4(),
-                message: `${data.user.username} si vás odebral z přátel.`,
-                redirectUrl: `/pratele`,
-                timestamp: new Date()
-            }
-
-            await emitOrNotify(`user.${data.friend}.friend.removed`, friendId, message, () => {
-                friendsNamespace.to(friendId!).emit("friendRemoved", data.user);
-            })
-
-        })
+    // Emit to the other user when his friend request is rejected
+    socket.on("friendRequestRejected", async (friendRequest: FriendRequest) => {
+      await deliverToUser(
+        io,
+        NAMESPACE,
+        friendRequest.sender.id,
+        "friendRequestRejected",
+        friendRequest,
+        () =>
+          createNotification(
+            `Vaše žádost o přátelství uživateli ${friendRequest.receiver.username} byla zamítnuta.`,
+            friendRequest.sender.id,
+            "/pratele",
+            "FRIENDS",
+          ),
+      );
     });
 
-    console.log("Friends namespace initialized.");
+    // Emit to the other user when a new friend request is sent (here the sender knows about it but not the receiver)
+    socket.on("friendRequestSent", async (friendRequest: FriendRequest) => {
+      await deliverToUser(
+        io,
+        NAMESPACE,
+        friendRequest.receiver.id,
+        "friendRequestSent",
+        friendRequest,
+        () =>
+          createNotification(
+            `${friendRequest.sender.username} vám poslal žádost o přátelství.`,
+            friendRequest.receiver.id,
+            "/pratele",
+            "FRIENDS",
+          ),
+      );
+    });
+
+    // Emit to the other user when friendship ends
+    socket.on("friendRemoved", async (data: { friend: number; user: User }) => {
+      await deliverToUser(
+        io,
+        NAMESPACE,
+        data.friend,
+        "friendRemoved",
+        data.user,
+        () =>
+          createNotification(
+            `${data.user.username} si vás odebral z přátel.`,
+            data.friend,
+            "/pratele",
+            "FRIENDS",
+          ),
+      );
+    });
+  });
+
+  console.log("Friends namespace initialized.");
 }

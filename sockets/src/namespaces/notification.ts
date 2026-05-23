@@ -1,92 +1,66 @@
 import { Server, Socket } from "socket.io";
-import {ackNotification, listenToNotifications} from "../utils/listenToNotifications";
-import { NotificationMessage } from "../types/notificationMessage";
+import { Notification, NotificationInput } from "../types/notificationMessage";
 import { getClientId } from "../utils/getClient";
 
 const NAMESPACE = "/notification";
 
-const userNotificationQueues = new Map<string, Map<string, NotificationMessage>>(); // key: userId, value: Map<id, NotificationMessage>
+export function setupNotificationNamespace(io: Server) {
+  const notificationNamespace = io.of(NAMESPACE);
 
-function getUserQueue(userId: string) {
-    if (!userNotificationQueues.has(userId)) {
-        userNotificationQueues.set(userId, new Map());
+  notificationNamespace.on("connection", (socket: Socket) => {
+    const userId = socket.handshake.auth?.userId;
+
+    if (!userId) {
+      console.log("Missing userId, disconnecting...");
+      socket.disconnect();
+      return;
     }
-    return userNotificationQueues.get(userId) as Map<string, NotificationMessage>;
+
+    socket.data.userId = userId;
+
+    socket.on("receiveNotification", (notification: Notification) => {
+      console.log(
+        `User ${userId} received notification: ${notification.message}`,
+      );
+      socket.emit("receiveNotification", notification);
+    });
+  });
+
+  console.log("Notification namespace initialized.");
 }
 
-export function setupNotificationNamespace(io: Server) {
-    const notificationNamespace = io.of(NAMESPACE);
+export async function notifyUser(io: Server, notification: Notification) {
+  const recipientId = notification.user.id;
+  const recipientSocketId = await getClientId(io, NAMESPACE, recipientId);
 
-    notificationNamespace.on("connection", (socket: Socket) => {
-        const userId = socket.handshake.auth?.userId;
+  if (!recipientSocketId) {
+    return;
+  }
 
-        if (!userId) {
-            console.log("Missing userId, disconnecting...");
-            socket.disconnect();
-            return;
-        }
+  io.of(NAMESPACE)
+    .to(recipientSocketId)
+    .emit("receiveNotification", notification);
+}
 
-        socket.data.userId = userId;
-
-        void listenToNotifications(`user.${userId}.#`, `friendQueue-${userId}`, async (message: NotificationMessage) => {
-            const id = await getClientId(io, NAMESPACE, userId);
-            if (!id) {
-                console.log(`No client ID found for user ${userId}, cannot send notification.`);
-                return;
-            }
-            const queue = getUserQueue(userId);
-            queue.set(message.id, message);
-            notificationNamespace.to(id).emit("notification", message);
-        });
-
-        socket.on('fetchNotifications', async () => {
-            const id = await getClientId(io, NAMESPACE, userId);
-            if (!id) {
-                console.log(`No client ID found for user ${userId}, cannot fetch notifications.`);
-                return;
-            }
-
-            const queue = getUserQueue(userId);
-
-            const notifications = Array.from(queue.values());
-            notificationNamespace.to(id).emit("notifications", notifications);
-        })
-
-        socket.on("ackAll", async () => {
-            const id = await getClientId(io, NAMESPACE, userId);
-            if (!id) {
-                console.log(`No client ID found for user ${userId}, cannot acknowledge all notifications.`);
-                return;
-            }
-
-            const queue = getUserQueue(userId);
-            const notificationIds = Array.from(queue.keys());
-
-            for (const notificationId of notificationIds) {
-                queue.delete(notificationId);
-                await ackNotification(notificationId);
-            }
-        })
-
-        socket.on("ack", async (notificationsId: string[] | string) => {
-            const id = await getClientId(io, NAMESPACE, userId);
-            if (!id) {
-                console.log(`No client ID found for user ${userId}, cannot fetch notifications.`);
-                return;
-            }
-
-            const queue = getUserQueue(userId);
-
-            if (typeof notificationsId === "string") {
-                notificationsId = [notificationsId];
-            }
-
-            for (const id of notificationsId) {
-                queue.delete(id);
-                void ackNotification(id)
-            }
-        })
-    });
-
-    console.log("Notification namespace initialized.");
+export async function createNotification(
+  msg: string,
+  userId: number,
+  redirectUrl: string,
+  type: string,
+): Promise<Notification> {
+  const message: NotificationInput = {
+    message: msg,
+    type: type,
+    redirectUrl: redirectUrl,
+    userId: userId,
+    mmrSecret: process.env.MMR_SECRET!,
+  };
+  const res = await fetch(`${process.env.API_URL}/api/notifications`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(message),
+  });
+  return (await res.json()) as Notification;
 }

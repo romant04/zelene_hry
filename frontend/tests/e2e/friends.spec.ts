@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { FriendsPage } from '../pages/friendsPage';
 import { LoginPage } from '../pages/loginPage';
-import { API } from '../../src/constants/urls';
+import { API } from '../test_urls';
 
 test.describe('Friend system test', () => {
 	test.beforeEach(async ({ page }, testInfo) => {
@@ -22,7 +22,6 @@ test.describe('Friend system test', () => {
 		});
 	});
 
-	/*
 	test('User can add friend', async ({ page }) => {
 		const friendPage = new FriendsPage(page);
 		await friendPage.goto();
@@ -31,7 +30,6 @@ test.describe('Friend system test', () => {
 		const successMessage = await friendPage.getSuccessMessage();
 		expect(successMessage).toContain('Žádost o přátelství byla úspěšně odeslána');
 	});
-	 */
 
 	test('User can accept friend request', async ({ page }) => {
 		const friendPage = new FriendsPage(page);

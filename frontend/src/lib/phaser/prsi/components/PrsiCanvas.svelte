@@ -9,6 +9,8 @@
 	import { gameOver } from '../../../../stores/prsi/game-over';
 	import { goto } from '$app/navigation';
 	import { disconnect } from '../../../../stores/prsi/disconnect';
+	import { profileCache } from '$lib/cache/profile';
+	import { mmrCache } from '$lib/cache/mmr';
 
 	let {
 		socket,
@@ -63,6 +65,8 @@
 
 	function handleRedirect() {
 		$gameOver.gameOver = false;
+		profileCache.clear();
+		mmrCache.clear();
 		goto('/');
 	}
 
@@ -75,17 +79,13 @@
 		// eslint-disable-next-line no-undef
 		const config: Phaser.Types.Core.GameConfig = {
 			type: Phaser.AUTO,
-			backgroundColor: '#0a0a0a',
-			dom: {
-				createContainer: true
-			},
 			parent: 'phaser-container',
 			scene: [PreloadScene, mainScene],
 			scale: {
 				mode: Phaser.Scale.FIT,
 				autoCenter: Phaser.Scale.CENTER_BOTH,
-				width: 1280,
-				height: 720
+				width: 1460,
+				height: 733
 			}
 		};
 
@@ -99,7 +99,7 @@
 
 <div
 	id="phaser-container"
-	class="w-full h-full overflow-hidden flex justify-center items-center"
+	class="w-screen h-screen overflow-hidden flex justify-center items-center"
 ></div>
 <p class="fixed top-10 left-32 text-3xl font-bold">{enemyName}</p>
 <p class="fixed bottom-10 right-32 text-3xl font-bold">{playerName}</p>

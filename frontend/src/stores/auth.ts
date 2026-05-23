@@ -43,11 +43,11 @@ export function updateUserState() {
 	if (browser) {
 		const token = localStorage.getItem('token');
 
-		if (token) {
+		if (!token) {
+			auth.set({ token: null, data: null, loaded: true }); // Clear user state if no token
+		} else {
 			auth.set({ token, data: null, loaded: false });
 			void fetchUserData(token); // Fetch user data if token exists
-		} else {
-			auth.set({ token: null, data: null, loaded: true }); // Clear user state if no token
 		}
 	}
 }

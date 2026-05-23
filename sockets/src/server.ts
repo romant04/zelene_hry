@@ -1,7 +1,10 @@
 import http from "http";
 import express from "express";
 import { setupSocket } from "./socket";
-import { initWords, isValidWord } from "./services/wordsStore";
+import { initWords } from "./services/wordsStore";
+import { configDotenv } from "dotenv";
+
+configDotenv();
 
 const app = express();
 const server = http.createServer(app);
