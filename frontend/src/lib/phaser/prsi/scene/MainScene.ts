@@ -343,7 +343,7 @@ export default class MainScene extends Phaser.Scene {
 				return; // Don't redraw deck if it's already populated
 			}
 
-			if (this.registry.get('assetsLoaded') !== true) {
+			if (this.registry && this.registry.get('assetsLoaded') !== true) {
 				this.pendingGameState = data; // Store pending game state
 				return;
 			}
@@ -399,8 +399,30 @@ export default class MainScene extends Phaser.Scene {
 		};
 	}
 
+	createMobileLayout() {
+		console.log('hello');
+		const camera = this.cameras.main;
+
+		// zoom in more so it doesn't feel miniature
+		camera.setZoom(1.5);
+
+		// center same world, but now it feels larger
+		camera.centerOn(640, 360);
+	}
 	create() {
-		if (this.registry.get('assetsLoaded') && this.pendingGameState && this.deck.length === 0) {
+		const isMobile = this.scale.width < 768;
+		console.log(isMobile, this.scale.width);
+
+		if (isMobile) {
+			this.createMobileLayout();
+		}
+
+		if (
+			this.registry &&
+			this.registry.get('assetsLoaded') &&
+			this.pendingGameState &&
+			this.deck.length === 0
+		) {
 			this.initGameState(this.pendingGameState);
 			this.pendingGameState = null; // Clear pending game state after processing
 		}

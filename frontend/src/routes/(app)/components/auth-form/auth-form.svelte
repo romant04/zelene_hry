@@ -115,7 +115,7 @@
 			onsubmit={handleSubmit}
 			class="{signIn
 				? 'gap-2 lg:gap-4'
-				: 'gap-1 lg:gap-3'} mx-auto flex w-full max-w-[34rem] flex-col"
+				: 'gap-1 lg:gap-3'} mx-auto flex w-full max-w-[34rem] flex-col z-10"
 		>
 			{#if !signIn}
 				<FormField

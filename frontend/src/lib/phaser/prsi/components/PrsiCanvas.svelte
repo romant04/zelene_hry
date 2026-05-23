@@ -79,17 +79,13 @@
 		// eslint-disable-next-line no-undef
 		const config: Phaser.Types.Core.GameConfig = {
 			type: Phaser.AUTO,
-			backgroundColor: '#0a0a0a',
-			dom: {
-				createContainer: true
-			},
 			parent: 'phaser-container',
 			scene: [PreloadScene, mainScene],
 			scale: {
 				mode: Phaser.Scale.FIT,
 				autoCenter: Phaser.Scale.CENTER_BOTH,
-				width: 1280,
-				height: 720
+				width: 1460,
+				height: 733
 			}
 		};
 
@@ -103,7 +99,7 @@
 
 <div
 	id="phaser-container"
-	class="w-full h-full overflow-hidden flex justify-center items-center"
+	class="w-screen h-screen overflow-hidden flex justify-center items-center"
 ></div>
 <p class="fixed top-10 left-32 text-3xl font-bold">{enemyName}</p>
 <p class="fixed bottom-10 right-32 text-3xl font-bold">{playerName}</p>
