@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import type { Socket } from 'socket.io-client';
+	import type { Game } from 'phaser';
 
-	let game: Phaser.Game;
+	let game: Game;
 
 	let {
 		socket,
@@ -48,6 +49,13 @@
 	id="phaser-container"
 	class="w-full h-full overflow-hidden flex justify-center items-center bg-[#377723]"
 ></div>
-<div>
-	<p>{playerName}</p>
+<div class="fixed top-10 left-10 z-[999] flex flex-col">
+	<p class="text-3xl font-bold uppercase">{playerName}</p>
+	<p class="text-xl">GOALS: 2</p>
+	<p class="text-md">WORDS FOUND: 5</p>
+</div>
+<div class="fixed top-10 right-10 z-[999] flex flex-col">
+	<p class="text-3xl font-bold uppercase">{enemyName}</p>
+	<p class="text-xl">GOALS: 2</p>
+	<p class="text-md">WORDS FOUND: 5</p>
 </div>

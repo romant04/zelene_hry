@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import SnakeNode from './SnakeNode';
+import { Letters } from '$lib/phaser/slovniFotbal/scene/Letters';
 
 export default class MainScene extends Phaser.Scene {
 	constructor() {
@@ -21,7 +22,7 @@ export default class MainScene extends Phaser.Scene {
 		bg.setScale(scale).setScrollFactor(0);
 
 		// Configuration
-		const numCircles = 15;
+		const numCircles = 10;
 		const padding = 100; // Gap from left and right edges
 		const amplitude = 60;
 		const frequency = 2; // Full waves (starts and ends at center)
@@ -45,11 +46,7 @@ export default class MainScene extends Phaser.Scene {
 			const t = progress * Math.PI * 2 * frequency;
 			const y = topCenterY + Math.sin(t) * amplitude;
 
-			const node = new SnakeNode(this, x, y, lettersTop[i], 0xff6666);
-			node.setInteractive();
-			node.on('pointerdown', () => {
-				node.pop();
-			});
+			const node = new SnakeNode(this, x, y, lettersTop[i]);
 			this.topSnakeNodes.push(node);
 		}
 
@@ -62,12 +59,13 @@ export default class MainScene extends Phaser.Scene {
 			const t = progress * Math.PI * 2 * frequency;
 			// Adding Math.PI here mirrors it so they curve away from each other
 			const y = bottomCenterY + Math.cos(t + Math.PI) * amplitude;
-			const node = new SnakeNode(this, x, y, lettersBottom[i], 0x22ff22);
-			node.setInteractive();
-			node.on('pointerdown', () => {
-				node.pop();
-			});
+			const node = new SnakeNode(this, x, y, lettersBottom[i]);
+			if (i < 4) {
+				node.setFilled();
+			}
 			this.bottomSnakeNodes.push(node);
 		}
+
+		new Letters(this, width / 2, height / 2);
 	}
 }

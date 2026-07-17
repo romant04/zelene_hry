@@ -2,12 +2,13 @@ export default class SnakeNode extends Phaser.GameObjects.Container {
 	circle;
 	text;
 
-	constructor(scene: Phaser.Scene, x: number, y: number, letter: string, color: number) {
+	constructor(scene: Phaser.Scene, x: number, y: number, letter: string) {
 		super(scene, x, y);
 
 		// 1. Create the Circle
-		this.circle = scene.add.circle(0, 0, 30, color);
-		this.circle.setStrokeStyle(4, 0xffffff);
+		this.circle = scene.add.image(0, 0, 'football');
+		this.circle.setDisplaySize(60, 60);
+		this.circle.alpha = 0.5;
 
 		// 2. Create the Text
 		this.text = scene.add
@@ -23,30 +24,12 @@ export default class SnakeNode extends Phaser.GameObjects.Container {
 
 		// Add the container to the scene
 		scene.add.existing(this);
-
-		// Make it interactive
-		this.setInteractive(new Phaser.Geom.Circle(0, 0, 30), Phaser.Geom.Circle.Contains);
 	}
 
-	// Example of an "Update" method for later
-	public setLetter(newLetter: string) {
-		this.text.setText(newLetter);
+	public setFilled() {
+		this.circle.alpha = 1;
 	}
-
-	// Example of a "Success" animation
-	public pop() {
-		// 1. Stop any current scale animations so they don't fight
-		this.scene.tweens.killTweensOf(this);
-
-		// 2. Reset scale to normal before starting (prevents getting stuck large)
-		this.setScale(1);
-
-		this.scene.tweens.add({
-			targets: this,
-			scale: 1.3,
-			duration: 100,
-			yoyo: true,
-			ease: 'Back.easeOut'
-		});
+	public setEmpty() {
+		this.circle.alpha = 0.5;
 	}
 }

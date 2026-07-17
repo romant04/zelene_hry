@@ -1,6 +1,7 @@
 // PreloadScene.ts
 import Phaser from 'phaser';
 import hriste from '../../../../assets/slovniFotbal/hriste.png';
+import football from '../../../../assets/slovniFotbal/football.png';
 
 export default class PreloadScene extends Phaser.Scene {
 	constructor() {
@@ -27,6 +28,7 @@ export default class PreloadScene extends Phaser.Scene {
 
 		// Load your background and other assets here
 		this.load.image('hriste', hriste);
+		this.load.image('football', football);
 
 		this.load.on('progress', (value: number) => {
 			progressBar.clear();
