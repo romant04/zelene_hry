@@ -5,7 +5,7 @@
 	import { addToast } from '../../../stores/toast.js';
 	import { goto } from '$app/navigation';
 	import { createSlovniFotbalSocket } from '$lib/socket.js';
-	import type { GameState } from '$lib/phaser/prsi/types/game-state.js';
+	import type { PrsiGameState } from '$lib/phaser/prsi/types/prsi-game-state.js';
 
 	let token = $state('');
 	let gameId = $state('');
@@ -36,7 +36,7 @@
 
 		fotbalSocket = createSlovniFotbalSocket(token, gameId);
 
-		fotbalSocket.on('gameState', (data: GameState) => {
+		fotbalSocket.on('gameState', (data: PrsiGameState) => {
 			playerName = data.players.find((p) => p.token === token)?.name || '';
 			enemyName = data.players.find((p) => p.token !== token)?.name || '';
 		});

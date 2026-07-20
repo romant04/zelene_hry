@@ -81,20 +81,22 @@ export function setupSlovniFotbalNamespace(io: Server) {
     });
 
     socket.on("guessWord", (word: string) => {
+      console.log(`Player ${id} guessed the word: ${word} in game ${gameId}`);
       const isCorrect =
         isValidWord(word) &&
         !player?.alreadyUsedWords.includes(word.toLowerCase());
 
+      console.log(`Is the guessed word valid? ${isCorrect}`);
       if (!isCorrect) {
         socket.emit("guessResult", { correct: false, message: "Invalid word" });
         return;
       }
 
       player?.alreadyUsedWords.push(word.toLowerCase());
-      player!.score += 1; // Increment score for a correct guess
+      player!.score += word.length; // Increment score for a correct guess
       // ? How will the goals logic work? Is it even necessary?
       // ? Maybe we can just have the score
-      socket.emit("guessResult", { correct: true, message: "Correct guess!" });
+      socket.emit("guessResult", { correct: true, message: "Correct guess!", score: player?.score });
       // also notify the other player that the enemy has guessed a word
       socket.to(gameId).emit("enemyGuessed", { word, score: player?.score });
     });

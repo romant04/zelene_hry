@@ -1,4 +1,4 @@
-export interface GameState {
+export interface PrsiGameState {
 	players: {
 		id: number;
 		name: string;

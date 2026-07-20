@@ -5,7 +5,7 @@
 	import type { Socket } from 'socket.io-client';
 	import { createPrsiSocket } from '$lib/socket';
 	import PrsiCanvas from '$lib/phaser/prsi/components/PrsiCanvas.svelte';
-	import type { GameState } from '$lib/phaser/prsi/types/game-state';
+	import type { PrsiGameState } from '$lib/phaser/prsi/types/prsi-game-state';
 	import '../games.css';
 
 	let token = $state('');
@@ -37,7 +37,7 @@
 
 		prsiSocket = createPrsiSocket(token, gameId);
 
-		prsiSocket.on('gameState', (data: GameState) => {
+		prsiSocket.on('gameState', (data: PrsiGameState) => {
 			playerName = data.players.find((p) => p.token === token)?.name || '';
 			enemyName = data.players.find((p) => p.token !== token)?.name || '';
 		});

@@ -18,7 +18,7 @@
 		const { default: PreloadScene } = await import(
 			'$lib/phaser/slovniFotbal/scene/PreloadScene'
 		);
-		const mainScene = new MainScene();
+		const mainScene = new MainScene(socket, token);
 
 		// eslint-disable-next-line no-undef
 		const config: Phaser.Types.Core.GameConfig = {

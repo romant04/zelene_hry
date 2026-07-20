@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Letter } from '$lib/phaser/slovniFotbal/scene/Letter';
+import { addToast } from '../../../../stores/toast';
 
 export class Letters extends Phaser.GameObjects.Container {
 	private readonly background: Phaser.GameObjects.Arc;
@@ -10,19 +11,28 @@ export class Letters extends Phaser.GameObjects.Container {
 
 	private dragging = false;
 
-	constructor(scene: Phaser.Scene, x: number, y: number) {
+	constructor(
+		scene: Phaser.Scene,
+		x: number,
+		y: number,
+		private readonly onWordSelected?: (word: string) => void
+	) {
 		super(scene, x, y);
 
-		this.background = scene.add.circle(0, 0, 250, 0x000000, 0.6);
+		this.background = scene.add.circle(0, 0, 250, 0xffffff, 0.3);
+		this.background.isStroked = true;
+		this.background.strokeColor = 0xffffff;
+		this.background.strokeAlpha = 0.7;
+		this.background.lineWidth = 4;
 
 		this.background.setOrigin(0.5);
 
 		this.lines = scene.add.graphics();
 
-		const letters = ['A', 'B', 'G', 'H', 'Z', 'Y', 'A', 'R', 'C', 'L', 'Č', 'E', 'K', 'M'];
+		const letters = ['A', 'B', 'G', 'H', 'Z', 'Y', 'A', 'R', 'C', 'L', 'V', 'E', 'K', 'M']; // TODO: This should be passed from socket.io
 		this.letters = letters.map((letter, index) => {
 			const angle = (index / letters.length) * Math.PI * 2;
-			const radius = 175;
+			const radius = 180;
 			const letterX = radius * Math.cos(angle);
 			const letterY = radius * Math.sin(angle);
 
@@ -69,6 +79,12 @@ export class Letters extends Phaser.GameObjects.Container {
 		const word = this.selectedLetters.map((letter) => letter.getLetter()).join('');
 
 		console.log(word);
+		if (this.onWordSelected && word.length >= 3) {
+			this.onWordSelected(word);
+		}
+		if (word.length > 0 && word.length < 3) {
+			addToast('Word must be at least 3 letters long', 'warning');
+		}
 
 		this.selectedLetters.forEach((letter) => letter.deselect());
 		this.selectedLetters = [];
@@ -87,7 +103,7 @@ export class Letters extends Phaser.GameObjects.Container {
 	private drawLines() {
 		this.lines.clear();
 
-		this.lines.lineStyle(8, 0x2a8708, 1);
+		this.lines.lineStyle(8, 0xffffff, 1);
 
 		this.selectedLetters.forEach((letter, index) => {
 			if (index === 0) return;

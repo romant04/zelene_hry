@@ -7,9 +7,9 @@ export class Letter extends Phaser.GameObjects.Container {
 	constructor(scene: Phaser.Scene, x: number, y: number, letter: string) {
 		super(scene, x, y);
 
-		this.background = scene.add.circle(0, 0, 25, 0xfd6717);
+		this.background = scene.add.circle(0, 0, 28, 0xe3550b);
 		this.background.setOrigin(0.5);
-		this.setSize(40, 40);
+		this.setSize(46, 46);
 		this.setInteractive();
 
 		this.letterText = scene.add.text(0, 0, letter, {
@@ -28,9 +28,9 @@ export class Letter extends Phaser.GameObjects.Container {
 		return this.letterText.text;
 	}
 	public select() {
-		this.background.setFillStyle(0xbf3f00);
+		this.background.setFillStyle(0xff6715);
 	}
 	public deselect() {
-		this.background.setFillStyle(0xfd6717);
+		this.background.setFillStyle(0xe3550b);
 	}
 }

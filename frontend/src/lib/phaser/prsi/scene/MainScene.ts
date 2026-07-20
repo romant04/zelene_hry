@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { type Socket } from 'socket.io-client';
-import type { CardData, GameState } from '../types/game-state';
+import type { CardData, PrsiGameState } from '../types/prsi-game-state';
 import { isCardPlayable } from '../utils/game-logic';
 import { Card } from '$lib/phaser/prsi/scene/Card';
 import { TurnToken } from '$lib/phaser/prsi/scene/TurnToken';
@@ -31,7 +31,7 @@ export default class MainScene extends Phaser.Scene {
 	private token: string;
 	private turnToken: TurnToken | null = null;
 
-	private pendingGameState: GameState | null = null;
+	private pendingGameState: PrsiGameState | null = null;
 	private myTurn = false;
 
 	private isEffectActive = false;
@@ -87,7 +87,7 @@ export default class MainScene extends Phaser.Scene {
 			i++;
 		}
 	}
-	initHands(state: GameState) {
+	initHands(state: PrsiGameState) {
 		this.redrawEnemyHand();
 
 		this.hand = state.players
@@ -109,7 +109,7 @@ export default class MainScene extends Phaser.Scene {
 
 		this.updateHandLayout();
 	}
-	initGameState(state: GameState) {
+	initGameState(state: PrsiGameState) {
 		this.myTurn =
 			state.currentPlayerId === state.players.find((x) => x.token === this.token)?.id;
 
@@ -338,7 +338,7 @@ export default class MainScene extends Phaser.Scene {
 			}
 		});
 
-		this.socket.on('gameState', (data: GameState) => {
+		this.socket.on('gameState', (data: PrsiGameState) => {
 			if (this.deck.length > 0) {
 				return; // Don't redraw deck if it's already populated
 			}

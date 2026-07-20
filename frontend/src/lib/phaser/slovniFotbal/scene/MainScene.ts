@@ -1,14 +1,33 @@
 import Phaser from 'phaser';
-import SnakeNode from './SnakeNode';
 import { Letters } from '$lib/phaser/slovniFotbal/scene/Letters';
+import { Balls } from '$lib/phaser/slovniFotbal/scene/Balls';
+import type { Socket } from 'socket.io-client';
+import { addToast } from '../../../../stores/toast';
 
 export default class MainScene extends Phaser.Scene {
-	constructor() {
-		super('MainScene');
-	}
+	private socket: Socket;
+	private token: string;
+	private balls: Balls | undefined;
 
-	private topSnakeNodes: SnakeNode[] = [];
-	private bottomSnakeNodes: SnakeNode[] = [];
+	constructor(socket: Socket, token: string) {
+		super('MainScene');
+		this.socket = socket;
+		this.token = token;
+
+		this.socket.on(
+			'guessResult',
+			(data: { message: string; correct: boolean; score?: number }) => {
+				addToast(data.message, data.correct ? 'success' : 'warning');
+
+				if (data.correct && data.score !== undefined) {
+					this.balls!.setBottomSnakeFilled(data.score);
+				}
+			}
+		);
+		this.socket.on('enemyGuessed', (data: { word: string; score: number }) => {
+			this.balls!.setTopSnakeFilled(data.score);
+		});
+	}
 
 	create() {
 		const { width, height } = this.cameras.main;
@@ -21,51 +40,12 @@ export default class MainScene extends Phaser.Scene {
 
 		bg.setScale(scale).setScrollFactor(0);
 
-		// Configuration
-		const numCircles = 10;
-		const padding = 100; // Gap from left and right edges
-		const amplitude = 60;
-		const frequency = 2; // Full waves (starts and ends at center)
+		this.balls = new Balls(this, width / 2, height / 2, width, height);
+		new Letters(this, width / 2, height / 2, this.handleWordSelected.bind(this));
+	}
 
-		// Calculate the usable width
-		const trackWidth = width - padding * 2;
-
-		const topCenterY = height * 0.35;
-		const bottomCenterY = height * 0.65;
-
-		const lettersTop = 'ABCDEFGHIJKLRAFAF';
-		const lettersBottom = 'MNOPQRSTUVWXFAGAG';
-
-		// --- Snake 1: Left to Right (Top) ---
-		for (let i = 0; i < numCircles; i++) {
-			// Distribute within the padded area
-			const x = padding + (trackWidth / (numCircles - 1)) * i;
-
-			// Use i / (numCircles - 1) so the last circle hits exactly 1.0
-			const progress = i / (numCircles - 1);
-			const t = progress * Math.PI * 2 * frequency;
-			const y = topCenterY + Math.sin(t) * amplitude;
-
-			const node = new SnakeNode(this, x, y, lettersTop[i]);
-			this.topSnakeNodes.push(node);
-		}
-
-		// --- Snake 2: Right to Left (Bottom) ---
-		for (let i = 0; i < numCircles; i++) {
-			// Start at (Width - Padding) and move towards Padding
-			const x = width - padding - (trackWidth / (numCircles - 1)) * i;
-
-			const progress = i / (numCircles - 1);
-			const t = progress * Math.PI * 2 * frequency;
-			// Adding Math.PI here mirrors it so they curve away from each other
-			const y = bottomCenterY + Math.cos(t + Math.PI) * amplitude;
-			const node = new SnakeNode(this, x, y, lettersBottom[i]);
-			if (i < 4) {
-				node.setFilled();
-			}
-			this.bottomSnakeNodes.push(node);
-		}
-
-		new Letters(this, width / 2, height / 2);
+	private handleWordSelected(word: string) {
+		// Emit the selected word to the server
+		this.socket.emit('guessWord', word);
 	}
 }

@@ -1,8 +1,7 @@
 export default class SnakeNode extends Phaser.GameObjects.Container {
 	circle;
-	text;
 
-	constructor(scene: Phaser.Scene, x: number, y: number, letter: string) {
+	constructor(scene: Phaser.Scene, x: number, y: number) {
 		super(scene, x, y);
 
 		// 1. Create the Circle
@@ -10,17 +9,8 @@ export default class SnakeNode extends Phaser.GameObjects.Container {
 		this.circle.setDisplaySize(60, 60);
 		this.circle.alpha = 0.5;
 
-		// 2. Create the Text
-		this.text = scene.add
-			.text(0, 0, letter, {
-				fontSize: '24px',
-				fontStyle: 'bold',
-				color: '#ffffff'
-			})
-			.setOrigin(0.5);
-
 		// Add them to this container
-		this.add([this.circle, this.text]);
+		this.add([this.circle]);
 
 		// Add the container to the scene
 		scene.add.existing(this);

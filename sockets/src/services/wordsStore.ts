@@ -5,10 +5,15 @@ let wordsSet = new Set<string>();
 export async function initWords() {
   const data = await fs.readFile("data/vocab.txt", "utf-8");
 
-  wordsSet = new Set(data.split("\n").map((w) => w.trim().toLowerCase()));
+  wordsSet = new Set(data.split("\n").map((w) => removeDiacritics(w.trim().toLowerCase())));
   console.log(`Loaded ${wordsSet.size} words into the set.`);
 }
 
 export function isValidWord(word: string) {
   return wordsSet.has(word.toLowerCase());
+}
+function removeDiacritics(text: string): string {
+  return text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
 }
