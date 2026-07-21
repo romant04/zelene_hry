@@ -3,6 +3,8 @@ import { Letters } from '$lib/phaser/slovniFotbal/scene/Letters';
 import { Balls } from '$lib/phaser/slovniFotbal/scene/Balls';
 import type { Socket } from 'socket.io-client';
 import { addToast } from '../../../../stores/toast';
+import { score } from '../../../../stores/slovni-fotbal/score';
+import { get } from 'svelte/store';
 
 export default class MainScene extends Phaser.Scene {
 	private socket: Socket;
@@ -21,11 +23,29 @@ export default class MainScene extends Phaser.Scene {
 
 				if (data.correct && data.score !== undefined) {
 					this.balls!.setBottomSnakeFilled(data.score);
+					score.update((currentScore) => ({
+						...currentScore,
+						player: {
+							wordsFound: currentScore.player.wordsFound + 1,
+							score: data.score!,
+							goals: currentScore.player.goals
+						}
+					}));
+					this.checkGoalsPlayer();
 				}
 			}
 		);
 		this.socket.on('enemyGuessed', (data: { word: string; score: number }) => {
 			this.balls!.setTopSnakeFilled(data.score);
+			score.update((currentScore) => ({
+				...currentScore,
+				enemy: {
+					wordsFound: currentScore.enemy.wordsFound + 1,
+					score: data.score,
+					goals: currentScore.enemy.goals
+				}
+			}));
+			this.checkGoalsEnemy();
 		});
 	}
 
@@ -47,5 +67,34 @@ export default class MainScene extends Phaser.Scene {
 	private handleWordSelected(word: string) {
 		// Emit the selected word to the server
 		this.socket.emit('guessWord', word);
+	}
+
+	private checkGoalsPlayer() {
+		if (get(score).player.score >= 10) {
+			const overflow = get(score).player.score - 10;
+			score.update((currentScore) => ({
+				...currentScore,
+				player: {
+					...currentScore.player,
+					score: overflow,
+					goals: currentScore.player.goals + 1
+				}
+			}));
+			this.balls!.setBottomSnakeFilled(overflow); // Reset the bottom snake to the overflow value
+		}
+	}
+	private checkGoalsEnemy() {
+		if (get(score).enemy.score >= 10) {
+			const overflow = get(score).enemy.score - 10;
+			score.update((currentScore) => ({
+				...currentScore,
+				enemy: {
+					...currentScore.enemy,
+					score: overflow,
+					goals: currentScore.enemy.goals + 1
+				}
+			}));
+			this.balls!.setTopSnakeFilled(overflow); // Reset the top snake to the overflow value
+		}
 	}
 }

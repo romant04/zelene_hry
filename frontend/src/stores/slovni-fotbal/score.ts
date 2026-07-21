@@ -1,13 +1,29 @@
 import { writable } from 'svelte/store';
 
 export interface Score {
-	player: number;
-	enemy: number;
+	player: {
+		wordsFound: number;
+		score: number;
+		goals: number;
+	};
+	enemy: {
+		wordsFound: number;
+		score: number;
+		goals: number;
+	};
 }
 
 export const score = writable<Score>({
-	player: 0,
-	enemy: 0
+	player: {
+		wordsFound: 0,
+		score: 0,
+		goals: 0
+	},
+	enemy: {
+		wordsFound: 0,
+		score: 0,
+		goals: 0
+	}
 });
 
 export function setScore(sc: Score) {

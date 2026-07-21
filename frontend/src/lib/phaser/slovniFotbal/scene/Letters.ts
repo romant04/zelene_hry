@@ -19,9 +19,9 @@ export class Letters extends Phaser.GameObjects.Container {
 	) {
 		super(scene, x, y);
 
-		this.background = scene.add.circle(0, 0, 250, 0xffffff, 0.3);
+		this.background = scene.add.circle(0, 0, 250, 0x000000, 0.5);
 		this.background.isStroked = true;
-		this.background.strokeColor = 0xffffff;
+		this.background.strokeColor = 0x000000;
 		this.background.strokeAlpha = 0.7;
 		this.background.lineWidth = 4;
 
