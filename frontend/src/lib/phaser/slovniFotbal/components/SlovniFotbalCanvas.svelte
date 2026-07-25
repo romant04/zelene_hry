@@ -58,10 +58,8 @@
 <div class="fixed top-10 left-10 z-[999] flex flex-col bg-black/50 p-5 rounded-md">
 	<p class="text-3xl font-bold uppercase">{playerName}</p>
 	<p class="text-xl">GOALS: {$score.player.goals}</p>
-	<p class="text-md">WORDS FOUND: {$score.player.wordsFound}</p>
 </div>
 <div class="fixed top-10 right-10 z-[999] flex flex-col bg-black/50 p-5 rounded-md">
 	<p class="text-3xl font-bold uppercase">{enemyName}</p>
 	<p class="text-xl">GOALS: {$score.enemy.goals}</p>
-	<p class="text-md">WORDS FOUND: {$score.enemy.wordsFound}</p>
 </div>

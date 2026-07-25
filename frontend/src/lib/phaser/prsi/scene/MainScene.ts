@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { type Socket } from 'socket.io-client';
-import type { CardData, PrsiGameState } from '../types/prsi-game-state';
+import type { CardData, PrsiGameState } from '../types/prsiGameState';
 import { isCardPlayable } from '../utils/game-logic';
 import { Card } from '$lib/phaser/prsi/scene/Card';
 import { TurnToken } from '$lib/phaser/prsi/scene/TurnToken';
@@ -417,6 +417,7 @@ export default class MainScene extends Phaser.Scene {
 			this.createMobileLayout();
 		}
 
+		// TODO: This might be unnecessary -> see solution in SlovniFotbal
 		if (
 			this.registry &&
 			this.registry.get('assetsLoaded') &&

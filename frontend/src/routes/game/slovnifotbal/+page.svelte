@@ -5,7 +5,7 @@
 	import { addToast } from '../../../stores/toast.js';
 	import { goto } from '$app/navigation';
 	import { createSlovniFotbalSocket } from '$lib/socket.js';
-	import type { PrsiGameState } from '$lib/phaser/prsi/types/prsi-game-state.js';
+	import type { PrsiGameState } from '$lib/phaser/prsi/types/prsiGameState.js';
 
 	let token = $state('');
 	let gameId = $state('');

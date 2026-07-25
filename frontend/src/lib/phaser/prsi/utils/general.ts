@@ -1,4 +1,4 @@
-import type { PrsiGameState } from '$lib/phaser/prsi/types/prsi-game-state';
+import type { PrsiGameState } from '$lib/phaser/prsi/types/prsiGameState';
 
 export function rnd(min: number, max: number) {
 	return Math.floor(Math.random() * (max - min)) + min;
