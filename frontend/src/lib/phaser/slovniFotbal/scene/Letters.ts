@@ -19,7 +19,7 @@ export class Letters extends Phaser.GameObjects.Container {
 	) {
 		super(scene, x, y);
 
-		this.background = scene.add.circle(0, 0, 250, 0x000000, 0.5);
+		this.background = scene.add.circle(0, 0, 250, 0x000000, 0.6);
 		this.background.isStroked = true;
 		this.background.strokeColor = 0x000000;
 		this.background.strokeAlpha = 0.7;
@@ -29,7 +29,17 @@ export class Letters extends Phaser.GameObjects.Container {
 
 		this.lines = scene.add.graphics();
 
-		const letters = ['A', 'B', 'G', 'H', 'Z', 'Y', 'A', 'R', 'C', 'L', 'V', 'E', 'K', 'M']; // TODO: This should be passed from socket.io
+		// --- ADD MASK HERE ---
+		// 1. Create a geometry mask from the background shape
+		const maskShape = scene.make.graphics();
+		maskShape.fillStyle(0xffffff);
+		maskShape.fillCircle(x, y, 250);
+
+		const mask = maskShape.createGeometryMask();
+		this.lines.setMask(mask);
+		// ---------------------
+
+		const letters = ['A', 'B', 'G', 'H', 'Z', 'Y', 'A', 'R', 'C', 'L', 'V', 'E', 'K', 'M'];
 		this.letters = letters.map((letter, index) => {
 			const angle = (index / letters.length) * Math.PI * 2;
 			const radius = 180;
@@ -57,22 +67,23 @@ export class Letters extends Phaser.GameObjects.Container {
 		this.selectedLetters = [letter];
 		letter.select();
 
-		this.drawLines();
+		this.drawLines(pointer);
 	}
+
 	private dragSelection(pointer: Phaser.Input.Pointer) {
 		if (!this.dragging) return;
 
 		const letter = this.getLetterAt(pointer);
 
-		if (!letter) return;
-
-		if (!this.selectedLetters.includes(letter)) {
+		if (letter && !this.selectedLetters.includes(letter)) {
 			this.selectedLetters.push(letter);
 			letter.select();
 		}
 
-		this.drawLines();
+		// Always redraw lines on movement, passing the current pointer position
+		this.drawLines(pointer);
 	}
+
 	private endSelection() {
 		this.dragging = false;
 
@@ -100,12 +111,23 @@ export class Letters extends Phaser.GameObjects.Container {
 		});
 	}
 
-	private drawLines() {
+	private drawLines(pointer?: Phaser.Input.Pointer) {
 		this.lines.clear();
 
-		this.lines.lineStyle(8, 0xffffff, 1);
+		if (this.selectedLetters.length === 0) return;
 
+		const lineWidth = 8;
+		const lineColor = 0xffffff;
+		const lineAlpha = 1;
+
+		this.lines.lineStyle(lineWidth, lineColor, lineAlpha);
+		this.lines.fillStyle(lineColor, lineAlpha);
+
+		// 1. Draw connected static lines between selected letters
 		this.selectedLetters.forEach((letter, index) => {
+			// Draw a rounded cap/joint at each selected letter position
+			this.lines.fillCircle(letter.x, letter.y, lineWidth / 2);
+
 			if (index === 0) return;
 
 			const a = this.selectedLetters[index - 1];
@@ -113,5 +135,19 @@ export class Letters extends Phaser.GameObjects.Container {
 
 			this.lines.lineBetween(a.x, a.y, b.x, b.y);
 		});
+
+		// 2. Draw line from the last selected letter to current cursor position
+		if (pointer && this.dragging) {
+			const lastLetter = this.selectedLetters[this.selectedLetters.length - 1];
+
+			// Convert world pointer coordinates into this container's local space
+			const localPointer = this.pointToContainer(pointer, new Phaser.Math.Vector2());
+
+			// Draw line to cursor
+			this.lines.lineBetween(lastLetter.x, lastLetter.y, localPointer.x, localPointer.y);
+
+			// Draw rounded cap right at the cursor tip
+			this.lines.fillCircle(localPointer.x, localPointer.y, lineWidth / 2);
+		}
 	}
 }
