@@ -105,7 +105,6 @@
 			});
 
 			socket.on('matchFound', (x: { gameId: string; playerToken: string }) => {
-				console.log(x);
 				localStorage.setItem('playerToken', x.playerToken);
 				localStorage.setItem('gameId', x.gameId);
 				socket?.emit('joinGame');

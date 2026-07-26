@@ -1,4 +1,4 @@
-import type { CardData } from '$lib/phaser/prsi/types/game-state';
+import type { CardData } from '$lib/phaser/prsi/types/prsiGameState';
 
 function checkForSpecialCards(card: CardData, topCard: CardData): boolean | null {
 	if (topCard.rank !== 'sedma' && card.rank === 'svrsek') {

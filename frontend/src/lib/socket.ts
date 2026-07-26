@@ -43,3 +43,8 @@ export const createPrsiSocket = (token: string, gameId: string) => {
 		auth: { token, gameId }
 	});
 };
+export const createSlovniFotbalSocket = (token: string, gameId: string) => {
+	return io(`${WEBSOCKET}/slovniFotbal`, {
+		auth: { token, gameId }
+	});
+};

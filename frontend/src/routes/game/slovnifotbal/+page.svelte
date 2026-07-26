@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
-	import { addToast } from '../../../stores/toast';
-	import { goto } from '$app/navigation';
+	import SlovniFotbalCanvas from '$lib/phaser/slovniFotbal/components/SlovniFotbalCanvas.svelte';
 	import type { Socket } from 'socket.io-client';
-	import { createPrsiSocket } from '$lib/socket';
-	import PrsiCanvas from '$lib/phaser/prsi/components/PrsiCanvas.svelte';
-	import type { PrsiGameState } from '$lib/phaser/prsi/types/prsiGameState';
-	import '../games.css';
+	import { onDestroy, onMount } from 'svelte';
+	import { addToast } from '../../../stores/toast.js';
+	import { goto } from '$app/navigation';
+	import { createSlovniFotbalSocket } from '$lib/socket.js';
+	import type { PrsiGameState } from '$lib/phaser/prsi/types/prsiGameState.js';
 
 	let token = $state('');
 	let gameId = $state('');
@@ -14,7 +13,7 @@
 	let playerName = $state('');
 	let enemyName = $state('');
 
-	let prsiSocket: Socket | null = $state(null);
+	let fotbalSocket: Socket | null = $state(null);
 
 	onMount(() => {
 		const t = localStorage.getItem('playerToken');
@@ -31,18 +30,18 @@
 	});
 
 	$effect(() => {
-		if (!token || !gameId || prsiSocket) {
+		if (!token || !gameId || fotbalSocket) {
 			return;
 		}
 
-		prsiSocket = createPrsiSocket(token, gameId);
+		fotbalSocket = createSlovniFotbalSocket(token, gameId);
 
-		prsiSocket.on('gameState', (data: PrsiGameState) => {
+		fotbalSocket.on('gameState', (data: PrsiGameState) => {
 			playerName = data.players.find((p) => p.token === token)?.name || '';
 			enemyName = data.players.find((p) => p.token !== token)?.name || '';
 		});
 
-		prsiSocket.on('end', () => {
+		fotbalSocket.on('end', () => {
 			addToast('Hra do které se snažíte připojit, již není aktivní.', 'error', 3000);
 			setTimeout(() => {
 				goto('/');
@@ -51,18 +50,22 @@
 	});
 
 	onDestroy(() => {
-		if (prsiSocket) {
-			prsiSocket.disconnect();
-			prsiSocket = null;
+		if (fotbalSocket) {
+			fotbalSocket.disconnect();
+			fotbalSocket = null;
 		}
 	});
 </script>
 
-{#if prsiSocket && token && playerName && enemyName}
-	<PrsiCanvas socket={prsiSocket} {token} {playerName} {enemyName} />
+<svelte:head>
+	<title>Duelovky 🕹️ | Slovní fotbal</title>
+</svelte:head>
+
+{#if fotbalSocket && token && playerName && enemyName}
+	<SlovniFotbalCanvas socket={fotbalSocket} {token} {playerName} {enemyName} />
 {:else}
 	<div class="flex flex-col items-center justify-center h-full text-center">
-		<h1 class="text-2xl font-bold mb-4">Prší</h1>
+		<h1 class="text-2xl font-bold mb-4">Slovní fotbal</h1>
 		<p class="text-lg mb-8">Hra se připravuje…</p>
 	</div>
 {/if}

@@ -12,6 +12,7 @@ interface MatchmakingUser {
   playerStats: PlayerStats;
   margin: number;
   token: string;
+  isSearching: boolean;
 }
 
 const NAMESPACE = "/matchmaking";
@@ -83,6 +84,7 @@ export function setupMatchmakingNamespace(io: Server) {
       },
       margin: 0,
       token: playerToken,
+      isSearching: false,
     });
 
     const userData = users.get(key)!;
@@ -92,6 +94,7 @@ export function setupMatchmakingNamespace(io: Server) {
 
     let interval: NodeJS.Timeout | null;
     socket.on("startMatchmaking", () => {
+      userData.isSearching = true;
       queueSize.set(gameId, (queueSize.get(gameId) || 0) + 1);
       matchmakingNamespace.emit("usersInQueue", queueSize.get(gameId) || 0);
 
@@ -105,7 +108,12 @@ export function setupMatchmakingNamespace(io: Server) {
         }
 
         const match = userArray
-          .filter((u) => u.id !== userData.id && canUsersMatch(userData, u))
+          .filter(
+            (u) =>
+              u.isSearching &&
+              u.id !== userData.id &&
+              canUsersMatch(userData, u),
+          )
           .find((u) => !matchedUserIds.has(u.id));
 
         if (!match) return;
@@ -184,6 +192,7 @@ export function setupMatchmakingNamespace(io: Server) {
       );
       clearInterval(interval!);
       interval = null;
+      userData.isSearching = false;
       users.delete(key);
       matchedUserIds.delete(userData.id);
       queueSize.set(gameId, (queueSize.get(gameId) || 0) - 1);
@@ -198,6 +207,7 @@ export function setupMatchmakingNamespace(io: Server) {
 
         clearInterval(interval!);
       }
+      userData.isSearching = false;
       users.delete(key);
       matchedUserIds.delete(userData.id);
     });
