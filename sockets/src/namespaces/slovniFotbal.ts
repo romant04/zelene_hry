@@ -105,11 +105,13 @@ export function setupSlovniFotbalNamespace(io: Server) {
       const playerScore = (player!.score + player!.goals * 10) || 0;
       const enemyScore = (enemy!.score + enemy!.goals * 10) || 0;
       const draw = playerScore === enemyScore;
+      const winnerId = playerScore > enemyScore ? player!.id : playerScore < enemyScore ? enemy!.id : player!.id;
+      const loserId = playerScore < enemyScore ? player!.id : playerScore > enemyScore ? enemy!.id : enemy!.id;
 
       socket.emit("gameoverData", playerScore > enemyScore ? player : playerScore < enemyScore ? enemy : null);
       socket.to(gameId).emit("gameoverData", playerScore > enemyScore ? player : playerScore < enemyScore ? enemy : null);
 
-      void calculateAndUpdateMMR(gameId, player!.id, enemy!.id, draw);
+      void calculateAndUpdateMMR(gameId, winnerId, loserId, draw);
       SlovniFotbalGameData.delete(gameId);
       return;
     })
