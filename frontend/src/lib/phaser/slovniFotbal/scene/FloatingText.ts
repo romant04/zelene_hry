@@ -8,14 +8,14 @@ export class FloatingText extends Phaser.GameObjects.Container {
 		x: number,
 		y: number,
 		message: string,
-		type: 'success' | 'error' = 'success'
+		type: 'success' | 'error' | 'goal' = 'success'
 	) {
 		super(scene, x, y);
 
 		this.text = scene.add.text(0, 0, message, {
-			fontSize: '42px',
+			fontSize: type === 'goal' ? '64px' : '42px',
 			fontStyle: 'bold',
-			color: type === 'success' ? '#FFD700' : '#ff0000',
+			color: type === 'goal' ? '#44e802' : type === 'success' ? '#FFD700' : '#ff0000',
 			strokeThickness: 5,
 			stroke: '#000'
 		});

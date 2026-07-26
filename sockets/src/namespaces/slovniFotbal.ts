@@ -6,9 +6,27 @@ import {
 } from "../types/game";
 import { GameRoomsMap } from "../socket";
 import { isValidWord } from "../services/wordsStore";
+import {generateLetters} from "../utils/generateLetters";
+import {calculateAndUpdateMMR} from "../utils/calculateAndUpdateMMR";
 
 const NAMESPACE = "/slovniFotbal";
+const GAME_DURATION = 3 * 60 * 1000;
+
+const gameoverTimers = new Map<string, NodeJS.Timeout>();
 const SlovniFotbalGameData = new Map<string, SlovniFotbalGameState>();
+
+function scheduleGameOver(io: Server, namespace: any, gameId: string) {
+  const existing = gameoverTimers.get(gameId);
+  if (existing) clearTimeout(existing);
+
+  const timer = setTimeout(() => {
+    namespace.to(gameId).emit("gameover");
+    gameoverTimers.delete(gameId);
+  }, GAME_DURATION);
+
+  gameoverTimers.set(gameId, timer);
+}
+
 export function setupSlovniFotbalNamespace(io: Server) {
   const slovniFotbalNamespace = io.of(NAMESPACE);
 
@@ -35,6 +53,7 @@ export function setupSlovniFotbalNamespace(io: Server) {
       !SlovniFotbalGameData.has(gameId) ||
       !SlovniFotbalGameData.get(gameId)?.players
     ) {
+      console.log(`Initializing game state for gameId: ${gameId}`);
       const players = generalGameData?.players.map((player) => {
         const p: SlovniFotbalPlayer = {
           id: player.id,
@@ -50,7 +69,10 @@ export function setupSlovniFotbalNamespace(io: Server) {
 
       SlovniFotbalGameData.set(gameId, {
         players,
+        endTime: Date.now() + GAME_DURATION, // Set the end time to 3 minutes from now
+        letters: generateLetters()
       });
+      scheduleGameOver(io, slovniFotbalNamespace, gameId)
     }
 
     const gameState = SlovniFotbalGameData.get(gameId)!;
@@ -76,9 +98,21 @@ export function setupSlovniFotbalNamespace(io: Server) {
     slovniFotbalNamespace.to(socket.id).emit("gameState", gameState);
 
     socket.on("getGameState", () => {
-      console.log("getting this game state: " + gameState.players);
       slovniFotbalNamespace.to(socket.id).emit("gameState", gameState);
     });
+
+    socket.on("requestGameOverData", () => {
+      const playerScore = (player!.score + player!.goals * 10) || 0;
+      const enemyScore = (enemy!.score + enemy!.goals * 10) || 0;
+      const draw = playerScore === enemyScore;
+
+      socket.emit("gameoverData", playerScore > enemyScore ? player : playerScore < enemyScore ? enemy : null);
+      socket.to(gameId).emit("gameoverData", playerScore > enemyScore ? player : playerScore < enemyScore ? enemy : null);
+
+      void calculateAndUpdateMMR(gameId, player!.id, enemy!.id, draw);
+      SlovniFotbalGameData.delete(gameId);
+      return;
+    })
 
     socket.on("guessWord", (word: string) => {
       const alreadyGuessed = player?.alreadyUsedWords.includes(word.toLowerCase());
@@ -87,7 +121,7 @@ export function setupSlovniFotbalNamespace(io: Server) {
         !alreadyGuessed
 
       if (!isCorrect) {
-        const message = alreadyGuessed ? `${word} již bylo použito` : `${word} nebylo nalezeno ve slovníku`;
+        const message = alreadyGuessed ? `${word} již bylo použito` : `${word} nebylo nalezeno`;
         socket.emit("guessResult", { correct: false, message });
         return;
       }
@@ -122,6 +156,8 @@ export function setupSlovniFotbalNamespace(io: Server) {
           // If all players are disconnected, remove the game data
           SlovniFotbalGameData.delete(gameId);
           GameRoomsMap.delete(gameId);
+          clearTimeout(gameoverTimers.get(gameId));
+          gameoverTimers.delete(gameId);
           console.log(
             `All players disconnected, removing game data for gameId: ${gameId}`,
           );
@@ -130,5 +166,5 @@ export function setupSlovniFotbalNamespace(io: Server) {
     });
   });
 
-  console.log("Prší namespace initialized.");
+  console.log("Slovní fotbal namespace initialized.");
 }

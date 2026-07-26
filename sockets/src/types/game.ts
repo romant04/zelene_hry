@@ -58,4 +58,7 @@ export interface Card {
 }
 
 export interface SlovniFotbalGameState
-  extends GeneralGameState<SlovniFotbalPlayer> {}
+  extends GeneralGameState<SlovniFotbalPlayer> {
+  endTime: number; // Timestamp when the game ends
+  letters: string[];
+}

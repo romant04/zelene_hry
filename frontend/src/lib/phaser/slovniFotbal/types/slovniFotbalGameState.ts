@@ -9,4 +9,6 @@ export interface SlovniFotbalPlayer {
 }
 export interface SlovniFotbalGameState {
 	players: SlovniFotbalPlayer[];
+	endTime: number;
+	letters: string[];
 }

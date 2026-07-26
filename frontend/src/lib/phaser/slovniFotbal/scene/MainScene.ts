@@ -6,23 +6,38 @@ import { score } from '../../../../stores/slovni-fotbal/score';
 import { get } from 'svelte/store';
 import { FloatingText } from '$lib/phaser/slovniFotbal/scene/FloatingText';
 import type { SlovniFotbalGameState } from '$lib/phaser/slovniFotbal/types/slovniFotbalGameState';
+import { endTime } from '../../../../stores/slovni-fotbal/timer';
+import { toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
+import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
 
 export default class MainScene extends Phaser.Scene {
 	private socket: Socket;
 	private token: string;
 	private balls: Balls | undefined;
 	private text: FloatingText | undefined;
+	private letters: Letters | undefined;
 	private pendingGameState: SlovniFotbalGameState | null = null;
+
+	private showLetters() {
+		if (this.letters) {
+			this.letters.visible = true;
+			this.tweens.add({
+				targets: this.letters,
+				scale: 1,
+				duration: 300,
+				ease: 'Power2'
+			});
+		}
+	}
 
 	private setupListeners() {
 		this.socket.on(
 			'guessResult',
-			(data: { message: string; correct: boolean; score?: number }) => {
-				this.text!.setMessage(data.message, data.correct ? 'success' : 'error');
-				this.text!.show();
-
+			async (data: { message: string; correct: boolean; score?: number }) => {
 				if (data.correct && data.score !== undefined) {
-					this.balls!.setBottomSnakeFilled(data.score);
+					this.text!.setMessage(data.message, 'success');
+					this.text!.show();
+
 					score.update((currentScore) => ({
 						...currentScore,
 						player: {
@@ -30,7 +45,17 @@ export default class MainScene extends Phaser.Scene {
 							goals: currentScore.player.goals
 						}
 					}));
-					this.checkGoalsPlayer();
+
+					await this.balls!.setBottomSnakeFilled(data.score);
+					await this.checkGoalsPlayer();
+					this.showLetters();
+				}
+
+				if (!data.correct) {
+					this.text!.setMessage(data.message, 'error');
+					this.text!.show();
+					await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second
+					this.showLetters();
 				}
 			}
 		);
@@ -55,6 +80,27 @@ export default class MainScene extends Phaser.Scene {
 			}));
 			this.balls!.setTopSnakeFilled(data.score);
 		});
+		this.socket.on('gameover', () => {
+			this.socket.emit('requestGameOverData');
+			this.hideLetters();
+			this.text!.setMessage('Čas vypršel, konec hry!');
+			this.text!.show();
+		});
+		this.socket.on(
+			'gameoverData',
+			async (winner: { id: number; name: string; score: number; goals: number } | null) => {
+				console.log('Game over data received:', winner);
+				await new Promise((resolve) => setTimeout(resolve, 1500)); // Wait for 1.5 seconds
+				toggleGameOverOn(winner === null ? 'Remíza' : winner.name);
+			}
+		);
+
+		this.socket.on('playerDisconnected', () => {
+			setDisconnect(true);
+		});
+		this.socket.on('playerReconnected', () => {
+			setDisconnect(false);
+		});
 
 		this.socket.on('gameState', (data: SlovniFotbalGameState) => {
 			this.initGameState(data);
@@ -62,7 +108,6 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	private initGameState(data: SlovniFotbalGameState) {
-		console.log(data);
 		const player = data.players.find((p) => p.token === this.token);
 		const enemy = data.players.find((p) => p.token !== this.token);
 
@@ -70,6 +115,9 @@ export default class MainScene extends Phaser.Scene {
 			console.error('Player or enemy not found in game state');
 			return;
 		}
+
+		endTime.set(data.endTime);
+		this.letters?.setLetters(data.letters);
 
 		score.set({
 			player: {
@@ -82,8 +130,7 @@ export default class MainScene extends Phaser.Scene {
 			}
 		});
 
-		console.log(this.balls);
-		this.balls?.setBottomSnakeFilled(player.score);
+		this.balls?.setBottomSnakeFilledInsta(player.score);
 		this.balls?.setTopSnakeFilled(enemy.score);
 	}
 
@@ -92,6 +139,16 @@ export default class MainScene extends Phaser.Scene {
 		this.socket = socket;
 		this.token = token;
 		this.setupListeners();
+	}
+
+	preload() {
+		const g = this.make.graphics(undefined, false);
+
+		g.fillStyle(0xffffff);
+		g.fillRect(0, 0, 3, 8);
+
+		g.generateTexture('particle', 8, 8);
+		g.destroy();
 	}
 
 	create() {
@@ -106,18 +163,32 @@ export default class MainScene extends Phaser.Scene {
 		bg.setScale(scale).setScrollFactor(0);
 
 		this.balls = new Balls(this, width / 2, height / 2, width, height);
-		new Letters(this, width / 2, height / 2, this.handleWordSelected.bind(this));
+		this.letters = new Letters(this, width / 2, height / 2, this.handleWordSelected.bind(this));
 		this.text = new FloatingText(this, width / 2, height / 2, '', 'success');
 
 		this.socket.emit('getGameState');
 	}
 
+	private hideLetters() {
+		if (this.letters) {
+			this.tweens.add({
+				targets: this.letters,
+				scale: 0,
+				duration: 300,
+				ease: 'Power2',
+				onComplete: () => {
+					this.letters!.visible = false;
+				}
+			});
+		}
+	}
 	private handleWordSelected(word: string) {
 		// Emit the selected word to the server
 		this.socket.emit('guessWord', word);
+		this.hideLetters();
 	}
 
-	private checkGoalsPlayer() {
+	private async checkGoalsPlayer() {
 		if (get(score).player.score >= 10) {
 			const overflow = get(score).player.score - 10;
 			score.update((currentScore) => ({
@@ -129,7 +200,8 @@ export default class MainScene extends Phaser.Scene {
 				}
 			}));
 			this.socket.emit('goalScored', overflow);
-			this.balls!.setBottomSnakeFilled(overflow); // Reset the bottom snake to the overflow value
+			this.balls!.resetBottomBalls();
+			await this.balls!.setBottomSnakeFilled(overflow); // Reset the bottom snake to the overflow value
 		}
 	}
 	private checkGoalsEnemy() {

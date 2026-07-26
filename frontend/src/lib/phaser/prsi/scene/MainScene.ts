@@ -7,8 +7,8 @@ import { TurnToken } from '$lib/phaser/prsi/scene/TurnToken';
 import { rnd } from '$lib/phaser/prsi/utils/general';
 import { isGameInProgress } from '$lib/phaser/prsi/utils/general';
 import { toggleSvrsek } from '../../../../stores/prsi/svrsek';
-import { toggleGameOver } from '../../../../stores/prsi/game-over';
-import { setDisconnect } from '../../../../stores/prsi/disconnect';
+import { toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
+import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
 
 function getTextureFromSuit(suit: string) {
 	switch (suit) {
@@ -302,7 +302,7 @@ export default class MainScene extends Phaser.Scene {
 			this.myTurn = false;
 
 			setTimeout(() => {
-				toggleGameOver(name);
+				toggleGameOverOn(name);
 			}, 1000);
 		});
 

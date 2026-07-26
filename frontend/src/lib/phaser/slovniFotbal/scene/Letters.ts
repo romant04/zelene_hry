@@ -4,8 +4,7 @@ import { addToast } from '../../../../stores/toast';
 
 export class Letters extends Phaser.GameObjects.Container {
 	private readonly background: Phaser.GameObjects.Arc;
-	private readonly letters: Letter[];
-
+	private readonly letters: Letter[] = [];
 	private readonly lines: Phaser.GameObjects.Graphics;
 	private selectedLetters: Letter[] = [];
 
@@ -37,19 +36,8 @@ export class Letters extends Phaser.GameObjects.Container {
 
 		const mask = maskShape.createGeometryMask();
 		this.lines.setMask(mask);
-		// ---------------------
 
-		const letters = ['A', 'B', 'G', 'H', 'Z', 'Y', 'A', 'R', 'C', 'L', 'V', 'E', 'K', 'M'];
-		this.letters = letters.map((letter, index) => {
-			const angle = (index / letters.length) * Math.PI * 2;
-			const radius = 180;
-			const letterX = radius * Math.cos(angle);
-			const letterY = radius * Math.sin(angle);
-
-			return new Letter(scene, letterX, letterY, letter);
-		});
-
-		this.add([this.background, this.lines, ...this.letters]);
+		this.add([this.background, this.lines]);
 
 		scene.input.on('pointerdown', this.startSelection, this);
 		scene.input.on('pointermove', this.dragSelection, this);
@@ -149,5 +137,23 @@ export class Letters extends Phaser.GameObjects.Container {
 			// Draw rounded cap right at the cursor tip
 			this.lines.fillCircle(localPointer.x, localPointer.y, lineWidth / 2);
 		}
+	}
+
+	public setLetters(newLetters: string[]) {
+		// Remove old letters
+		this.letters.forEach((letter) => letter.destroy());
+		this.letters.length = 0;
+
+		// Create new letters
+		newLetters.forEach((letterChar, index) => {
+			const angle = (index / newLetters.length) * Math.PI * 2;
+			const radius = 180;
+			const letterX = radius * Math.cos(angle);
+			const letterY = radius * Math.sin(angle);
+
+			const letter = new Letter(this.scene, letterX, letterY, letterChar);
+			this.letters.push(letter);
+			this.add(letter);
+		});
 	}
 }

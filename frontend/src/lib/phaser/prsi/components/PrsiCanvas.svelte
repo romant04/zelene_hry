@@ -6,11 +6,8 @@
 	import zaludy from '../../../../assets/prsi/icons/zaludy.png';
 	import kule from '../../../../assets/prsi/icons/kule.png';
 	import zeleny from '../../../../assets/prsi/icons/zeleny.png';
-	import { gameOver } from '../../../../stores/prsi/game-over';
-	import { goto } from '$app/navigation';
-	import { disconnect } from '../../../../stores/prsi/disconnect';
-	import { profileCache } from '$lib/cache/profile';
-	import { mmrCache } from '$lib/cache/mmr';
+	import GameOver from '$lib/phaser/components/GameOver.svelte';
+	import Disconnect from '$lib/phaser/components/Disconnect.svelte';
 
 	let {
 		socket,
@@ -29,27 +26,6 @@
 	// eslint-disable-next-line no-undef
 	let game: Phaser.Game;
 
-	let timer = $state<number | null>(null);
-	let timeRemaining = $state(30);
-
-	$effect(() => {
-		if ($disconnect.disconnect && !timer) {
-			timer = window.setInterval(() => {
-				timeRemaining--;
-				if (timeRemaining <= 0 && $disconnect.disconnect) {
-					clearInterval(timer!);
-					timer = null;
-					$disconnect.disconnect = false;
-					goto('/');
-				}
-			}, 1000);
-		} else if (!$disconnect.disconnect && timer) {
-			clearInterval(timer!);
-			timer = null;
-			timeRemaining = 30;
-		}
-	});
-
 	function handleSuitChange(suit: string) {
 		if (suit === 'c') {
 			socket.emit('changeSuit', { suit: 'c', old: $svrsek.oldSuit });
@@ -61,13 +37,6 @@
 			socket.emit('changeSuit', { suit: 'k', old: $svrsek.oldSuit });
 		}
 		$svrsek.svrsekOpen = false;
-	}
-
-	function handleRedirect() {
-		$gameOver.gameOver = false;
-		profileCache.clear();
-		mmrCache.clear();
-		goto('/');
 	}
 
 	onMount(async () => {
@@ -131,36 +100,5 @@
 		</div>
 	</div>
 {/if}
-
-{#if $gameOver.gameOver}
-	<div
-		class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center px-5"
-	>
-		<div
-			class="bg-tertiary-700 text-white text-center px-5 pt-10 pb-7 min-w-[32rem] rounded-md"
-		>
-			<h2 class="text-5xl font-bold mb-5">Konec hry</h2>
-			<p class="text-2xl mt-3 mb-5 font-semibold">Vyhrává {$gameOver.winner}</p>
-			<button
-				onclick={handleRedirect}
-				class="button variant-filled-primary rounded-sm px-3 py-1 text-lg"
-				>Vrátit se na hlavní stránku</button
-			>
-		</div>
-	</div>
-{/if}
-
-{#if $disconnect.disconnect}
-	<div
-		class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center px-5"
-	>
-		<div
-			class="bg-tertiary-700 text-white text-center px-5 pt-10 pb-7 w-[20rem] md:w-[32rem] rounded-md"
-		>
-			<h2 class="text-3xl font-semibold">
-				Váš protihráč se odpojil, pokud se nepřipojí do 30s, hra bude ukončena.
-			</h2>
-			<p class="text-xl mt-8">Zbývá ještě {timeRemaining}s</p>
-		</div>
-	</div>
-{/if}
+<GameOver />
+<Disconnect />
