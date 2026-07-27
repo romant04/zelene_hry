@@ -9,6 +9,7 @@ import type { SlovniFotbalGameState } from '$lib/phaser/slovniFotbal/types/slovn
 import { endTime } from '../../../../stores/slovni-fotbal/timer';
 import { toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
 import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
+import { volume } from '../../../../stores/gameGeneral/volume';
 
 export default class MainScene extends Phaser.Scene {
 	private socket: Socket;
@@ -81,6 +82,15 @@ export default class MainScene extends Phaser.Scene {
 			this.balls!.setTopSnakeFilled(data.score);
 		});
 		this.socket.on('gameover', () => {
+			this.tweens.add({
+				targets: this.music,
+				volume: 0,
+				duration: 500,
+				onComplete: () => {
+					this.music?.stop();
+				}
+			});
+
 			this.socket.emit('requestGameOverData');
 			this.hideLetters();
 			this.text!.setMessage('Čas vypršel, konec hry!');
@@ -149,8 +159,14 @@ export default class MainScene extends Phaser.Scene {
 
 		g.generateTexture('particle', 8, 8);
 		g.destroy();
+
+		this.sound.volume = get(volume) / 100;
+		volume.subscribe((value) => {
+			this.sound.volume = value / 100;
+		});
 	}
 
+	private music: Phaser.Sound.BaseSound | undefined;
 	create() {
 		const { width, height } = this.cameras.main;
 		const bg = this.add.image(width / 2, height / 2, 'hriste');
@@ -161,6 +177,12 @@ export default class MainScene extends Phaser.Scene {
 		const scale = Math.max(scaleX, scaleY);
 
 		bg.setScale(scale).setScrollFactor(0);
+
+		this.music = this.sound.add('bg', {
+			loop: true,
+			volume: 0.1
+		});
+		this.music.play();
 
 		this.balls = new Balls(this, width / 2, height / 2, width, height);
 		this.letters = new Letters(this, width / 2, height / 2, this.handleWordSelected.bind(this));

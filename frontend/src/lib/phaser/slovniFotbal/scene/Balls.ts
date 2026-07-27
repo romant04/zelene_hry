@@ -12,8 +12,8 @@ export class Balls extends Phaser.GameObjects.Container {
 	constructor(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
 		super(scene, x, y);
 
-		this.enemyGoalText = new FloatingText(this.scene, 300, 200, 'GOAL!', 'goal');
-		this.playerGoalText = new FloatingText(this.scene, 1100, 200, 'GOAL!', 'goal');
+		this.enemyGoalText = new FloatingText(this.scene, 1100, 200, 'GOAL!', 'goal');
+		this.playerGoalText = new FloatingText(this.scene, 300, 200, 'GOAL!', 'goal');
 
 		// Configuration
 		const numCircles = 10;
@@ -55,6 +55,40 @@ export class Balls extends Phaser.GameObjects.Container {
 		}
 	}
 
+	private scoreGoal(enemy: boolean) {
+		this.scene.cameras.main.shake(180, 0.008);
+		if (enemy) this.enemyGoalText?.show();
+		else this.playerGoalText?.show();
+
+		const particles = this.scene.add.particles(enemy ? 1200 : 100, 380, 'particle', {
+			speed: { min: 60, max: 150 },
+			angle: { min: enemy ? 155 : -80, max: enemy ? 205 : 25 }, // shoot right in a cone
+
+			gravityY: 50, // slowly fall
+			lifespan: 2500,
+			quantity: 3,
+
+			scale: { start: 1, end: 1 },
+			accelerationX: { min: -40, max: 40 },
+			bounce: 0.3,
+
+			rotate: { min: 0, max: 360 },
+
+			tint: [0xff4d4d, 0xffd700, 0x4da6ff, 0x4dff88, 0xff66ff]
+		});
+		this.scene.time.delayedCall(1000, () => {
+			particles.stop();
+		});
+		this.scene.time.delayedCall(3500, () => {
+			particles.destroy();
+		});
+		this.scene.sound.play('goal', {
+			volume: 0.5,
+			rate: 1,
+			detune: 0,
+			loop: false
+		});
+	}
 	public setTopSnakeFilled(count: number) {
 		for (let i = 0; i < this.topSnakeNodes.length; i++) {
 			if (i < count) {
@@ -65,31 +99,7 @@ export class Balls extends Phaser.GameObjects.Container {
 		}
 
 		if (count >= 10) {
-			this.scene.cameras.main.shake(180, 0.008);
-			this.playerGoalText?.show();
-
-			const particles = this.scene.add.particles(1200, 380, 'particle', {
-				speed: { min: 60, max: 150 },
-				angle: { min: 155, max: 205 }, // shoot right in a cone
-
-				gravityY: 50, // slowly fall
-				lifespan: 2500,
-				quantity: 3,
-
-				scale: { start: 1, end: 1 },
-				accelerationX: { min: -40, max: 40 },
-				bounce: 0.3,
-
-				rotate: { min: 0, max: 360 },
-
-				tint: [0xff4d4d, 0xffd700, 0x4da6ff, 0x4dff88, 0xff66ff]
-			});
-			this.scene.time.delayedCall(1000, () => {
-				particles.stop();
-			});
-			this.scene.time.delayedCall(3500, () => {
-				particles.destroy();
-			});
+			this.scoreGoal(true);
 		}
 	}
 	public setBottomSnakeFilledInsta(count: number) {
@@ -106,34 +116,8 @@ export class Balls extends Phaser.GameObjects.Container {
 
 		if (count >= 10) {
 			await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 0.5s after the last pop
-
-			this.scene.cameras.main.shake(180, 0.008);
-			this.enemyGoalText?.show();
-
-			const particles = this.scene.add.particles(100, 380, 'particle', {
-				speed: { min: 60, max: 150 },
-				angle: { min: -80, max: 25 }, // shoot right in a cone
-
-				gravityY: 50, // slowly fall
-				lifespan: 2500,
-				quantity: 3,
-
-				scale: { start: 1, end: 1 },
-				accelerationX: { min: -40, max: 40 },
-				bounce: 0.3,
-
-				rotate: { min: 0, max: 360 },
-
-				tint: [0xff4d4d, 0xffd700, 0x4da6ff, 0x4dff88, 0xff66ff]
-			});
-			this.scene.time.delayedCall(1000, () => {
-				particles.stop();
-			});
-			this.scene.time.delayedCall(3500, () => {
-				particles.destroy();
-			});
-
-			await new Promise((resolve) => setTimeout(resolve, 2500));
+			this.scoreGoal(false);
+			await new Promise((resolve) => setTimeout(resolve, 2000));
 			return;
 		}
 
@@ -156,6 +140,13 @@ export class Balls extends Phaser.GameObjects.Container {
 				// If the node is not filled yet, trigger the pop animation!
 				if (!node.isFilled) {
 					node.popIn(popDelayIndex * STAGGER_DELAY);
+					this.scene.sound.play('score', {
+						volume: 0.3,
+						rate: 1,
+						detune: 0,
+						loop: false,
+						delay: (STAGGER_DELAY / 1000) * popDelayIndex // Convert ms to seconds for the delay
+					});
 					popDelayIndex++;
 				}
 			} else {

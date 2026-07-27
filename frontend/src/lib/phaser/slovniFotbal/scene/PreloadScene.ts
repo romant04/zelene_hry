@@ -3,6 +3,9 @@ import Phaser from 'phaser';
 import hriste from '../../../../assets/slovniFotbal/hriste.png';
 import football from '../../../../assets/slovniFotbal/football.png';
 import wbg from '../../../../assets/slovniFotbal/wbg.png';
+import bg from '../../../../assets/slovniFotbal/sounds/bg.mp3';
+import score from '../../../../assets/slovniFotbal/sounds/score.mp3';
+import goal from '../../../../assets/slovniFotbal/sounds/goal.mp3';
 
 export default class PreloadScene extends Phaser.Scene {
 	constructor() {
@@ -31,6 +34,9 @@ export default class PreloadScene extends Phaser.Scene {
 		this.load.image('hriste', hriste);
 		this.load.image('football', football);
 		this.load.image('wbg', wbg);
+		this.load.audio('bg', bg);
+		this.load.audio('score', score);
+		this.load.audio('goal', goal);
 
 		this.load.on('progress', (value: number) => {
 			progressBar.clear();
