@@ -1,25 +1,39 @@
 import { GameRoomsMap } from "../socket";
 import { PlayerStats } from "../types/user";
 
-// ? The looser loses surprising amount of mmr (when he has lower mmr than winner)
-// TODO: Check for possible errors in the calculation
-// Linear function from [-200,2] to [200,50]
-function calculateGain(winnerMMR: number, loserMMR: number) {
+/**
+ * Winner gains points based on opponent's MMR.
+ * Scaled between +10 and +40 (Default ~25 for equal MMR).
+ */
+function calculateWinnerGain(winnerMMR: number, loserMMR: number): number {
   const diff = loserMMR - winnerMMR;
-  return Math.round(Math.max(2, Math.min(50, 0.12 * diff + 26)));
+  return Math.round(Math.max(10, Math.min(40, 25 + 0.1 * diff)));
 }
 
-// Linear function from [-200,-12] to [200,12]
-function calculateDraw(playerMMR: number, opponentMMR: number) {
+/**
+ * Loser loses FEWER points on average to keep the experience casual.
+ * Scaled between -5 and -25 (Default ~ -15 for equal MMR).
+ * Returns a negative value representing the MMR delta.
+ */
+function calculateLoserLoss(loserMMR: number, winnerMMR: number): number {
+  const diff = winnerMMR - loserMMR; // positive if opponent was higher-rated
+  const lossAmount = Math.round(Math.max(5, Math.min(25, 15 - 0.05 * diff)));
+  return -lossAmount;
+}
+
+/**
+ * Handles draw calculations for both players.
+ */
+function calculateDraw(playerMMR: number, opponentMMR: number): number {
   const diff = opponentMMR - playerMMR;
   return Math.round(Math.max(-12, Math.min(12, 0.06 * diff)));
 }
 
 export async function calculateAndUpdateMMR(
-  gameId: string,
-  winnerId: number,
-  loserId: number,
-  draw: boolean = false,
+    gameId: string,
+    winnerId: number,
+    loserId: number,
+    draw: boolean = false,
 ): Promise<void> {
   const gameData = GameRoomsMap.get(gameId);
   if (!gameData) {
@@ -32,10 +46,10 @@ export async function calculateAndUpdateMMR(
 
   // Update general playerStats
   const playerStatsWinner = gameData.players.find(
-    (player) => player.id === winnerId,
+      (player) => player.id === winnerId,
   )?.playerStats;
   const playerStatsLoser = gameData.players.find(
-    (player) => player.id === loserId,
+      (player) => player.id === loserId,
   )?.playerStats;
 
   if (playerStatsWinner === undefined || playerStatsLoser === undefined) {
@@ -54,10 +68,10 @@ export async function calculateAndUpdateMMR(
   }
 
   const winnerMMR = gameData.players.find(
-    (player) => player.id === winnerId,
+      (player) => player.id === winnerId,
   )?.mmr;
   const loserMMR = gameData.players.find(
-    (player) => player.id === loserId,
+      (player) => player.id === loserId,
   )?.mmr;
   GameRoomsMap.delete(gameId);
 
@@ -66,14 +80,16 @@ export async function calculateAndUpdateMMR(
     return;
   }
 
-  // Simple MMR calculation logic
+  // Asymmetric MMR calculation logic
   const winnerGain = !draw
-    ? calculateGain(winnerMMR, loserMMR)
-    : calculateDraw(winnerMMR, loserMMR);
-  const loserGain = !draw
-    ? -calculateGain(loserMMR, winnerMMR)
-    : calculateDraw(loserMMR, winnerMMR);
+      ? calculateWinnerGain(winnerMMR, loserMMR)
+      : calculateDraw(winnerMMR, loserMMR);
 
+  const loserGain = !draw
+      ? calculateLoserLoss(loserMMR, winnerMMR)
+      : calculateDraw(loserMMR, winnerMMR);
+
+  // Apply new MMR values with a floor limit of 0
   const newWinnerMMR = Math.max(0, winnerMMR + winnerGain);
   const newLoserMMR = Math.max(0, loserMMR + loserGain);
 
@@ -113,9 +129,9 @@ export async function calculateAndUpdateMMR(
 }
 
 async function updateGameStats(
-  playerStats: PlayerStats,
-  won: boolean,
-  id: number,
+    playerStats: PlayerStats,
+    won: boolean,
+    id: number,
 ) {
   console.log("Updating this: " + playerStats.gamesPlayed);
 
@@ -129,24 +145,24 @@ async function updateGameStats(
       userId: id,
       gamesPlayed: playerStats.gamesPlayed + 1,
       winRatio: calculateNewWinRatio(
-        playerStats.gamesPlayed,
-        playerStats.winRatio,
-        won,
+          playerStats.gamesPlayed,
+          playerStats.winRatio,
+          won,
       ),
       playTimeMinutes: playerStats.playTimeMinutes,
       mmrSecret: process.env.MMR_SECRET,
     }),
   });
   if (!res.ok) {
-    console.error("Failed to update winner MMR:", await res.text());
+    console.error("Failed to update game stats:", await res.text());
     return;
   }
 }
 
 function calculateNewWinRatio(
-  gamesPlayed: number,
-  oldWinRatio: number,
-  won: boolean,
+    gamesPlayed: number,
+    oldWinRatio: number,
+    won: boolean,
 ): number {
   const winsCurrent = gamesPlayed * oldWinRatio + (won ? 1 : 0);
   return winsCurrent / (gamesPlayed + 1);
