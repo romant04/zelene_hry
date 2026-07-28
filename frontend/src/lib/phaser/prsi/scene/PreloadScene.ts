@@ -9,6 +9,10 @@ import zeleny from '../../../../assets/prsi/zeleny.png';
 import kule from '../../../../assets/prsi/kule.png';
 import zaludy from '../../../../assets/prsi/zaludy.png';
 
+import placing from '../../../../assets/prsi/sounds/placing.mp3';
+import drawing from '../../../../assets/prsi/sounds/drawing.mp3';
+import bg from '../../../../assets/prsi/sounds/bg.mp3';
+
 export default class PreloadScene extends Phaser.Scene {
 	constructor() {
 		super('PreloadScene');
@@ -43,6 +47,10 @@ export default class PreloadScene extends Phaser.Scene {
 		this.load.image('zeleny', zeleny);
 		this.load.image('kule', kule);
 		this.load.image('zaludy', zaludy);
+
+		this.load.audio('place', placing);
+		this.load.audio('draw', drawing);
+		this.load.audio('bg', bg);
 
 		this.load.on('progress', (value: number) => {
 			progressBar.clear();

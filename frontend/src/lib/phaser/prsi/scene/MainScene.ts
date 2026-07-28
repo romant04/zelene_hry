@@ -9,6 +9,8 @@ import { isGameInProgress } from '$lib/phaser/prsi/utils/general';
 import { toggleSvrsek } from '../../../../stores/prsi/svrsek';
 import { toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
 import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
+import { get } from 'svelte/store';
+import { volume } from '../../../../stores/gameGeneral/volume';
 
 function getTextureFromSuit(suit: string) {
 	switch (suit) {
@@ -47,6 +49,7 @@ export default class MainScene extends Phaser.Scene {
 	private deck: Card[] = [];
 
 	private handPosition = { x: 250, y: 530 };
+	private music!: Phaser.Sound.BaseSound;
 
 	initDeck(deck: CardData[]) {
 		const deckX = this.cameras.main.width / 3 - 30;
@@ -226,6 +229,7 @@ export default class MainScene extends Phaser.Scene {
 					return;
 				}
 
+				this.sound.play('place', { volume: 0.7 });
 				this.playedCards.push(card);
 				this.isEffectActive = true;
 				if (card.rank === 'sedma') {
@@ -264,9 +268,8 @@ export default class MainScene extends Phaser.Scene {
 
 				this.myTurn = false;
 
-				if (card.rank === 'eso') {
-					this.eso = true;
-				}
+				// Keep eso in sync with what was actually played, instead of only ever turning it on
+				this.eso = card.rank === 'eso';
 			} else {
 				// Return card to hand position if dropped outside
 				this.updateHandLayout();
@@ -278,6 +281,7 @@ export default class MainScene extends Phaser.Scene {
 		this.socket.on('drawCard', () => {
 			this.enemyHand++;
 			this.redrawEnemyHand();
+			this.sound.play('draw', { volume: 0.4 });
 
 			this.myTurn = true;
 			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
@@ -300,6 +304,14 @@ export default class MainScene extends Phaser.Scene {
 
 		this.socket.on('gameOver', (name: string) => {
 			this.myTurn = false;
+			this.tweens.add({
+				targets: this.music,
+				volume: 0,
+				duration: 1000,
+				onComplete: () => {
+					this.music?.stop();
+				}
+			});
 
 			setTimeout(() => {
 				toggleGameOverOn(name);
@@ -317,6 +329,7 @@ export default class MainScene extends Phaser.Scene {
 			this.enemyHand--;
 			this.updateCenterAfterEnemyPlayed(card);
 			this.redrawEnemyHand();
+			this.sound.play('place', { volume: 0.7 });
 
 			this.myTurn = true;
 			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
@@ -324,10 +337,10 @@ export default class MainScene extends Phaser.Scene {
 
 			if (card.rank === 'sedma') {
 				this.sedmaCount++;
-				this.eso = false;
 			}
-			if (card.rank === 'eso') {
-				this.eso = true;
+			// Keep eso in sync with what was actually played, instead of only ever setting it true
+			this.eso = card.rank === 'eso';
+			if (this.eso) {
 				// If eso is played and player doesn't have a eso token should activate
 				if (!this.hand.some((c) => c.rank === 'eso')) {
 					this.turnToken?.activateToken();
@@ -358,9 +371,12 @@ export default class MainScene extends Phaser.Scene {
 				rank: 'svrsek'
 			});
 			this.redrawEnemyHand();
+			this.sound.play('place', { volume: 0.7 });
 
 			this.svrsek = data.suit;
 			this.myTurn = true;
+			this.isEffectActive = true;
+			this.eso = false; // svrsek was played, not eso - make sure a stale eso flag can't linger
 			const texture = getTextureFromSuit(data.suit);
 			this.turnToken?.changeTexture(texture);
 			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
@@ -397,6 +413,12 @@ export default class MainScene extends Phaser.Scene {
 			x: this.cameras.main.width / 2,
 			y: this.cameras.main.height * 0.8
 		};
+
+		this.sound.pauseOnBlur = false;
+		this.sound.volume = get(volume) / 100;
+		volume.subscribe((value) => {
+			this.sound.volume = value / 100;
+		});
 	}
 
 	createMobileLayout() {
@@ -416,6 +438,12 @@ export default class MainScene extends Phaser.Scene {
 		if (isMobile) {
 			this.createMobileLayout();
 		}
+
+		this.music = this.sound.add('bg', {
+			loop: true,
+			volume: 0.15
+		});
+		this.music.play();
 
 		// TODO: This might be unnecessary -> see solution in SlovniFotbal
 		if (
@@ -483,8 +511,9 @@ export default class MainScene extends Phaser.Scene {
 		enemyCards.forEach((card) => card.destroy());
 
 		// Redraw updated enemy hand
+		const enemyMidIndex = (this.enemyHand - 1) / 2;
 		for (let i = 0; i < this.enemyHand; i++) {
-			const offset = i - Math.floor(this.enemyHand / 2);
+			const offset = i - enemyMidIndex;
 			const angle = offset * Phaser.Math.DegToRad(this.enemyHand > 8 ? 10 : 12);
 
 			const radius = this.enemyHand > 8 ? 200 : 300;
@@ -531,6 +560,7 @@ export default class MainScene extends Phaser.Scene {
 				this.enableCardDragging(card);
 			}
 		});
+		this.sound.play('draw', { volume: 0.4 });
 	}
 
 	updateHandLayout() {

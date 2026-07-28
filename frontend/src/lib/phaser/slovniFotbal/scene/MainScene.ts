@@ -221,6 +221,7 @@ export default class MainScene extends Phaser.Scene {
 					goals: currentScore.player.goals + 1
 				}
 			}));
+			console.log(`Player scored a goal! Total goals: ${get(score).player.goals}`);
 			this.socket.emit('goalScored', overflow);
 			this.balls!.resetBottomBalls();
 			await this.balls!.setBottomSnakeFilled(overflow); // Reset the bottom snake to the overflow value

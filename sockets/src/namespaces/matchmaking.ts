@@ -20,7 +20,7 @@ const users = new Map<string, MatchmakingUser>();
 const queueSize = new Map<number, number>();
 const matchedUserIds = new Set<number>();
 
-const MARGIN_INCREMENT = 20;
+const MARGIN_INCREMENT = 50;
 const MARGIN_INTERVAL = 5;
 
 function getUsersFromSameGame(

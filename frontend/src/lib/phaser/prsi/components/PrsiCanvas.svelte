@@ -8,6 +8,7 @@
 	import zeleny from '../../../../assets/prsi/icons/zeleny.png';
 	import GameOver from '$lib/phaser/components/GameOver.svelte';
 	import Disconnect from '$lib/phaser/components/Disconnect.svelte';
+	import VolumeControl from '$lib/phaser/components/VolumeControl.svelte';
 
 	let {
 		socket,
@@ -76,7 +77,7 @@
 	<div
 		class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center px-5"
 	>
-		<div class="bg-tertiary-700 text-white text-center p-5 rounded-md">
+		<div class="bg-black/70 text-white text-center p-8 rounded-md">
 			<h2 class="text-3xl font-bold mb-5">Na jakou měníš?</h2>
 			<div class="flex flex-wrap items-center justify-center gap-5">
 				{#each Object.keys(suits) as suit}
@@ -90,7 +91,7 @@
 									: suits.c}
 					<button onclick={() => handleSuitChange(suit)}
 						><img
-							class="w-16 h-16 md:w-24 md:h-24 object-contain hover:bg-gray-400 rounded-full p-2"
+							class="w-16 h-16 md:w-24 md:h-24 object-contain hover:bg-gray-400 rounded-full p-3"
 							src={img}
 							alt=""
 						/></button
@@ -100,5 +101,6 @@
 		</div>
 	</div>
 {/if}
+<VolumeControl />
 <GameOver />
 <Disconnect />
