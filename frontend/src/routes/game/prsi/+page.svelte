@@ -58,6 +58,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Duelovky 🕹️ | Prší</title>
+</svelte:head>
+
 {#if prsiSocket && token && playerName && enemyName}
 	<PrsiCanvas socket={prsiSocket} {token} {playerName} {enemyName} />
 {:else}
