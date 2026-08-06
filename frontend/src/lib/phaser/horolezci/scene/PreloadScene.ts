@@ -1,5 +1,6 @@
 // PreloadScene.ts
 import Phaser from 'phaser';
+
 import player01 from '../../../../assets/horolezci/player/image_0-1.png';
 import player02 from '../../../../assets/horolezci/player/image_0-2.png';
 import player03 from '../../../../assets/horolezci/player/image_0-3.png';
@@ -7,6 +8,15 @@ import player04 from '../../../../assets/horolezci/player/image_0-4.png';
 import player11 from '../../../../assets/horolezci/player/image_1-1.png';
 import player12 from '../../../../assets/horolezci/player/image_1-2.png';
 import player13 from '../../../../assets/horolezci/player/image_1-3.png';
+
+import enemy01 from '../../../../assets/horolezci/enemy/image_0-1.png';
+import enemy02 from '../../../../assets/horolezci/enemy/image_0-2.png';
+import enemy03 from '../../../../assets/horolezci/enemy/image_0-3.png';
+import enemy04 from '../../../../assets/horolezci/enemy/image_0-4.png';
+import enemy11 from '../../../../assets/horolezci/enemy/image_1-1.png';
+import enemy12 from '../../../../assets/horolezci/enemy/image_1-2.png';
+import enemy13 from '../../../../assets/horolezci/enemy/image_1-3.png';
+
 import mountain from '../../../../assets/horolezci/mountain.png';
 
 export default class PreloadScene extends Phaser.Scene {
@@ -40,6 +50,13 @@ export default class PreloadScene extends Phaser.Scene {
 		this.load.image('player05', player13);
 		this.load.image('player06', player12);
 		this.load.image('player07', player11);
+		this.load.image('enemy01', enemy01);
+		this.load.image('enemy02', enemy02);
+		this.load.image('enemy03', enemy03);
+		this.load.image('enemy04', enemy04);
+		this.load.image('enemy05', enemy13);
+		this.load.image('enemy06', enemy12);
+		this.load.image('enemy07', enemy11);
 		this.load.image('mountain', mountain);
 
 		this.load.on('progress', (value: number) => {

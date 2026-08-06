@@ -15,7 +15,7 @@ export default class MainScene extends Phaser.Scene {
 
 	preload() {
 		this.anims.create({
-			key: 'climb', // Animation identifier
+			key: 'player_climb', // Animation identifier
 			frames: [
 				{ key: 'player01' },
 				{ key: 'player02' },
@@ -27,6 +27,21 @@ export default class MainScene extends Phaser.Scene {
 			],
 			frameRate: 7, // Playback speed (frames per second)
 			repeat: -1 // -1 loops infinitely
+		});
+
+		this.anims.create({
+			key: 'enemy_climb',
+			frames: [
+				{ key: 'enemy01' },
+				{ key: 'enemy02' },
+				{ key: 'enemy03' },
+				{ key: 'enemy04' },
+				{ key: 'enemy05' },
+				{ key: 'enemy06' },
+				{ key: 'enemy07' }
+			],
+			frameRate: 7,
+			repeat: -1
 		});
 	}
 
@@ -40,14 +55,15 @@ export default class MainScene extends Phaser.Scene {
 
 		// 2. Add player as a Sprite
 		const groundY = mountain.displayHeight;
-		const player = new Player(this, screenWidth / 2, groundY, PLAYER_END);
+		const player = new Player(this, screenWidth / 2 - 100, groundY, false, PLAYER_END);
+		const enemy = new Player(this, screenWidth / 2 + 100, groundY, true, PLAYER_END);
 
 		const pyramid = new Pyramid(this, screenWidth / 2, screenHeight * 0.4);
 		pyramid.setAllRowsLetters([['A'], ['B', 'C'], ['D', 'E', 'F'], ['G', 'H', 'I', 'J']]);
-		// pyramid.hide();
+		pyramid.hide();
 
 		const secret = new Secret(this, 0, screenHeight - 200);
-		// secret.hide();
+		secret.hide();
 
 		// 4. Setup camera bounds & tracking
 		this.cameras.main.setBounds(0, 0, mountain.displayWidth, mountain.displayHeight);

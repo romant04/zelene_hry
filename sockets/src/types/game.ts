@@ -35,6 +35,13 @@ export interface SlovniFotbalPlayer extends BasePlayer {
   goals: number;
   alreadyUsedWords: string[];
 }
+export interface HorolezciPlayer extends BasePlayer {
+  distanceTraveled: number;
+  lockedInGuess: {
+    letter: string;
+    scoreMultiplier: number;
+  };
+}
 
 // We need a specific game state for each game
 // Room prop is not needed here, we just combine the names of players
@@ -61,4 +68,11 @@ export interface SlovniFotbalGameState
   extends GeneralGameState<SlovniFotbalPlayer> {
   endTime: number; // Timestamp when the game ends
   letters: string[];
+}
+export interface HorolezciGameState extends GeneralGameState<HorolezciPlayer> {
+  pyramid: string[][];
+  guessedLetters: string[];
+  correctLetters: string[];
+  secret: string;
+  roundEndTime: number | null;
 }

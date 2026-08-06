@@ -5,18 +5,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 		scene: Phaser.Scene,
 		x: number,
 		y: number,
+		private readonly isEnemy: boolean = false,
 		private readonly top: number
 	) {
-		super(scene, x, y, 'player06');
+		super(scene, x, y, isEnemy ? 'enemy06' : 'player06');
 		this.setOrigin(0.5, 1);
 		this.setDisplaySize(130, 180);
 		scene.add.existing(this);
 		scene.physics.add.existing(this);
-		console.log(this.y);
 	}
 
 	climb(distance: number) {
-		this.play('climb', true);
+		this.play(this.isEnemy ? 'enemy_climb' : 'player_climb', true);
 		this.scene.tweens.add({
 			targets: this,
 			y: Math.max(this.y - distance, this.top),
