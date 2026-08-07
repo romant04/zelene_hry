@@ -5,7 +5,13 @@ const BOX_WIDTH = 1280;
 const BOX_HEIGHT = 200;
 export class Secret extends Phaser.GameObjects.Container {
 	private defaultY: number = 0;
-	constructor(scene: Phaser.Scene, x: number, y: number) {
+	private secretWordLine: SecretWordLine | null = null;
+	constructor(
+		scene: Phaser.Scene,
+		x: number,
+		y: number,
+		private text: string
+	) {
 		super(scene, x, y);
 		this.defaultY = y;
 
@@ -50,17 +56,15 @@ export class Secret extends Phaser.GameObjects.Container {
 			.setOrigin(0.5, 0);
 		this.add(title);
 
-		const text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+		this.secretWordLine = new SecretWordLine(scene, 0, 0, text);
 
-		const secretWordLine = new SecretWordLine(scene, 0, 0, text);
-
-		secretWordLine.setPosition(
-			(BOX_WIDTH - secretWordLine.lineWidth) / 2,
-			(BOX_HEIGHT - secretWordLine.lineHeight) / 2 + 20
+		this.secretWordLine.setPosition(
+			(BOX_WIDTH - this.secretWordLine.lineWidth) / 2,
+			(BOX_HEIGHT - this.secretWordLine.lineHeight) / 2 + 20
 		);
-		secretWordLine.updateGuessedLetters(new Set(['l', 's']));
 
-		this.add(secretWordLine);
+		this.add(this.secretWordLine);
+		this.y += BOX_HEIGHT; // Start hidden below the screen
 
 		scene.add.existing(this);
 	}
@@ -78,5 +82,23 @@ export class Secret extends Phaser.GameObjects.Container {
 			y: this.defaultY,
 			duration: 500
 		});
+	}
+
+	public updateGuessedLetters(guessedLetters: Set<string>) {
+		if (this.secretWordLine) {
+			this.secretWordLine.updateGuessedLetters(guessedLetters);
+		}
+	}
+	public updateSecret(newText: string) {
+		this.text = newText;
+		if (this.secretWordLine) {
+			this.secretWordLine.destroy();
+		}
+		this.secretWordLine = new SecretWordLine(this.scene, 0, 0, newText);
+		this.secretWordLine.setPosition(
+			(BOX_WIDTH - this.secretWordLine.lineWidth) / 2,
+			(BOX_HEIGHT - this.secretWordLine.lineHeight) / 2 + 20
+		);
+		this.add(this.secretWordLine);
 	}
 }

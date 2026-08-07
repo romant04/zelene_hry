@@ -41,6 +41,9 @@ export interface HorolezciPlayer extends BasePlayer {
     letter: string;
     scoreMultiplier: number;
   };
+  readyForNextRound: boolean;
+  safetyPins: number;
+  lastSafetyPin: number;
 }
 
 // We need a specific game state for each game

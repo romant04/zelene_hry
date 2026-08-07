@@ -7,7 +7,7 @@ const WORD_GAP = 20;
 const LINE_HEIGHT = 45;
 
 function isLetter(char: string): boolean {
-	return /^[a-zA-Z]$/.test(char);
+	return /^\p{L}$/u.test(char);
 }
 
 class SecretWord extends Phaser.GameObjects.Container {

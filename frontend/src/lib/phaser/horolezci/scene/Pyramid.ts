@@ -4,6 +4,8 @@ import LetterButton from './LetterButton';
 export default class Pyramid extends Phaser.GameObjects.Container {
 	// Store buttons in a 2D array [row][col] for easy row-based access
 	private rowButtons: LetterButton[][] = [];
+	private selectedButton: LetterButton | null = null;
+	public onSelectionChange: ((button: LetterButton | null) => void) | null = null;
 
 	constructor(
 		scene: Phaser.Scene,
@@ -83,6 +85,8 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 				}
 
 				const button = new LetterButton(scene, buttonX, rowY, label);
+				button.row = row + 1; // Store row number (1-based) in the button for reference
+				button.onClick((clickedButton) => this.selectButton(clickedButton));
 
 				this.add(button);
 				this.rowButtons[row].push(button);
@@ -93,21 +97,35 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 
 		this.setDepth(100);
 		this.setScrollFactor(0, 0, true);
+		this.setVisible(false);
+		this.setScale(0);
 
 		scene.add.existing(this);
 	}
 
-	/**
-	 * Helper to update the text of a single LetterButton
-	 */
-	private updateButtonText(button: LetterButton, newText: string): void {
-		const textObj = button.list.find(
-			(child) => child instanceof Phaser.GameObjects.Text
-		) as Phaser.GameObjects.Text;
-
-		if (textObj) {
-			textObj.setText(newText);
+	public selectButton(button: LetterButton): void {
+		if (this.selectedButton === button) {
+			return;
 		}
+
+		this.selectedButton?.deselect();
+		button.select();
+		this.selectedButton = button;
+		this.onSelectionChange?.(button);
+	}
+
+	public clearSelection(): void {
+		this.selectedButton?.deselect();
+		this.selectedButton = null;
+		this.onSelectionChange?.(null);
+	}
+
+	public getSelectedButton(): LetterButton | null {
+		return this.selectedButton;
+	}
+
+	public getSelectedLetter(): string | null {
+		return this.selectedButton?.letter ?? null;
 	}
 
 	/**
@@ -116,11 +134,8 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 	public setRowLetters(rowIndex: number, letters: string[]): void {
 		const row = this.rowButtons[rowIndex];
 		if (!row) return;
-
 		letters.forEach((letter, colIndex) => {
-			if (row[colIndex]) {
-				this.updateButtonText(row[colIndex], letter);
-			}
+			if (row[colIndex]) row[colIndex].setLetter(letter);
 		});
 	}
 

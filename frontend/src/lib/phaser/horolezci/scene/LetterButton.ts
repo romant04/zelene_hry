@@ -3,45 +3,66 @@ import Phaser from 'phaser';
 export default class LetterButton extends Phaser.GameObjects.Container {
 	public circle: Phaser.GameObjects.Arc;
 	public text: Phaser.GameObjects.Text;
+	public letter: string;
+	public isSelected: boolean = false;
+	public row = -1;
+
+	private static readonly COLOR_DEFAULT = 0xffffff;
+	private static readonly COLOR_HOVER = 0xdddddd;
+	private static readonly COLOR_DOWN = 0xaaaaaa;
+	private static readonly COLOR_SELECTED = 0xffd700; // yellow
 
 	constructor(scene: Phaser.Scene, x: number, y: number, letter = 'A') {
 		super(scene, x, y);
 
 		const radius = 33;
+		this.letter = letter;
 
-		// 1. Draw shape
-		this.circle = scene.add.circle(0, 0, radius, 0xffffff);
+		this.circle = scene.add.circle(0, 0, radius, LetterButton.COLOR_DEFAULT);
 
-		// 2. Create Text
 		this.text = scene.add
-			.text(0, 0, letter, {
-				fontSize: '38px',
-				color: '#000',
-				fontStyle: 'bold'
-			})
+			.text(0, 0, letter, { fontSize: '38px', color: '#000', fontStyle: 'bold' })
 			.setOrigin(0.5);
 
-		// 3. Add to container
 		this.add([this.circle, this.text]);
 
 		this.circle.setScrollFactor(0);
-		// 4. Make the CIRCLE shape interactive directly (NOT 'this')
 		this.circle.setInteractive({ useHandCursor: true });
 
-		// 5. Attach listeners to the circle shape
+		// Visual feedback now respects selection state
 		this.circle.on('pointerdown', () => {
-			this.circle.setFillStyle(0xaaaaaa);
+			if (!this.isSelected) this.circle.setFillStyle(LetterButton.COLOR_DOWN);
 		});
 		this.circle.on('pointerup', () => {
-			this.circle.setFillStyle(0xffffff);
+			if (!this.isSelected) this.circle.setFillStyle(LetterButton.COLOR_DEFAULT);
 		});
 		this.circle.on('pointerout', () => {
-			this.circle.setFillStyle(0xffffff);
+			if (!this.isSelected) this.circle.setFillStyle(LetterButton.COLOR_DEFAULT);
 		});
 		this.circle.on('pointerover', () => {
-			this.circle.setFillStyle(0xdddddd);
+			if (!this.isSelected) this.circle.setFillStyle(LetterButton.COLOR_HOVER);
 		});
 
 		scene.add.existing(this);
+	}
+
+	/** Fires on click, independent of the visual hover/press handlers above */
+	public onClick(callback: (button: LetterButton) => void): void {
+		this.circle.on('pointerup', () => callback(this));
+	}
+
+	public select(): void {
+		this.isSelected = true;
+		this.circle.setFillStyle(LetterButton.COLOR_SELECTED);
+	}
+
+	public deselect(): void {
+		this.isSelected = false;
+		this.circle.setFillStyle(LetterButton.COLOR_DEFAULT);
+	}
+
+	public setLetter(newLetter: string): void {
+		this.letter = newLetter;
+		this.text.setText(newLetter);
 	}
 }

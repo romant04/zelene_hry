@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
+	public distanceTraveled: number = 0;
 	constructor(
 		scene: Phaser.Scene,
 		x: number,
@@ -15,7 +16,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 		scene.physics.add.existing(this);
 	}
 
-	climb(distance: number) {
+	climb(distance: number, callback?: () => void) {
 		this.play(this.isEnemy ? 'enemy_climb' : 'player_climb', true);
 		this.scene.tweens.add({
 			targets: this,
@@ -28,8 +29,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 				if (this.y <= this.top) {
 					console.log('Player reached the top of the climb');
 				}
+
+				if (callback) {
+					callback();
+				}
 			}
 		});
+		this.distanceTraveled += distance;
 	}
 	stopClimb() {
 		this.stop();

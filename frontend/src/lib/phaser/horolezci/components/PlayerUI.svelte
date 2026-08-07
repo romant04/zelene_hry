@@ -1,12 +1,24 @@
 <script lang="ts">
 	import safetyPin from '../../../../assets/horolezci/safety_pin.svg';
+	import { horolezciStats } from '../../../../stores/horolezci/stats';
 
-	let {
-		playerName,
-		distance,
-		safetyPins,
-		isEnemy
-	}: { playerName: string; distance: number; safetyPins: number; isEnemy: boolean } = $props();
+	let { playerName, isEnemy }: { playerName: string; isEnemy: boolean } = $props();
+
+	let distance = $state(0);
+	let safetyPins = $state(3);
+
+	$effect(() => {
+		const stats = $horolezciStats;
+		if (!stats) return;
+
+		if (isEnemy) {
+			distance = stats.enemy.distanceTraveled;
+			safetyPins = stats.enemy.safetyPins;
+		} else {
+			distance = stats.player.distanceTraveled;
+			safetyPins = stats.player.safetyPins;
+		}
+	});
 </script>
 
 <div

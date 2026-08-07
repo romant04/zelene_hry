@@ -48,3 +48,8 @@ export const createSlovniFotbalSocket = (token: string, gameId: string) => {
 		auth: { token, gameId }
 	});
 };
+export const createHorolezciSocket = (token: string, gameId: string) => {
+	return io(`${WEBSOCKET}/horolezci`, {
+		auth: { token, gameId }
+	});
+};
