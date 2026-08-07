@@ -21,7 +21,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 		this.scene.tweens.add({
 			targets: this,
 			y: Math.max(this.y - distance, this.top),
-			duration: distance * 5, // Adjust duration based on distance for smoother animation
+			duration: 2500,
 			ease: 'Linear',
 			onComplete: () => {
 				this.stop();

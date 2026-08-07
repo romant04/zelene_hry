@@ -10,7 +10,24 @@ const veta = "Kdo jinému jámu kopá, sám do ní padá"; // TODO: Replace this
 const ROUND_DURATION = 30 * 1000; // 30s in milliseconds
 const NAMESPACE = "/horolezci";
 const horolezciGameData = new Map<string, HorolezciGameState>();
+const roundEndTimer = new Map<string, NodeJS.Timeout>();
+const newRoundTimer = new Map<string, NodeJS.Timeout>();
 
+function startNextRound(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
+  // Set the new round end time
+  gameState.roundEndTime = Date.now() + ROUND_DURATION;
+  const timer = setTimeout(() => {
+    evaluateGuesses(gameState, player!, enemy!, horolezciNamespace, gameId);
+    // Reset ready status for both players
+    player!.readyForNextRound = false;
+    enemy!.readyForNextRound = false;
+  }, ROUND_DURATION);
+  roundEndTimer.set(gameId, timer);
+  gameState.pyramid = generatePyramid(gameState.correctLetters, new Set(gameState.guessedLetters));
+
+  // Broadcast updated game state to both players
+  horolezciNamespace.to(gameId).emit("newRound", gameState);
+}
 function evaluateGuesses(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
   const distanceMultiplier = 50; // We do * 50 because the height is roughly 1500, and we want to make sure the player can reach the top of the pyramid in a reasonable number of rounds
   // Evaluate the guesses of both players
@@ -49,6 +66,11 @@ function evaluateGuesses(gameState: HorolezciGameState, player: HorolezciPlayer,
 
   // Broadcast updated game state to both players
   horolezciNamespace.to(gameId).emit("roundEnded", {data: gameState, playerGuess, enemyGuess});
+
+  const timer = setTimeout(() => {
+    startNextRound(gameState, player!, enemy!, horolezciNamespace, gameId);
+  }, 3800) // Wait for 3.8 seconds before starting the next round to give players time to see the results of their guesses
+  newRoundTimer.set(gameId, timer);
 }
 
 export function setupHorolezciNamespace(io: Server) {
@@ -137,23 +159,10 @@ export function setupHorolezciNamespace(io: Server) {
 
     socket.on("startNextRound", () => {
       if (!player!.readyForNextRound || !enemy!.readyForNextRound) {
-        console.log(`Both players are not ready for the next round in game ${gameId}.`);
         return;
       }
 
-      // Reset ready status for both players
-      player!.readyForNextRound = false;
-      enemy!.readyForNextRound = false;
-
-      // Set the new round end time
-      gameState.roundEndTime = Date.now() + ROUND_DURATION;
-      setTimeout(() => {
-        evaluateGuesses(gameState, player!, enemy!, horolezciNamespace, gameId);
-      }, ROUND_DURATION);
-      gameState.pyramid = generatePyramid(gameState.correctLetters, new Set(gameState.guessedLetters));
-
-      // Broadcast updated game state to both players
-      horolezciNamespace.to(gameId).emit("newRound", gameState);
+      startNextRound(gameState, player!, enemy!, horolezciNamespace, gameId);
     })
 
     socket.on("disconnect", () => {
@@ -169,6 +178,11 @@ export function setupHorolezciNamespace(io: Server) {
           gameData.players?.filter((player) => player.isConnected).length === 0
         ) {
           // If all players are disconnected, remove the game data
+          // Remove all timeouts
+          clearTimeout(roundEndTimer.get(gameId));
+          clearTimeout(newRoundTimer.get(gameId));
+          roundEndTimer.delete(gameId);
+          newRoundTimer.delete(gameId);
           horolezciGameData.delete(gameId);
           GameRoomsMap.delete(gameId);
         }

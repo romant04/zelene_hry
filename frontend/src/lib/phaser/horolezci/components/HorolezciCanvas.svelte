@@ -17,6 +17,8 @@
 		enemyName
 	}: { socket: Socket; token: string; playerName: string; enemyName: string } = $props();
 
+	const MAX_TIME = 30;
+
 	onMount(async () => {
 		console.log(
 			`Initializing Phaser game with playerName: ${playerName} and enemyName: ${enemyName}`
@@ -58,11 +60,11 @@
 		game = new Phaser.Game(config);
 	});
 
-	let time = $state('30');
+	let time = $state(`${MAX_TIME}`);
 	$effect(() => {
 		console.log(`horolezciStats changed:`, $horolezciStats);
 		if (!$horolezciStats.endTime) {
-			time = '30';
+			time = `${MAX_TIME}`;
 			return;
 		}
 
@@ -86,15 +88,41 @@
 	class="w-full h-full overflow-hidden flex justify-center items-center bg-[#FEFFFF]"
 ></div>
 
-<div class="fixed top-10 left-10">
+<div class="fixed top-10 left-10 flex items-center gap-2">
 	<PlayerUI {playerName} isEnemy={false} />
+	<div
+		class="timer rounded-full flex justify-center items-center border-[5px] border-black"
+		style={`--progress: ${Number(time) / MAX_TIME};`}
+	>
+		<div class="timer-fill"></div>
+
+		<span class="text-2xl font-bold text-black z-10">
+			{time}
+		</span>
+	</div>
 </div>
 <div class="fixed top-36 left-10">
 	<PlayerUI playerName={enemyName} isEnemy={true} />
 </div>
-<div class="fixed top-10 left-1/2">
-	<span class="text-black text-xl font-bold">{time}</span>
-</div>
 <VolumeControl />
 <GameOver />
 <Disconnect />
+
+<style>
+	.timer {
+		width: 80px;
+		height: 80px;
+		position: relative;
+		overflow: hidden;
+		background: white;
+	}
+
+	.timer-fill {
+		position: absolute;
+		inset: 0;
+
+		background: conic-gradient(#7ce872 calc(var(--progress) * 360deg), transparent 0deg);
+
+		transform: scaleX(-1);
+	}
+</style>

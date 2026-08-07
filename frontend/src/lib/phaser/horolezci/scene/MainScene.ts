@@ -6,6 +6,7 @@ import type { Socket } from 'socket.io-client';
 import type { HorolezciGameState } from '$lib/phaser/horolezci/types/horolezciGameState';
 import { horolezciStats } from '../../../../stores/horolezci/stats';
 import { rowToMultiplier } from '$lib/phaser/horolezci/utils/rowToMultiplier';
+import { get } from 'svelte/store';
 
 const MOUNTAIN_HEIGHT_MULTIPLIER = 2.5;
 const TOP_OF_THE_MOUNTAIN = 728 * 2.5 - 360;
@@ -51,10 +52,7 @@ export default class MainScene extends Phaser.Scene {
 					this.secret?.hide();
 				}, 500);
 				setTimeout(() => {
-					this.player?.climb(playerDistanceToTravel, () => {
-						this.socket.emit('setReadyForNextRound'); // TODO: If one player is not ready, the other gets stuck waiting, looking at basically nothing
-						this.socket.emit('startNextRound');
-					});
+					this.player?.climb(playerDistanceToTravel);
 					this.enemy?.climb(enemyDistanceToTravel);
 				}, 1000);
 			}

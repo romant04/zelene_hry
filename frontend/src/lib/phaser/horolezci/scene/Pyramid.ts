@@ -157,6 +157,7 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 	}
 
 	public hide() {
+		this.scene.tweens.killTweensOf(this);
 		this.scene.tweens.add({
 			targets: this,
 			scale: 0,
@@ -167,6 +168,7 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 		});
 	}
 	public show() {
+		this.scene.tweens.killTweensOf(this);
 		this.setVisible(true);
 		this.scene.tweens.add({
 			targets: this,
