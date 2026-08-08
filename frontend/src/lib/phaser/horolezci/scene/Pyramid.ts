@@ -119,6 +119,13 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 		this.selectedButton = null;
 		this.onSelectionChange?.(null);
 	}
+	public highlightSelection(correct: boolean) {
+		if (!this.selectedButton) return;
+
+		const color = correct ? 0x7ce872 : 0xe03f3f; // green for correct, red for incorrect
+
+		this.selectedButton.circle.setFillStyle(color);
+	}
 
 	public getSelectedButton(): LetterButton | null {
 		return this.selectedButton;

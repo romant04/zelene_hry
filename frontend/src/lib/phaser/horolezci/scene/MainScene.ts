@@ -4,9 +4,8 @@ import Pyramid from '$lib/phaser/horolezci/scene/Pyramid';
 import { Secret } from '$lib/phaser/horolezci/scene/Secret';
 import type { Socket } from 'socket.io-client';
 import type { HorolezciGameState } from '$lib/phaser/horolezci/types/horolezciGameState';
-import { horolezciStats } from '../../../../stores/horolezci/stats';
+import { distanceToTravel, horolezciStats } from '../../../../stores/horolezci/stats';
 import { rowToMultiplier } from '$lib/phaser/horolezci/utils/rowToMultiplier';
-import { get } from 'svelte/store';
 
 const MOUNTAIN_HEIGHT_MULTIPLIER = 2.5;
 const TOP_OF_THE_MOUNTAIN = 728 * 2.5 - 360;
@@ -27,6 +26,7 @@ export default class MainScene extends Phaser.Scene {
 		});
 
 		this.socket.on('newRound', (data: HorolezciGameState) => {
+			distanceToTravel.set(null);
 			this.restartPyramidAndTimer(data);
 			this.pyramid?.show();
 			this.secret?.show();
@@ -37,12 +37,16 @@ export default class MainScene extends Phaser.Scene {
 				const playerDistanceToTravel =
 					data.data.players.find((player) => player.token === this.token)!
 						.distanceTraveled - this.player!.distanceTraveled;
-
 				const enemyDistanceToTravel =
 					data.data.players.find((player) => player.token !== this.token)!
 						.distanceTraveled - this.enemy!.distanceTraveled;
 
-				this.pyramid?.clearSelection();
+				distanceToTravel.set({
+					player: playerDistanceToTravel,
+					enemy: enemyDistanceToTravel
+				});
+
+				this.pyramid?.highlightSelection(playerDistanceToTravel > 0);
 				this.secret?.updateGuessedLetters(new Set(data.data.guessedLetters));
 				console.log(data.playerGuess); // TODO: Display the player's guess in the UI
 				console.log(data.enemyGuess);
@@ -50,11 +54,12 @@ export default class MainScene extends Phaser.Scene {
 				setTimeout(() => {
 					this.pyramid?.hide();
 					this.secret?.hide();
-				}, 500);
+					this.pyramid?.clearSelection();
+				}, 2000);
 				setTimeout(() => {
 					this.player?.climb(playerDistanceToTravel);
 					this.enemy?.climb(enemyDistanceToTravel);
-				}, 1000);
+				}, 2700);
 			}
 		);
 	}

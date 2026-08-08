@@ -6,7 +6,8 @@
 	import VolumeControl from '$lib/phaser/components/VolumeControl.svelte';
 	import PlayerUI from '$lib/phaser/horolezci/components/PlayerUI.svelte';
 	import type { Socket } from 'socket.io-client';
-	import { horolezciStats } from '../../../../stores/horolezci/stats';
+	import { distanceToTravel, horolezciStats } from '../../../../stores/horolezci/stats';
+	import { fly } from 'svelte/transition';
 
 	let game: Game;
 
@@ -17,7 +18,7 @@
 		enemyName
 	}: { socket: Socket; token: string; playerName: string; enemyName: string } = $props();
 
-	const MAX_TIME = 30;
+	const MAX_TIME = 20;
 
 	onMount(async () => {
 		console.log(
@@ -90,19 +91,40 @@
 
 <div class="fixed top-10 left-10 flex items-center gap-2">
 	<PlayerUI {playerName} isEnemy={false} />
-	<div
-		class="timer rounded-full flex justify-center items-center border-[5px] border-black"
-		style={`--progress: ${Number(time) / MAX_TIME};`}
-	>
-		<div class="timer-fill"></div>
+	{#if $distanceToTravel === null}
+		<div
+			class="timer rounded-full flex justify-center items-center border-[5px] border-black"
+			style={`--progress: ${Number(time) / MAX_TIME};`}
+		>
+			<div class="timer-fill"></div>
 
-		<span class="text-2xl font-bold text-black z-10">
-			{time}
-		</span>
-	</div>
+			<span class="text-2xl font-bold text-black z-10">
+				{time}
+			</span>
+		</div>
+	{:else}
+		<div
+			in:fly={{ y: -20, duration: 500 }}
+			class={`${$distanceToTravel.player > 0 ? 'text-[#1f9c14]' : 'text-[#ea6060]'}`}
+		>
+			<span class="text-2xl font-bold"
+				>{$distanceToTravel.player > 0 ? '+' : ''}{$distanceToTravel.player}m</span
+			>
+		</div>
+	{/if}
 </div>
-<div class="fixed top-36 left-10">
+<div class="fixed top-36 left-10 flex items-center gap-2">
 	<PlayerUI playerName={enemyName} isEnemy={true} />
+	{#if $distanceToTravel}
+		<div
+			in:fly={{ y: -20, duration: 500 }}
+			class={`${$distanceToTravel.enemy > 0 ? 'text-[#1f9c14]' : 'text-[#ea6060]'}`}
+		>
+			<span class="text-2xl font-bold"
+				>{$distanceToTravel.enemy > 0 ? '+' : ''}{$distanceToTravel.enemy}m</span
+			>
+		</div>
+	{/if}
 </div>
 <VolumeControl />
 <GameOver />

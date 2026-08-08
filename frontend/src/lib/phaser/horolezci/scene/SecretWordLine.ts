@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { AnimatedCharText } from '$lib/phaser/horolezci/scene/AnimatedCharText';
 
 const MAX_LINE_WIDTH = 1000;
 const LETTER_SIZE = 36;
@@ -37,24 +38,18 @@ class SecretWord extends Phaser.GameObjects.Container {
 				10 // corner radius
 			);
 
-			const charText = scene.add.text(
+			const charText = new AnimatedCharText(
+				this.scene,
 				letterX + LETTER_SIZE / 2,
 				LETTER_SIZE / 2,
-				char.toUpperCase(),
-				{
-					fontSize: '26px',
-					color: '#000000',
-					fontStyle: 'bold'
-				}
+				char.toUpperCase()
 			);
-
-			charText.setOrigin(0.5);
 
 			this.add(box);
 			this.add(charText);
 
 			if (!guessedLetters.has(char.toLowerCase()) && isLetter(char)) {
-				charText.setVisible(false);
+				charText.hide();
 			}
 		}
 
@@ -142,9 +137,11 @@ export class SecretWordLine extends Phaser.GameObjects.Container {
 		this.list.forEach((wordContainer) => {
 			if (wordContainer instanceof SecretWord) {
 				wordContainer.list.forEach((child) => {
-					if (child instanceof Phaser.GameObjects.Text) {
-						const char = child.text.toLowerCase();
-						child.setVisible(guessedLetters.has(char) || !isLetter(char));
+					if (child instanceof AnimatedCharText) {
+						const char = child.char.toLowerCase();
+						if (isLetter(char) && guessedLetters.has(char)) {
+							child.animate();
+						}
 					}
 				});
 			}

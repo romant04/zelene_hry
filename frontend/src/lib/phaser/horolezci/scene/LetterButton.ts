@@ -21,7 +21,12 @@ export default class LetterButton extends Phaser.GameObjects.Container {
 		this.circle = scene.add.circle(0, 0, radius, LetterButton.COLOR_DEFAULT);
 
 		this.text = scene.add
-			.text(0, 0, letter, { fontSize: '38px', color: '#000', fontStyle: 'bold' })
+			.text(0, 0, letter, {
+				fontSize: '36px',
+				color: '#000',
+				fontStyle: 'bold',
+				padding: { top: 5, right: 5, left: 5, bottom: 5 }
+			})
 			.setOrigin(0.5);
 
 		this.add([this.circle, this.text]);

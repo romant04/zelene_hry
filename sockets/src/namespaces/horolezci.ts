@@ -7,7 +7,7 @@ import {generatePyramid} from "../utils/horolezciLetterPyramid";
 
 const veta = "Kdo jinému jámu kopá, sám do ní padá"; // TODO: Replace this with a random pick from a list of sentences
 
-const ROUND_DURATION = 30 * 1000; // 30s in milliseconds
+const ROUND_DURATION = 20 * 1000; // 20s
 const NAMESPACE = "/horolezci";
 const horolezciGameData = new Map<string, HorolezciGameState>();
 const roundEndTimer = new Map<string, NodeJS.Timeout>();
@@ -34,11 +34,10 @@ function evaluateGuesses(gameState: HorolezciGameState, player: HorolezciPlayer,
   const playerGuess = player!.lockedInGuess?.letter?.toLowerCase();
   const enemyGuess = enemy!.lockedInGuess?.letter?.toLowerCase();
 
-  const numberOfPlayerGuessOccurrences = playerGuess ? gameState.correctLetters.filter(x => x.toLowerCase() === playerGuess.toLowerCase()).length : 0;
+  const numberOfPlayerGuessOccurrences = playerGuess ? gameState.correctLetters.filter(x => x.toLowerCase() === playerGuess.toLowerCase() && !gameState.guessedLetters.includes(x)).length : 0;
   if (numberOfPlayerGuessOccurrences > 0) {
     const distance = numberOfPlayerGuessOccurrences * player!.lockedInGuess.scoreMultiplier;
     player!.distanceTraveled += distance * distanceMultiplier;
-    gameState.guessedLetters.push(playerGuess); // Add the guessed letter to the guessedLetters array
   }
   else {
     player!.distanceTraveled -= 8 * distanceMultiplier; // Penalize the player for an incorrect guess
@@ -47,11 +46,10 @@ function evaluateGuesses(gameState: HorolezciGameState, player: HorolezciPlayer,
     }
   }
 
-  const numberOfEnemyGuessOccurrences = enemyGuess ? gameState.correctLetters.filter(x => x.toLowerCase() === enemyGuess.toLowerCase()).length : 0;
+  const numberOfEnemyGuessOccurrences = enemyGuess ? gameState.correctLetters.filter(x => x.toLowerCase() === enemyGuess.toLowerCase() && !gameState.guessedLetters.includes(x)).length : 0;
   if (numberOfEnemyGuessOccurrences > 0) {
     const distance = numberOfEnemyGuessOccurrences * enemy!.lockedInGuess.scoreMultiplier;
     enemy!.distanceTraveled += distance * distanceMultiplier;
-    gameState.guessedLetters.push(enemyGuess); // Add the guessed letter to the guessedLetters array
   }
   else {
     enemy!.distanceTraveled -= 8 * distanceMultiplier; // Penalize the enemy for an incorrect guess
@@ -59,6 +57,10 @@ function evaluateGuesses(gameState: HorolezciGameState, player: HorolezciPlayer,
       enemy!.distanceTraveled = enemy.lastSafetyPin; // Ensure the distance doesn't go below 0
     }
   }
+
+  // Add guessed letters - needs to be added after the evaluation of both players to allow for the case where both players guess the same letter in the same round
+  gameState.guessedLetters.push(playerGuess); // Add the guessed letter to the guessedLetters array
+  gameState.guessedLetters.push(enemyGuess); // Add the guessed letter to the guessedLetters array
 
   // Reset locked in guesses for the next round
   player!.lockedInGuess = {letter: "", scoreMultiplier: 1};
@@ -69,7 +71,7 @@ function evaluateGuesses(gameState: HorolezciGameState, player: HorolezciPlayer,
 
   const timer = setTimeout(() => {
     startNextRound(gameState, player!, enemy!, horolezciNamespace, gameId);
-  }, 3800) // Wait for 3.8 seconds before starting the next round to give players time to see the results of their guesses
+  }, 5800) // Wait for 5 seconds before starting the next round to give players time to see the results of their guesses
   newRoundTimer.set(gameId, timer);
 }
 
