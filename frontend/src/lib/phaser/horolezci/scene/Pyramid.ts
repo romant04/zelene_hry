@@ -1,11 +1,15 @@
 import Phaser from 'phaser';
 import LetterButton from './LetterButton';
+import SafetyPinButton from '$lib/phaser/horolezci/scene/SafetyPinButton';
 
 export default class Pyramid extends Phaser.GameObjects.Container {
 	// Store buttons in a 2D array [row][col] for easy row-based access
 	private rowButtons: LetterButton[][] = [];
 	private selectedButton: LetterButton | null = null;
 	public onSelectionChange: ((button: LetterButton | null) => void) | null = null;
+	public onSafetyPinSelected: (() => void) | null = null;
+	private checkpointSelected: boolean = false;
+	private safetyPinButton: SafetyPinButton | null = null;
 
 	constructor(
 		scene: Phaser.Scene,
@@ -95,6 +99,28 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 			}
 		}
 
+		this.safetyPinButton = new SafetyPinButton(
+			scene,
+			250, // x relative to pyramid
+			105, // vertically centered
+			() => {
+				if (this.checkpointSelected) {
+					return; // Already selected, do nothing
+				}
+
+				this.checkpointSelected = true;
+				this.safetyPinButton?.setSelected(true);
+				this.scene.sound.play('lock_in', {
+					// TODO: Maybe play a different sound for safety pin selection
+					volume: 0.5,
+					loop: false
+				});
+				this.onSafetyPinSelected?.();
+			}
+		);
+
+		this.add(this.safetyPinButton);
+
 		this.setDepth(100);
 		this.setScrollFactor(0, 0, true);
 		this.setVisible(false);
@@ -104,7 +130,7 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 	}
 
 	public selectButton(button: LetterButton): void {
-		if (this.selectedButton === button) {
+		if (this.selectedButton === button || this.checkpointSelected) {
 			return;
 		}
 
@@ -121,6 +147,7 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 	public clearSelection(): void {
 		this.selectedButton?.deselect();
 		this.selectedButton = null;
+
 		this.onSelectionChange?.(null);
 	}
 	public highlightSelection(correct: boolean) {
@@ -186,5 +213,15 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 			scale: 1,
 			duration: 500
 		});
+	}
+
+	public resetSafetyPinSelection() {
+		this.checkpointSelected = false;
+		this.safetyPinButton?.setSelected(false);
+	}
+	public disableSafetyPinButton() {
+		if (this.safetyPinButton) {
+			this.safetyPinButton.disable();
+		}
 	}
 }

@@ -22,4 +22,6 @@ export const horolezciStats = writable<HorolezciStatsGlobal>({
 	endTime: null
 });
 
-export const distanceToTravel = writable<{ player: number; enemy: number } | null>(null);
+export const distanceToTravel = writable<{ player: number | null; enemy: number | null } | null>(
+	null
+);

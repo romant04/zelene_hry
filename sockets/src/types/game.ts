@@ -40,7 +40,7 @@ export interface HorolezciPlayer extends BasePlayer {
   lockedInGuess: {
     letter: string;
     scoreMultiplier: number;
-  };
+  } | null;
   readyForNextRound: boolean;
   safetyPins: number;
   lastSafetyPin: number;

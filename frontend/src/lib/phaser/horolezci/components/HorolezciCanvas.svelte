@@ -105,11 +105,15 @@
 	{:else}
 		<div
 			in:fly={{ y: -20, duration: 500 }}
-			class={`${$distanceToTravel.player > 0 ? 'text-[#1f9c14]' : 'text-[#ea6060]'}`}
+			class={`${$distanceToTravel.player === null ? 'text-[#ffd83d]' : $distanceToTravel.player > 0 ? 'text-[#1f9c14]' : 'text-[#ea6060]'}`}
 		>
-			<span class="text-2xl font-bold"
-				>{$distanceToTravel.player > 0 ? '+' : ''}{$distanceToTravel.player}m</span
-			>
+			<span class="text-2xl font-bold">
+				{#if $distanceToTravel.player === null}
+					Safety placed!
+				{:else}
+					{$distanceToTravel.player > 0 ? '+' : ''}{$distanceToTravel.player}m
+				{/if}
+			</span>
 		</div>
 	{/if}
 </div>
@@ -118,11 +122,15 @@
 	{#if $distanceToTravel}
 		<div
 			in:fly={{ y: -20, duration: 500 }}
-			class={`${$distanceToTravel.enemy > 0 ? 'text-[#1f9c14]' : 'text-[#ea6060]'}`}
+			class={`${$distanceToTravel.enemy === null ? 'text-[#ffd83d]' : $distanceToTravel.enemy > 0 ? 'text-[#1f9c14]' : 'text-[#ea6060]'}`}
 		>
-			<span class="text-2xl font-bold"
-				>{$distanceToTravel.enemy > 0 ? '+' : ''}{$distanceToTravel.enemy}m</span
-			>
+			<span class="text-2xl font-bold">
+				{#if $distanceToTravel.enemy === null}
+					Safety placed!
+				{:else}
+					{$distanceToTravel.enemy > 0 ? '+' : ''}{$distanceToTravel.enemy}m
+				{/if}
+			</span>
 		</div>
 	{/if}
 </div>

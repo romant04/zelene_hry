@@ -45,7 +45,15 @@ export default class MainScene extends Phaser.Scene {
 		});
 		this.socket.on(
 			'roundEnded',
-			(data: { data: HorolezciGameState; playerGuess: string; enemyGuess: string }) => {
+			(data: {
+				data: HorolezciGameState;
+				playerGuess: string;
+				enemyGuess: string;
+				playerToken: string;
+				enemyToken: string;
+				playerSafety: boolean;
+				enemySafety: boolean;
+			}) => {
 				const playerDistanceToTravel =
 					data.data.players.find((player) => player.token === this.token)!
 						.distanceTraveled - this.player!.distanceTraveled;
@@ -53,10 +61,51 @@ export default class MainScene extends Phaser.Scene {
 					data.data.players.find((player) => player.token !== this.token)!
 						.distanceTraveled - this.enemy!.distanceTraveled;
 
+				const mySafety =
+					data.playerToken === this.token ? data.playerSafety : data.enemySafety;
+				const enemySafety =
+					data.playerToken === this.token ? data.enemySafety : data.playerSafety;
+
 				distanceToTravel.set({
-					player: playerDistanceToTravel,
-					enemy: enemyDistanceToTravel
+					player: mySafety ? null : playerDistanceToTravel,
+					enemy: enemySafety ? null : enemyDistanceToTravel
 				});
+				if (mySafety) {
+					this.player?.placeSafetyPin();
+					this.pyramid?.resetSafetyPinSelection();
+					this.sound.play('checkpoint', { volume: 0.5, loop: false });
+
+					horolezciStats.update((stats) => {
+						const playerStats = stats.player;
+						const updatedPlayerStats = {
+							...playerStats,
+							safetyPins: playerStats.safetyPins - 1
+						};
+						return {
+							...stats,
+							player: updatedPlayerStats
+						};
+					});
+
+					if (get(horolezciStats).player.safetyPins === 0) {
+						this.pyramid?.disableSafetyPinButton();
+					}
+				}
+				if (enemySafety) {
+					this.enemy?.placeSafetyPin();
+					this.sound.play('checkpoint', { volume: 0.5, loop: false });
+					horolezciStats.update((stats) => {
+						const enemyStats = stats.enemy;
+						const updatedEnemyStats = {
+							...enemyStats,
+							safetyPins: enemyStats.safetyPins - 1
+						};
+						return {
+							...stats,
+							enemy: updatedEnemyStats
+						};
+					});
+				}
 
 				this.pyramid?.highlightSelection(playerDistanceToTravel > 0);
 				this.secret?.updateGuessedLetters(new Set(data.data.guessedLetters));
@@ -106,10 +155,11 @@ export default class MainScene extends Phaser.Scene {
 		});
 	}
 	initGameState(data: HorolezciGameState) {
-		const playerDistanceTraveled =
-			data.players.find((player) => player.token === this.token)?.distanceTraveled ?? 0;
-		const enemyDistanceTraveled =
-			data.players.find((player) => player.token !== this.token)?.distanceTraveled ?? 0;
+		const player = data.players.find((player) => player.token === this.token);
+		const enemy = data.players.find((player) => player.token !== this.token);
+
+		const playerDistanceTraveled = player?.distanceTraveled ?? 0;
+		const enemyDistanceTraveled = enemy?.distanceTraveled ?? 0;
 
 		this.player!.updatePosition(PLAYER_START - playerDistanceTraveled);
 		this.enemy!.updatePosition(PLAYER_START - enemyDistanceTraveled);
@@ -118,16 +168,27 @@ export default class MainScene extends Phaser.Scene {
 		this.secret?.updateTitle(data.secret.type);
 		this.secret?.updateGuessedLetters(new Set(data.guessedLetters));
 
+		if (player?.lastSafetyPin !== 0) {
+			this.player?.placeSafetyPin(player?.lastSafetyPin);
+		}
+		if (enemy?.lastSafetyPin !== 0) {
+			this.enemy?.placeSafetyPin(enemy?.lastSafetyPin);
+		}
+
+		if (player?.safetyPins === 0) {
+			this.pyramid?.disableSafetyPinButton();
+		}
+
 		horolezciStats.set({
 			player: {
 				distanceTraveled: playerDistanceTraveled,
 				safetyPins:
-					data.players.find((player) => player.token === this.token)?.safetyPins ?? 3
+					data.players.find((player) => player.token === this.token)?.safetyPins ?? 2
 			},
 			enemy: {
 				distanceTraveled: enemyDistanceTraveled,
 				safetyPins:
-					data.players.find((player) => player.token !== this.token)?.safetyPins ?? 3
+					data.players.find((player) => player.token !== this.token)?.safetyPins ?? 2
 			},
 			endTime: data.roundEndTime
 		});
@@ -208,6 +269,10 @@ export default class MainScene extends Phaser.Scene {
 				letter: button?.letter,
 				scoreMultiplier: rowToMultiplier(button?.row ?? 0)
 			});
+		};
+		this.pyramid.onSafetyPinSelected = () => {
+			this.pyramid?.clearSelection();
+			this.socket.emit('placeSafety');
 		};
 
 		this.secret = new Secret(this, 0, screenHeight - 250, '').setDepth(3);

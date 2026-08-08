@@ -158,6 +158,14 @@ export function setupHorolezciNamespace(io: Server) {
       player!.readyForNextRound = true;
     })
 
+    socket.on("placeSafety", () => {
+        if (player!.safetyPins > 0) {
+            player!.lastSafetyPin = player!.distanceTraveled;
+            player!.safetyPins -= 1;
+            player!.lockedInGuess = null;
+        }
+    })
+
     socket.on("startNextRound", () => {
       if (!player!.readyForNextRound || !enemy!.readyForNextRound) {
         return;
