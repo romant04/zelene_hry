@@ -2,10 +2,11 @@ import Phaser from 'phaser';
 import { SecretWordLine } from '$lib/phaser/horolezci/scene/SecretWordLine';
 
 const BOX_WIDTH = 1280;
-const BOX_HEIGHT = 200;
+const BOX_HEIGHT = 250;
 export class Secret extends Phaser.GameObjects.Container {
 	private defaultY: number = 0;
 	private secretWordLine: SecretWordLine | null = null;
+	private title: Phaser.GameObjects.Text | null = null;
 	constructor(
 		scene: Phaser.Scene,
 		x: number,
@@ -47,14 +48,14 @@ export class Secret extends Phaser.GameObjects.Container {
 		box.strokePath();
 		this.add(box);
 
-		const title = scene.add
-			.text(BOX_WIDTH / 2, 10, 'Slavný výrok', {
+		this.title = scene.add
+			.text(BOX_WIDTH / 2, 12, 'Přísloví', {
 				fontSize: '28px',
 				color: '#000000',
 				fontStyle: 'bold'
 			})
 			.setOrigin(0.5, 0);
-		this.add(title);
+		this.add(this.title);
 
 		this.secretWordLine = new SecretWordLine(scene, 0, 0, text);
 
@@ -100,5 +101,10 @@ export class Secret extends Phaser.GameObjects.Container {
 			(BOX_HEIGHT - this.secretWordLine.lineHeight) / 2 + 20
 		);
 		this.add(this.secretWordLine);
+	}
+	public updateTitle(newTitle: string) {
+		if (this.title) {
+			this.title.setText(newTitle);
+		}
 	}
 }

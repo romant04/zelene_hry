@@ -29,7 +29,7 @@
 
 	<div class="flex flex-row">
 		<div class="flex flex-row justify-center items-center gap-3 px-6 py-2">
-			{#each Array(3) as _, i}
+			{#each Array(2) as _, i}
 				<img
 					src={safetyPin}
 					alt={_}

@@ -76,6 +76,9 @@ export interface HorolezciGameState extends GeneralGameState<HorolezciPlayer> {
   pyramid: string[][];
   guessedLetters: string[];
   correctLetters: string[];
-  secret: string;
+  secret: {
+    type: string;
+    secret: string;
+  };
   roundEndTime: number | null;
 }

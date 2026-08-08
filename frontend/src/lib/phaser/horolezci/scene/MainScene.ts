@@ -3,9 +3,16 @@ import { Player } from '$lib/phaser/horolezci/scene/Player';
 import Pyramid from '$lib/phaser/horolezci/scene/Pyramid';
 import { Secret } from '$lib/phaser/horolezci/scene/Secret';
 import type { Socket } from 'socket.io-client';
-import type { HorolezciGameState } from '$lib/phaser/horolezci/types/horolezciGameState';
+import type {
+	HorolezciGameState,
+	HorolezciPlayer
+} from '$lib/phaser/horolezci/types/horolezciGameState';
 import { distanceToTravel, horolezciStats } from '../../../../stores/horolezci/stats';
 import { rowToMultiplier } from '$lib/phaser/horolezci/utils/rowToMultiplier';
+import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
+import { toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
+import { get } from 'svelte/store';
+import { volume } from '../../../../stores/gameGeneral/volume';
 
 const MOUNTAIN_HEIGHT_MULTIPLIER = 2.5;
 const TOP_OF_THE_MOUNTAIN = 728 * 2.5 - 360;
@@ -25,9 +32,14 @@ export default class MainScene extends Phaser.Scene {
 			this.initGameState(data);
 		});
 
-		this.socket.on('newRound', (data: HorolezciGameState) => {
+		this.socket.on('newRound', (data: { data: HorolezciGameState; newSecret: boolean }) => {
 			distanceToTravel.set(null);
-			this.restartPyramidAndTimer(data);
+			this.restartPyramidAndTimer(data.data);
+			if (data.newSecret) {
+				this.secret?.updateSecret(data.data.secret.secret);
+				this.secret?.updateGuessedLetters(new Set(data.data.guessedLetters));
+				this.secret?.updateTitle(data.data.secret.type);
+			}
 			this.pyramid?.show();
 			this.secret?.show();
 		});
@@ -48,8 +60,6 @@ export default class MainScene extends Phaser.Scene {
 
 				this.pyramid?.highlightSelection(playerDistanceToTravel > 0);
 				this.secret?.updateGuessedLetters(new Set(data.data.guessedLetters));
-				console.log(data.playerGuess); // TODO: Display the player's guess in the UI
-				console.log(data.enemyGuess);
 
 				setTimeout(() => {
 					this.pyramid?.hide();
@@ -62,7 +72,19 @@ export default class MainScene extends Phaser.Scene {
 				}, 2700);
 			}
 		);
+
+		this.socket.on('playerDisconnected', () => {
+			setDisconnect(true);
+		});
+		this.socket.on('playerReconnected', () => {
+			setDisconnect(false);
+		});
+		this.socket.on('gameOver', async (data: { winner: HorolezciPlayer | null }) => {
+			await new Promise((resolve) => setTimeout(resolve, 5800));
+			toggleGameOverOn(data.winner === null ? 'Remíza' : data.winner.name);
+		});
 	}
+
 	restartPyramidAndTimer(data: HorolezciGameState) {
 		this.pyramid!.setAllRowsLetters(data.pyramid);
 		horolezciStats.set({
@@ -89,10 +111,11 @@ export default class MainScene extends Phaser.Scene {
 		const enemyDistanceTraveled =
 			data.players.find((player) => player.token !== this.token)?.distanceTraveled ?? 0;
 
-		this.player!.y = PLAYER_START - playerDistanceTraveled;
-		this.enemy!.y = PLAYER_START - enemyDistanceTraveled;
+		this.player!.updatePosition(PLAYER_START - playerDistanceTraveled);
+		this.enemy!.updatePosition(PLAYER_START - enemyDistanceTraveled);
 		this.pyramid!.setAllRowsLetters(data.pyramid);
-		this.secret!.updateSecret(data.secret);
+		this.secret!.updateSecret(data.secret.secret);
+		this.secret?.updateTitle(data.secret.type);
 		this.secret?.updateGuessedLetters(new Set(data.guessedLetters));
 
 		horolezciStats.set({
@@ -121,6 +144,11 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	preload() {
+		this.sound.volume = get(volume) / 100;
+		volume.subscribe((value) => {
+			this.sound.volume = value / 100;
+		});
+
 		this.anims.create({
 			key: 'player_climb', // Animation identifier
 			frames: [
@@ -152,9 +180,16 @@ export default class MainScene extends Phaser.Scene {
 		});
 	}
 
+	private music: Phaser.Sound.BaseSound | undefined;
 	create() {
 		const screenWidth = this.scale.width;
 		const screenHeight = this.scale.height;
+
+		this.music = this.sound.add('bg', {
+			loop: true,
+			volume: 0.3
+		});
+		this.music.play();
 
 		// 1. Add background
 		const mountain = this.add.image(screenWidth / 2, 0, 'mountain').setOrigin(0.5, 0);
@@ -162,10 +197,12 @@ export default class MainScene extends Phaser.Scene {
 
 		// 2. Add player as a Sprite
 		const groundY = mountain.displayHeight;
-		this.player = new Player(this, screenWidth / 2 - 100, groundY, false, PLAYER_END);
-		this.enemy = new Player(this, screenWidth / 2 + 100, groundY, true, PLAYER_END);
+		this.player = new Player(this, screenWidth / 2 - 100, groundY, false, PLAYER_END).setDepth(
+			2
+		);
+		this.enemy = new Player(this, screenWidth / 2 + 100, groundY, true, PLAYER_END).setDepth(2);
 
-		this.pyramid = new Pyramid(this, screenWidth / 2, screenHeight * 0.4);
+		this.pyramid = new Pyramid(this, screenWidth / 2, screenHeight * 0.35).setDepth(3);
 		this.pyramid.onSelectionChange = (button) => {
 			this.socket.emit('lockInGuess', {
 				letter: button?.letter,
@@ -173,7 +210,7 @@ export default class MainScene extends Phaser.Scene {
 			});
 		};
 
-		this.secret = new Secret(this, 0, screenHeight - 200, '');
+		this.secret = new Secret(this, 0, screenHeight - 250, '').setDepth(3);
 
 		// 4. Setup camera bounds & tracking
 		this.cameras.main.setBounds(0, 0, mountain.displayWidth, mountain.displayHeight);

@@ -4,20 +4,34 @@ import {
 } from "../types/game";
 import { GameRoomsMap } from "../socket";
 import {generatePyramid} from "../utils/horolezciLetterPyramid";
-
-const veta = "Kdo jinému jámu kopá, sám do ní padá"; // TODO: Replace this with a random pick from a list of sentences
+import { SECRETS } from "../utils/horolezci/secrets";
+import {checkForGameover, evaluateGuesses} from "../utils/horolezci/evaluateGuesses";
+import {calculateAndUpdateMMR} from "../utils/calculateAndUpdateMMR";
 
 const ROUND_DURATION = 20 * 1000; // 20s
 const NAMESPACE = "/horolezci";
 const horolezciGameData = new Map<string, HorolezciGameState>();
 const roundEndTimer = new Map<string, NodeJS.Timeout>();
 const newRoundTimer = new Map<string, NodeJS.Timeout>();
+const usedSecrets = new Map<string, Set<{type: string, secret: string}>>();
+
+function pickRandomSecret(gameId: string): {type: string, secret: string} {
+    const usedSecretsForGame = usedSecrets.get(gameId) || new Set();
+    const availableSecrets = SECRETS.filter(secret => !usedSecretsForGame.has(secret));
+    if (availableSecrets.length === 0) {
+        throw new Error("No more secrets available for this game.");
+    }
+    const randomSecret = availableSecrets[Math.floor(Math.random() * availableSecrets.length)];
+    usedSecretsForGame.add(randomSecret);
+    usedSecrets.set(gameId, usedSecretsForGame);
+    return randomSecret;
+}
 
 function startNextRound(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
   // Set the new round end time
   gameState.roundEndTime = Date.now() + ROUND_DURATION;
   const timer = setTimeout(() => {
-    evaluateGuesses(gameState, player!, enemy!, horolezciNamespace, gameId);
+    evaluateAndStartNewRound(gameState, player!, enemy!, horolezciNamespace, gameId);
     // Reset ready status for both players
     player!.readyForNextRound = false;
     enemy!.readyForNextRound = false;
@@ -25,54 +39,37 @@ function startNextRound(gameState: HorolezciGameState, player: HorolezciPlayer, 
   roundEndTimer.set(gameId, timer);
   gameState.pyramid = generatePyramid(gameState.correctLetters, new Set(gameState.guessedLetters));
 
+  // Detect if the whole secret has been guessed
+    const allLettersGuessed = gameState.correctLetters.every(letter => gameState.guessedLetters.includes(letter.toLowerCase()));
+    if (allLettersGuessed) {
+        // If all letters have been guessed, pick a new secret
+        const newSecret = pickRandomSecret(gameId);
+        gameState.secret = newSecret;
+        gameState.correctLetters = Array.from(newSecret.secret.toLowerCase().replace(/[^a-záčďéěíňóřšťúůýž]/g, ""));
+        gameState.guessedLetters = [];
+        gameState.pyramid = generatePyramid(gameState.correctLetters, new Set());
+    }
+
   // Broadcast updated game state to both players
-  horolezciNamespace.to(gameId).emit("newRound", gameState);
+  horolezciNamespace.to(gameId).emit("newRound", {data: gameState, newSecret: allLettersGuessed});
 }
-function evaluateGuesses(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
-  const distanceMultiplier = 50; // We do * 50 because the height is roughly 1500, and we want to make sure the player can reach the top of the pyramid in a reasonable number of rounds
-  // Evaluate the guesses of both players
-  const playerGuess = player!.lockedInGuess?.letter?.toLowerCase();
-  const enemyGuess = enemy!.lockedInGuess?.letter?.toLowerCase();
+function evaluateAndStartNewRound(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
+  evaluateGuesses(gameState, player!, enemy!, horolezciNamespace, gameId);
 
-  const numberOfPlayerGuessOccurrences = playerGuess ? gameState.correctLetters.filter(x => x.toLowerCase() === playerGuess.toLowerCase() && !gameState.guessedLetters.includes(x)).length : 0;
-  if (numberOfPlayerGuessOccurrences > 0) {
-    const distance = numberOfPlayerGuessOccurrences * player!.lockedInGuess.scoreMultiplier;
-    player!.distanceTraveled += distance * distanceMultiplier;
+  if (!checkForGameover(gameState, player!, enemy!, horolezciNamespace, gameId)) {
+    const timer = setTimeout(() => {
+      startNextRound(gameState, player!, enemy!, horolezciNamespace, gameId);
+    }, 5800)
+    newRoundTimer.set(gameId, timer);
   }
   else {
-    player!.distanceTraveled -= 8 * distanceMultiplier; // Penalize the player for an incorrect guess
-    if (player!.distanceTraveled < player.lastSafetyPin) {
-      player!.distanceTraveled = player.lastSafetyPin; // Ensure the distance doesn't go below 0
-    }
+    clearTimeout(roundEndTimer.get(gameId));
+    clearTimeout(newRoundTimer.get(gameId));
+    roundEndTimer.delete(gameId);
+    newRoundTimer.delete(gameId);
+    usedSecrets.delete(gameId);
+    horolezciGameData.delete(gameId);
   }
-
-  const numberOfEnemyGuessOccurrences = enemyGuess ? gameState.correctLetters.filter(x => x.toLowerCase() === enemyGuess.toLowerCase() && !gameState.guessedLetters.includes(x)).length : 0;
-  if (numberOfEnemyGuessOccurrences > 0) {
-    const distance = numberOfEnemyGuessOccurrences * enemy!.lockedInGuess.scoreMultiplier;
-    enemy!.distanceTraveled += distance * distanceMultiplier;
-  }
-  else {
-    enemy!.distanceTraveled -= 8 * distanceMultiplier; // Penalize the enemy for an incorrect guess
-    if (enemy!.distanceTraveled < enemy.lastSafetyPin) {
-      enemy!.distanceTraveled = enemy.lastSafetyPin; // Ensure the distance doesn't go below 0
-    }
-  }
-
-  // Add guessed letters - needs to be added after the evaluation of both players to allow for the case where both players guess the same letter in the same round
-  gameState.guessedLetters.push(playerGuess); // Add the guessed letter to the guessedLetters array
-  gameState.guessedLetters.push(enemyGuess); // Add the guessed letter to the guessedLetters array
-
-  // Reset locked in guesses for the next round
-  player!.lockedInGuess = {letter: "", scoreMultiplier: 1};
-  enemy!.lockedInGuess = {letter: "", scoreMultiplier: 1};
-
-  // Broadcast updated game state to both players
-  horolezciNamespace.to(gameId).emit("roundEnded", {data: gameState, playerGuess, enemyGuess});
-
-  const timer = setTimeout(() => {
-    startNextRound(gameState, player!, enemy!, horolezciNamespace, gameId);
-  }, 5800) // Wait for 5 seconds before starting the next round to give players time to see the results of their guesses
-  newRoundTimer.set(gameId, timer);
 }
 
 export function setupHorolezciNamespace(io: Server) {
@@ -111,17 +108,19 @@ export function setupHorolezciNamespace(io: Server) {
           lockedInGuess: {letter: "", scoreMultiplier: 1},
           readyForNextRound: false,
           isConnected: true, // Mark the player as connected
-          safetyPins: 3,
+          safetyPins: 2,
           lastSafetyPin: 0,
         };
         return p;
       });
 
+      const secret = pickRandomSecret(gameId);
+      const veta = secret.secret;
       horolezciGameData.set(gameId, {
         players,
         guessedLetters: [],
         correctLetters: Array.from(veta.toLowerCase().replace(/[^a-záčďéěíňóřšťúůýž]/g, "")),
-        secret: veta,
+        secret: secret,
         pyramid: generatePyramid(Array.from(new Set(veta.toLowerCase().replace(/[^a-záčďéěíňóřšťúůýž]/g, ""))), new Set()),
         roundEndTime: null, // null = round not started yet
       });
@@ -164,6 +163,8 @@ export function setupHorolezciNamespace(io: Server) {
         return;
       }
 
+      player!.readyForNextRound = false;
+      enemy!.readyForNextRound = false;
       startNextRound(gameState, player!, enemy!, horolezciNamespace, gameId);
     })
 
@@ -185,6 +186,7 @@ export function setupHorolezciNamespace(io: Server) {
           clearTimeout(newRoundTimer.get(gameId));
           roundEndTimer.delete(gameId);
           newRoundTimer.delete(gameId);
+          usedSecrets.delete(gameId);
           horolezciGameData.delete(gameId);
           GameRoomsMap.delete(gameId);
         }

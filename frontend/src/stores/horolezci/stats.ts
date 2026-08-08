@@ -13,11 +13,11 @@ export interface HorolezciStatsGlobal {
 export const horolezciStats = writable<HorolezciStatsGlobal>({
 	player: {
 		distanceTraveled: 0,
-		safetyPins: 3
+		safetyPins: 2
 	},
 	enemy: {
 		distanceTraveled: 0,
-		safetyPins: 3
+		safetyPins: 2
 	},
 	endTime: null
 });

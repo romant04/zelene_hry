@@ -19,6 +19,10 @@ import enemy13 from '../../../../assets/horolezci/enemy/image_1-3.png';
 
 import mountain from '../../../../assets/horolezci/mountain.png';
 
+import bg from '../../../../assets/horolezci/sounds/bg.mp3';
+import checkpoint from '../../../../assets/horolezci/sounds/checkpoint.mp3';
+import lock_in from '../../../../assets/horolezci/sounds/lock_in.mp3';
+
 export default class PreloadScene extends Phaser.Scene {
 	constructor() {
 		super('PreloadScene');
@@ -58,6 +62,10 @@ export default class PreloadScene extends Phaser.Scene {
 		this.load.image('enemy06', enemy12);
 		this.load.image('enemy07', enemy11);
 		this.load.image('mountain', mountain);
+
+		this.load.audio('bg', bg);
+		this.load.audio('checkpoint', checkpoint);
+		this.load.audio('lock_in', lock_in);
 
 		this.load.on('progress', (value: number) => {
 			progressBar.clear();

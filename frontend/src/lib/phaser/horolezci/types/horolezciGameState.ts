@@ -17,6 +17,9 @@ export interface HorolezciGameState {
 	pyramid: string[][];
 	guessedLetters: string[];
 	correctLetters: string[];
-	secret: string;
+	secret: {
+		type: string;
+		secret: string;
+	};
 	roundEndTime: number | null;
 }

@@ -108,6 +108,10 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 			return;
 		}
 
+		this.scene.sound.play('lock_in', {
+			volume: 0.5,
+			loop: false
+		});
 		this.selectedButton?.deselect();
 		button.select();
 		this.selectedButton = button;

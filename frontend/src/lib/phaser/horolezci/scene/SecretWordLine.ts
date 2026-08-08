@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { AnimatedCharText } from '$lib/phaser/horolezci/scene/AnimatedCharText';
 
-const MAX_LINE_WIDTH = 1000;
+const MAX_LINE_WIDTH = 1200;
 const LETTER_SIZE = 36;
 const LETTER_GAP = 3;
 const WORD_GAP = 20;
