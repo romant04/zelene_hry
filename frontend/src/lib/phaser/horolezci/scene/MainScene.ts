@@ -28,21 +28,27 @@ export default class MainScene extends Phaser.Scene {
 	private secret: Secret | undefined;
 
 	setupListeners() {
-		this.socket.on('gameState', (data: HorolezciGameState) => {
-			this.initGameState(data);
-		});
-
-		this.socket.on('newRound', (data: { data: HorolezciGameState; newSecret: boolean }) => {
-			distanceToTravel.set(null);
-			this.restartPyramidAndTimer(data.data);
-			if (data.newSecret) {
-				this.secret?.updateSecret(data.data.secret.secret);
-				this.secret?.updateGuessedLetters(new Set(data.data.guessedLetters));
-				this.secret?.updateTitle(data.data.secret.type);
+		this.socket.on(
+			'gameState',
+			(data: { gameState: HorolezciGameState; msRemaining: number | null }) => {
+				this.initGameState(data.gameState, data.msRemaining);
 			}
-			this.pyramid?.show();
-			this.secret?.show();
-		});
+		);
+
+		this.socket.on(
+			'newRound',
+			(data: { data: HorolezciGameState; newSecret: boolean; msRemaining: number }) => {
+				distanceToTravel.set(null);
+				this.restartPyramidAndTimer(data.data, data.msRemaining);
+				if (data.newSecret) {
+					this.secret?.updateSecret(data.data.secret.secret);
+					this.secret?.updateGuessedLetters(new Set(data.data.guessedLetters));
+					this.secret?.updateTitle(data.data.secret.type);
+				}
+				this.pyramid?.show();
+				this.secret?.show();
+			}
+		);
 		this.socket.on(
 			'roundEnded',
 			(data: {
@@ -148,7 +154,7 @@ export default class MainScene extends Phaser.Scene {
 		});
 	}
 
-	restartPyramidAndTimer(data: HorolezciGameState) {
+	restartPyramidAndTimer(data: HorolezciGameState, msRemaining: number) {
 		this.pyramid!.setAllRowsLetters(data.pyramid);
 		horolezciStats.set({
 			player: {
@@ -165,10 +171,10 @@ export default class MainScene extends Phaser.Scene {
 				safetyPins:
 					data.players.find((player) => player.token !== this.token)?.safetyPins ?? 3
 			},
-			endTime: data.roundEndTime
+			endTime: Date.now() - msRemaining
 		});
 	}
-	initGameState(data: HorolezciGameState) {
+	initGameState(data: HorolezciGameState, msRemaining: number | null) {
 		const player = data.players.find((player) => player.token === this.token);
 		const enemy = data.players.find((player) => player.token !== this.token);
 
@@ -204,7 +210,7 @@ export default class MainScene extends Phaser.Scene {
 				safetyPins:
 					data.players.find((player) => player.token !== this.token)?.safetyPins ?? 2
 			},
-			endTime: data.roundEndTime
+			endTime: msRemaining ? Date.now() - msRemaining : data.roundEndTime
 		});
 
 		this.pyramid?.show();

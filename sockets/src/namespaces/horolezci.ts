@@ -51,7 +51,7 @@ function startNextRound(gameState: HorolezciGameState, player: HorolezciPlayer, 
     }
 
   // Broadcast updated game state to both players
-  horolezciNamespace.to(gameId).emit("newRound", {data: gameState, newSecret: allLettersGuessed});
+  horolezciNamespace.to(gameId).emit("newRound", {data: gameState, newSecret: allLettersGuessed, msRemaining: gameState.roundEndTime! - Date.now()});
 }
 function evaluateAndStartNewRound(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
   evaluateGuesses(gameState, player!, enemy!, horolezciNamespace, gameId);
@@ -147,9 +147,9 @@ export function setupHorolezciNamespace(io: Server) {
       }
     }
 
-    horolezciNamespace.to(socket.id).emit("gameState", gameState);
+    horolezciNamespace.to(socket.id).emit("gameState", {gameState, msRemaining: gameState.roundEndTime ? gameState.roundEndTime - Date.now() : null});
     socket.on("getGameState", () => {
-      horolezciNamespace.to(socket.id).emit("gameState", gameState);
+      horolezciNamespace.to(socket.id).emit("gameState", {gameState, msRemaining: gameState.roundEndTime ? gameState.roundEndTime - Date.now() : null});
     });
 
     socket.on("lockInGuess", (data: {letter: string, scoreMultiplier: number}) => {
