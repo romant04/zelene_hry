@@ -212,6 +212,9 @@ export function setupHorolezciNamespace(io: Server) {
           roundEndTimer.delete(gameId);
           newRoundTimer.delete(gameId);
           usedSecrets.delete(gameId);
+          for (const p of gameData.players ?? []) {
+            activeSockets.delete(`${gameId}:${p.id}`);
+          }
           horolezciGameData.delete(gameId);
           GameRoomsMap.delete(gameId);
         }

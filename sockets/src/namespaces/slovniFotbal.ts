@@ -165,6 +165,9 @@ export function setupSlovniFotbalNamespace(io: Server) {
           gameData.players?.filter((player) => player.isConnected).length === 0
         ) {
           // If all players are disconnected, remove the game data
+          for (const p of gameData.players ?? []) {
+            activeSockets.delete(`${gameId}:${p.id}`);
+          }
           SlovniFotbalGameData.delete(gameId);
           GameRoomsMap.delete(gameId);
           clearTimeout(gameoverTimers.get(gameId));

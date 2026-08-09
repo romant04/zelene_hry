@@ -226,6 +226,9 @@ export function setupPrsiNamespace(io: Server) {
           gameData.players?.filter((player) => player.isConnected).length === 0
         ) {
           // If all players are disconnected, remove the game data
+          for (const p of gameData.players ?? []) {
+            activeSockets.delete(`${gameId}:${p.id}`);
+          }
           PrsiGameData.delete(gameId);
           GameRoomsMap.delete(gameId);
           console.log(
