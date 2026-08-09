@@ -60,6 +60,7 @@ class SecretWord extends Phaser.GameObjects.Container {
 export class SecretWordLine extends Phaser.GameObjects.Container {
 	public readonly lineWidth: number;
 	public readonly lineHeight: number;
+	private readonly fullText: string; // NEW: keep the original text around
 
 	constructor(
 		scene: Phaser.Scene,
@@ -70,6 +71,7 @@ export class SecretWordLine extends Phaser.GameObjects.Container {
 	) {
 		super(scene, x, y);
 
+		this.fullText = text;
 		const words = text.split(' ');
 
 		const lines: {
@@ -145,6 +147,36 @@ export class SecretWordLine extends Phaser.GameObjects.Container {
 					}
 				});
 			}
+		});
+	}
+
+	/** Call this once you detect the word is fully solved. */
+	public celebrateComplete() {
+		this.playLetterWave();
+		this.scene.sound.play('celebrate', { volume: 0.5, loop: false });
+	}
+
+	/** Quick left-to-right pulse across every letter box+glyph. */
+	private playLetterWave() {
+		let index = 0;
+		const allTargets: Phaser.GameObjects.GameObject[] = [];
+
+		this.list.forEach((wordContainer) => {
+			if (wordContainer instanceof SecretWord) {
+				wordContainer.list.forEach((child) => allTargets.push(child));
+			}
+		});
+
+		allTargets.forEach((target: Phaser.GameObjects.GameObject) => {
+			this.scene.tweens.add({
+				targets: target,
+				scale: { from: 1, to: 1.25 },
+				yoyo: true,
+				duration: 180,
+				delay: index * 25,
+				ease: 'Sine.easeInOut'
+			});
+			index++;
 		});
 	}
 }

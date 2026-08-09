@@ -111,7 +111,6 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 				this.checkpointSelected = true;
 				this.safetyPinButton?.setSelected(true);
 				this.scene.sound.play('lock_in', {
-					// TODO: Maybe play a different sound for safety pin selection
 					volume: 0.5,
 					loop: false
 				});
@@ -130,8 +129,11 @@ export default class Pyramid extends Phaser.GameObjects.Container {
 	}
 
 	public selectButton(button: LetterButton): void {
-		if (this.selectedButton === button || this.checkpointSelected) {
+		if (this.selectedButton === button) {
 			return;
+		}
+		if (this.checkpointSelected) {
+			this.resetSafetyPinSelection();
 		}
 
 		this.scene.sound.play('lock_in', {

@@ -56,10 +56,11 @@ function startNextRound(gameState: HorolezciGameState, player: HorolezciPlayer, 
 function evaluateAndStartNewRound(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
   evaluateGuesses(gameState, player!, enemy!, horolezciNamespace, gameId);
 
+  const sentenceGuessed = gameState.correctLetters.every((letter) => gameState.guessedLetters.includes(letter));
   if (!checkForGameover(gameState, player!, enemy!, horolezciNamespace, gameId)) {
     const timer = setTimeout(() => {
       startNextRound(gameState, player!, enemy!, horolezciNamespace, gameId);
-    }, 5800)
+    }, sentenceGuessed ? 8000 : 6000)
     newRoundTimer.set(gameId, timer);
   }
   else {
@@ -160,8 +161,6 @@ export function setupHorolezciNamespace(io: Server) {
 
     socket.on("placeSafety", () => {
         if (player!.safetyPins > 0) {
-            player!.lastSafetyPin = player!.distanceTraveled;
-            player!.safetyPins -= 1;
             player!.lockedInGuess = null;
         }
     })

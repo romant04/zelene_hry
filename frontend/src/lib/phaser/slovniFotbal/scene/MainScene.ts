@@ -7,7 +7,7 @@ import { get } from 'svelte/store';
 import { FloatingText } from '$lib/phaser/slovniFotbal/scene/FloatingText';
 import type { SlovniFotbalGameState } from '$lib/phaser/slovniFotbal/types/slovniFotbalGameState';
 import { endTime } from '../../../../stores/slovni-fotbal/timer';
-import { toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
+import { gameOver, toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
 import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
 import { volume } from '../../../../stores/gameGeneral/volume';
 
@@ -152,6 +152,9 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	preload() {
+		setDisconnect(false); // Reset disconnect state when the scene is loaded
+		gameOver.set({ winner: '', gameOver: false }); // Reset game over state when the scene is loaded
+
 		const g = this.make.graphics(undefined, false);
 
 		g.fillStyle(0xffffff);

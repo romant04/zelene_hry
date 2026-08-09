@@ -19,6 +19,9 @@ export function evaluateGuesses(gameState: HorolezciGameState, player: Horolezci
                 player!.distanceTraveled = player.lastSafetyPin; // Ensure the distance doesn't go below 0
             }
         }
+    } else {
+        player!.lastSafetyPin = player!.distanceTraveled;
+        player!.safetyPins -= 1;
     }
 
     if (enemy.lockedInGuess !== null) {
@@ -33,6 +36,9 @@ export function evaluateGuesses(gameState: HorolezciGameState, player: Horolezci
                 enemy!.distanceTraveled = enemy.lastSafetyPin; // Ensure the distance doesn't go below 0
             }
         }
+    } else {
+        enemy!.lastSafetyPin = enemy!.distanceTraveled;
+        enemy!.safetyPins -= 1;
     }
 
     // Add guessed letters - needs to be added after the evaluation of both players to allow for the case where both players guess the same letter in the same round

@@ -26,7 +26,7 @@ export class AnimatedCharText extends Phaser.GameObjects.Container {
 		this.charText.setScale(0);
 		this.scene.tweens.add({
 			targets: this.charText,
-			scale: 1.5,
+			scale: 1.75,
 			duration: 500,
 			ease: 'Power2',
 			onComplete: () => {

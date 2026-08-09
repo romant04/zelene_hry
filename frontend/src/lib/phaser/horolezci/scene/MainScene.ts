@@ -10,7 +10,7 @@ import type {
 import { distanceToTravel, horolezciStats } from '../../../../stores/horolezci/stats';
 import { rowToMultiplier } from '$lib/phaser/horolezci/utils/rowToMultiplier';
 import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
-import { toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
+import { gameOver, toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
 import { get } from 'svelte/store';
 import { volume } from '../../../../stores/gameGeneral/volume';
 
@@ -108,17 +108,31 @@ export default class MainScene extends Phaser.Scene {
 				}
 
 				this.pyramid?.highlightSelection(playerDistanceToTravel > 0);
-				this.secret?.updateGuessedLetters(new Set(data.data.guessedLetters));
 
-				setTimeout(() => {
-					this.pyramid?.hide();
-					this.secret?.hide();
-					this.pyramid?.clearSelection();
-				}, 2000);
-				setTimeout(() => {
-					this.player?.climb(playerDistanceToTravel);
-					this.enemy?.climb(enemyDistanceToTravel);
-				}, 2700);
+				// Check if all correct letters have been guessed
+				this.secret?.updateGuessedLetters(new Set(data.data.guessedLetters));
+				const sentenceGuessed = data.data.correctLetters.every((letter) =>
+					data.data.guessedLetters.includes(letter)
+				);
+				if (sentenceGuessed) {
+					this.secret?.celebrateComplete();
+				}
+
+				setTimeout(
+					() => {
+						this.pyramid?.hide();
+						this.secret?.hide();
+						this.pyramid?.clearSelection();
+					},
+					sentenceGuessed ? 4000 : 2300
+				);
+				setTimeout(
+					() => {
+						this.player?.climb(playerDistanceToTravel);
+						this.enemy?.climb(enemyDistanceToTravel);
+					},
+					sentenceGuessed ? 4800 : 3000
+				);
 			}
 		);
 
@@ -205,6 +219,8 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	preload() {
+		setDisconnect(false); // Reset disconnect state when the scene is loaded
+		gameOver.set({ winner: '', gameOver: false }); // Reset game over state when the scene is loaded
 		this.sound.volume = get(volume) / 100;
 		volume.subscribe((value) => {
 			this.sound.volume = value / 100;

@@ -23,6 +23,7 @@ import safetyPin from '../../../../assets/horolezci/safety_pin.png';
 import bg from '../../../../assets/horolezci/sounds/bg.mp3';
 import checkpoint from '../../../../assets/horolezci/sounds/checkpoint.mp3';
 import lock_in from '../../../../assets/horolezci/sounds/lock_in.mp3';
+import celebrate from '../../../../assets/horolezci/sounds/celebrate.mp3';
 
 export default class PreloadScene extends Phaser.Scene {
 	constructor() {
@@ -68,6 +69,7 @@ export default class PreloadScene extends Phaser.Scene {
 		this.load.audio('bg', bg);
 		this.load.audio('checkpoint', checkpoint);
 		this.load.audio('lock_in', lock_in);
+		this.load.audio('celebrate', celebrate);
 
 		this.load.on('progress', (value: number) => {
 			progressBar.clear();

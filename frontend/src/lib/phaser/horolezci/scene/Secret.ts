@@ -107,4 +107,10 @@ export class Secret extends Phaser.GameObjects.Container {
 			this.title.setText(newTitle);
 		}
 	}
+
+	public celebrateComplete() {
+		if (this.secretWordLine) {
+			this.secretWordLine.celebrateComplete();
+		}
+	}
 }
