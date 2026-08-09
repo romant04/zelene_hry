@@ -147,9 +147,17 @@ export function setupHorolezciNamespace(io: Server) {
       }
     }
 
-    horolezciNamespace.to(socket.id).emit("gameState", {gameState, msRemaining: gameState.roundEndTime ? gameState.roundEndTime - Date.now() : null});
+    const payload = {
+      ...gameState,
+      msRemaining: gameState.roundEndTime ? gameState.roundEndTime - Date.now() : null
+    };
+    horolezciNamespace.to(socket.id).emit("gameState", payload);
     socket.on("getGameState", () => {
-      horolezciNamespace.to(socket.id).emit("gameState", {gameState, msRemaining: gameState.roundEndTime ? gameState.roundEndTime - Date.now() : null});
+      const payload = {
+        ...gameState,
+        msRemaining: gameState.roundEndTime ? gameState.roundEndTime - Date.now() : null
+      };
+      horolezciNamespace.to(socket.id).emit("gameState", payload);
     });
 
     socket.on("lockInGuess", (data: {letter: string, scoreMultiplier: number}) => {

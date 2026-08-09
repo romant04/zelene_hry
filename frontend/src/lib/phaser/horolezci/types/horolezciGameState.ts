@@ -22,4 +22,5 @@ export interface HorolezciGameState {
 		secret: string;
 	};
 	roundEndTime: number | null;
+	msRemaining: number | null;
 }

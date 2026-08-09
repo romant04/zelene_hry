@@ -28,12 +28,9 @@ export default class MainScene extends Phaser.Scene {
 	private secret: Secret | undefined;
 
 	setupListeners() {
-		this.socket.on(
-			'gameState',
-			(data: { gameState: HorolezciGameState; msRemaining: number | null }) => {
-				this.initGameState(data.gameState, data.msRemaining);
-			}
-		);
+		this.socket.on('gameState', (data: HorolezciGameState) => {
+			this.initGameState(data);
+		});
 
 		this.socket.on(
 			'newRound',
@@ -171,10 +168,10 @@ export default class MainScene extends Phaser.Scene {
 				safetyPins:
 					data.players.find((player) => player.token !== this.token)?.safetyPins ?? 3
 			},
-			endTime: Date.now() - msRemaining
+			endTime: Date.now() + msRemaining
 		});
 	}
-	initGameState(data: HorolezciGameState, msRemaining: number | null) {
+	initGameState(data: HorolezciGameState) {
 		const player = data.players.find((player) => player.token === this.token);
 		const enemy = data.players.find((player) => player.token !== this.token);
 
@@ -210,7 +207,7 @@ export default class MainScene extends Phaser.Scene {
 				safetyPins:
 					data.players.find((player) => player.token !== this.token)?.safetyPins ?? 2
 			},
-			endTime: msRemaining ? Date.now() - msRemaining : data.roundEndTime
+			endTime: data.msRemaining ? Date.now() + data.msRemaining : data.roundEndTime
 		});
 
 		this.pyramid?.show();
