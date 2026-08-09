@@ -59,6 +59,7 @@ function prepareCardDeck() {
 
 const NAMESPACE = "/prsi";
 const PrsiGameData = new Map<string, PrsiGameState>();
+const activeSockets = new Map<string, string>();
 export function setupPrsiNamespace(io: Server) {
   const prsiNamespace = io.of(NAMESPACE);
 
@@ -80,6 +81,7 @@ export function setupPrsiNamespace(io: Server) {
     )!.id;
 
     socket.data.userId = id;
+    activeSockets.set(`${gameId}:${id}`, socket.id);
 
     if (!PrsiGameData.has(gameId) || !PrsiGameData.get(gameId)?.players) {
       const initialDeck = prepareCardDeck();
@@ -204,8 +206,15 @@ export function setupPrsiNamespace(io: Server) {
     });
 
     socket.on("disconnect", () => {
-      console.log(`User ${id} disconnected from Prší namespace.`);
-      // Optionally, you can handle cleanup or notify other players
+      const socketKey = `${gameId}:${id}`;
+      if (activeSockets.get(socketKey) !== socket.id) {
+        // A newer connection (e.g. from a page refresh) has already replaced
+        // this socket. This is the old, stale connection finally timing out —
+        // ignore it, the player is actually still connected.
+        return;
+      }
+      activeSockets.delete(socketKey);
+
       const gameData = PrsiGameData.get(gameId);
       if (gameData) {
         if (player) {

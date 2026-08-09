@@ -14,6 +14,7 @@ const horolezciGameData = new Map<string, HorolezciGameState>();
 const roundEndTimer = new Map<string, NodeJS.Timeout>();
 const newRoundTimer = new Map<string, NodeJS.Timeout>();
 const usedSecrets = new Map<string, Set<{type: string, secret: string}>>();
+const activeSockets = new Map<string, string>();
 
 function pickRandomSecret(gameId: string): {type: string, secret: string} {
     const usedSecretsForGame = usedSecrets.get(gameId) || new Set();
@@ -94,6 +95,7 @@ export function setupHorolezciNamespace(io: Server) {
     )!.id;
 
     socket.data.userId = id;
+    activeSockets.set(`${gameId}:${id}`, socket.id);
 
     if (
       !horolezciGameData.has(gameId) ||
@@ -184,7 +186,15 @@ export function setupHorolezciNamespace(io: Server) {
     })
 
     socket.on("disconnect", () => {
-      // Optionally, you can handle cleanup or notify other players
+      const socketKey = `${gameId}:${id}`;
+      if (activeSockets.get(socketKey) !== socket.id) {
+        // A newer connection (e.g. from a page refresh) has already replaced
+        // this socket. This is the old, stale connection finally timing out —
+        // ignore it, the player is actually still connected.
+        return;
+      }
+      activeSockets.delete(socketKey);
+
       const gameData = horolezciGameData.get(gameId);
       if (gameData) {
         if (player) {

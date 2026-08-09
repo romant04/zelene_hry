@@ -14,6 +14,7 @@ const GAME_DURATION = 3 * 60 * 1000;
 
 const gameoverTimers = new Map<string, NodeJS.Timeout>();
 const SlovniFotbalGameData = new Map<string, SlovniFotbalGameState>();
+const activeSockets = new Map<string, string>();
 
 function scheduleGameOver(io: Server, namespace: any, gameId: string) {
   const existing = gameoverTimers.get(gameId);
@@ -48,6 +49,7 @@ export function setupSlovniFotbalNamespace(io: Server) {
     )!.id;
 
     socket.data.userId = id;
+    activeSockets.set(`${gameId}:${id}`, socket.id);
 
     if (
       !SlovniFotbalGameData.has(gameId) ||
@@ -143,8 +145,15 @@ export function setupSlovniFotbalNamespace(io: Server) {
     })
 
     socket.on("disconnect", () => {
-      console.log(`User ${id} disconnected from Prší namespace.`);
-      // Optionally, you can handle cleanup or notify other players
+      const socketKey = `${gameId}:${id}`;
+      if (activeSockets.get(socketKey) !== socket.id) {
+        // A newer connection (e.g. from a page refresh) has already replaced
+        // this socket. This is the old, stale connection finally timing out —
+        // ignore it, the player is actually still connected.
+        return;
+      }
+      activeSockets.delete(socketKey);
+
       const gameData = SlovniFotbalGameData.get(gameId);
       if (gameData) {
         if (player) {
