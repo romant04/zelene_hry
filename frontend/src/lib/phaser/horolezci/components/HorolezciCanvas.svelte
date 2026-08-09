@@ -63,13 +63,12 @@
 
 	let time = $state(`${MAX_TIME}`);
 	$effect(() => {
-		console.log(`horolezciStats changed:`, $horolezciStats);
 		if (!$horolezciStats.endTime) {
 			time = `${MAX_TIME}`;
 			return;
 		}
 
-		setInterval(() => {
+		const interval = setInterval(() => {
 			const now = Date.now();
 			const remainingSeconds = Math.max(
 				0,
@@ -77,6 +76,8 @@
 			);
 			time = remainingSeconds.toString();
 		}, 1000);
+
+		return () => clearInterval(interval);
 	});
 
 	onDestroy(() => {
