@@ -43,7 +43,7 @@
 	>
 		<img
 			loading="lazy"
-			class="h-[15rem] w-full object-cover rounded-t-md object-top"
+			class="h-[11rem] w-full object-cover rounded-t-md object-top"
 			src={image}
 			alt=""
 		/>

@@ -7,7 +7,7 @@ import { TurnToken } from '$lib/phaser/prsi/scene/TurnToken';
 import { rnd } from '$lib/phaser/prsi/utils/general';
 import { isGameInProgress } from '$lib/phaser/prsi/utils/general';
 import { toggleSvrsek } from '../../../../stores/prsi/svrsek';
-import { toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
+import { gameOver, toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
 import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
 import { get } from 'svelte/store';
 import { volume } from '../../../../stores/gameGeneral/volume';
@@ -409,6 +409,9 @@ export default class MainScene extends Phaser.Scene {
 	}
 
 	preload() {
+		setDisconnect(false); // Reset disconnect state when the scene is loaded
+		gameOver.set({ winner: '', gameOver: false }); // Reset game over state when the scene is loaded
+
 		this.handPosition = {
 			x: this.cameras.main.width / 2,
 			y: this.cameras.main.height * 0.8

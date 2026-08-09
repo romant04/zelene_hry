@@ -9,6 +9,7 @@ import { GameData } from "./types/game";
 import { setupPrsiNamespace } from "./namespaces/prsi";
 import { setupFriendChallengeNamespace } from "./namespaces/friendChallenge";
 import { setupSlovniFotbalNamespace } from "./namespaces/slovniFotbal";
+import {setupHorolezciNamespace} from "./namespaces/horolezci";
 
 // Key = game+room
 export const GameRoomsMap: Map<string, GameData> = new Map(); // Maps individual games to data
@@ -27,6 +28,7 @@ export function setupSocket(server: ReturnType<typeof createServer>) {
   setupPrsiNamespace(io);
   setupSlovniFotbalNamespace(io);
   setupFriendChallengeNamespace(io);
+  setupHorolezciNamespace(io);
 
   console.log("Socket.io initialized");
 }
