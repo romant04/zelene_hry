@@ -30,13 +30,13 @@ export function rankImageMap(rank: RANK) {
 }
 
 export function calculateRank(MMR: number) {
-	if (MMR < 500) {
+	if (MMR < 350) {
 		return RANK.BRONZE;
-	} else if (MMR < 1500) {
+	} else if (MMR < 600) {
 		return RANK.SILVER;
-	} else if (MMR < 2500) {
+	} else if (MMR < 1000) {
 		return RANK.GOLD;
-	} else if (MMR < 4000) {
+	} else if (MMR < 2000) {
 		return RANK.PLAT;
 	} else {
 		return RANK.DIAMOND;

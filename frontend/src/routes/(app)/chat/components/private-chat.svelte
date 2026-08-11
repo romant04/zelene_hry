@@ -46,11 +46,13 @@
 				(user) => user.id === $auth.data?.id
 			);
 			restriction =
-				restrictions.find(
-					(restriction) =>
-						restriction.chatId === $activeChat.activeChat?.id &&
-						restriction.userId === $auth.data?.id
-				) || null;
+				restrictions
+					.filter((x) => x.endAt > new Date())
+					.find(
+						(restriction) =>
+							restriction.chatId === $activeChat.activeChat?.id &&
+							restriction.userId === $auth.data?.id
+					) || null;
 		} else {
 			isMemberOfChatroom = false;
 		}
