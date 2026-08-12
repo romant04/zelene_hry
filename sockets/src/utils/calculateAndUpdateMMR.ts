@@ -40,6 +40,12 @@ export async function calculateAndUpdateMMR(
     console.error("Game data not found");
     return;
   }
+  // Delete immediately (synchronously, before any await) so that if this
+  // function is ever invoked twice for the same gameId in quick succession
+  // (e.g. a race between two round timers), the second call sees gameData
+  // as already gone and bails out here instead of double-processing MMR
+  // and stats.
+  GameRoomsMap.delete(gameId);
 
   const elapsedTime = Date.now() - gameData.gameStartTime;
   const elapsedTimeMinutes = Math.ceil(elapsedTime / (1000 * 60));
@@ -59,11 +65,12 @@ export async function calculateAndUpdateMMR(
 
   playerStatsLoser.playTimeMinutes += elapsedTimeMinutes;
   playerStatsWinner.playTimeMinutes += elapsedTimeMinutes;
-  void updateGameStats(playerStatsWinner, true, winnerId);
-  void updateGameStats(playerStatsLoser, false, loserId);
+  await Promise.all([
+    updateGameStats(playerStatsWinner, true, winnerId, gameId),
+    updateGameStats(playerStatsLoser, false, loserId, gameId),
+  ]);
 
   if (gameData?.isPrivate) {
-    GameRoomsMap.delete(gameId);
     return; // Do not update MMR for private games
   }
 
@@ -73,7 +80,6 @@ export async function calculateAndUpdateMMR(
   const loserMMR = gameData.players.find(
       (player) => player.id === loserId,
   )?.mmr;
-  GameRoomsMap.delete(gameId);
 
   if (winnerMMR === undefined || loserMMR === undefined) {
     console.error("MMR calculation failed: Player MMR not found.");
@@ -132,30 +138,38 @@ async function updateGameStats(
     playerStats: PlayerStats,
     won: boolean,
     id: number,
+    gameId: string,
 ) {
-  console.log("Updating this: " + playerStats.gamesPlayed);
-
-  const res = await fetch(`${process.env.API_URL}/api/playerStats/update`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      gameId: playerStats.gameId,
-      userId: id,
-      gamesPlayed: playerStats.gamesPlayed + 1,
-      winRatio: calculateNewWinRatio(
-          playerStats.gamesPlayed,
-          playerStats.winRatio,
-          won,
-      ),
-      playTimeMinutes: playerStats.playTimeMinutes,
-      mmrSecret: process.env.MMR_SECRET,
-    }),
-  });
-  if (!res.ok) {
-    console.error("Failed to update game stats:", await res.text());
-    return;
+  try {
+    const res = await fetch(`${process.env.API_URL}/api/playerStats/update`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        gameId: playerStats.gameId,
+        userId: id,
+        gamesPlayed: playerStats.gamesPlayed + 1,
+        winRatio: calculateNewWinRatio(
+            playerStats.gamesPlayed,
+            playerStats.winRatio,
+            won,
+        ),
+        playTimeMinutes: playerStats.playTimeMinutes,
+        mmrSecret: process.env.MMR_SECRET,
+      }),
+    });
+    if (!res.ok) {
+      console.error(
+          `Failed to update game stats [gameId=${gameId}, userId=${id}]:`,
+          await res.text(),
+      );
+    }
+  } catch (err) {
+    console.error(
+        `Error updating game stats [gameId=${gameId}, userId=${id}]:`,
+        err,
+    );
   }
 }
 

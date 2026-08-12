@@ -17,18 +17,29 @@ const usedSecrets = new Map<string, Set<{type: string, secret: string}>>();
 const activeSockets = new Map<string, string>();
 
 function pickRandomSecret(gameId: string): {type: string, secret: string} {
-    const usedSecretsForGame = usedSecrets.get(gameId) || new Set();
-    const availableSecrets = SECRETS.filter(secret => !usedSecretsForGame.has(secret));
-    if (availableSecrets.length === 0) {
-        throw new Error("No more secrets available for this game.");
-    }
-    const randomSecret = availableSecrets[Math.floor(Math.random() * availableSecrets.length)];
-    usedSecretsForGame.add(randomSecret);
-    usedSecrets.set(gameId, usedSecretsForGame);
-    return randomSecret;
+  const usedSecretsForGame = usedSecrets.get(gameId) || new Set();
+  const availableSecrets = SECRETS.filter(secret => !usedSecretsForGame.has(secret));
+  if (availableSecrets.length === 0) {
+    throw new Error("No more secrets available for this game.");
+  }
+  const randomSecret = availableSecrets[Math.floor(Math.random() * availableSecrets.length)];
+  usedSecretsForGame.add(randomSecret);
+  usedSecrets.set(gameId, usedSecretsForGame);
+  return randomSecret;
 }
 
 function startNextRound(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
+  // Clear any timers already pending for this game before scheduling new
+  // ones. Without this, a manually-triggered round (both players ready)
+  // can race the automatically-scheduled timer from evaluateAndStartNewRound,
+  // leaving two independent timelines running for the same gameId and
+  // causing the round to be evaluated twice.
+  const pendingRoundEnd = roundEndTimer.get(gameId);
+  if (pendingRoundEnd) clearTimeout(pendingRoundEnd);
+  const pendingNewRound = newRoundTimer.get(gameId);
+  if (pendingNewRound) clearTimeout(pendingNewRound);
+  newRoundTimer.delete(gameId);
+
   // Set the new round end time
   gameState.roundEndTime = Date.now() + ROUND_DURATION;
   const timer = setTimeout(() => {
@@ -41,20 +52,29 @@ function startNextRound(gameState: HorolezciGameState, player: HorolezciPlayer, 
   gameState.pyramid = generatePyramid(gameState.correctLetters, new Set(gameState.guessedLetters));
 
   // Detect if the whole secret has been guessed
-    const allLettersGuessed = gameState.correctLetters.every(letter => gameState.guessedLetters.includes(letter.toLowerCase()));
-    if (allLettersGuessed) {
-        // If all letters have been guessed, pick a new secret
-        const newSecret = pickRandomSecret(gameId);
-        gameState.secret = newSecret;
-        gameState.correctLetters = Array.from(newSecret.secret.toLowerCase().replace(/[^a-záčďéěíňóřšťúůýž]/g, ""));
-        gameState.guessedLetters = [];
-        gameState.pyramid = generatePyramid(gameState.correctLetters, new Set());
-    }
+  const allLettersGuessed = gameState.correctLetters.every(letter => gameState.guessedLetters.includes(letter.toLowerCase()));
+  if (allLettersGuessed) {
+    // If all letters have been guessed, pick a new secret
+    const newSecret = pickRandomSecret(gameId);
+    gameState.secret = newSecret;
+    gameState.correctLetters = Array.from(newSecret.secret.toLowerCase().replace(/[^a-záčďéěíňóřšťúůýž]/g, ""));
+    gameState.guessedLetters = [];
+    gameState.pyramid = generatePyramid(gameState.correctLetters, new Set());
+  }
 
   // Broadcast updated game state to both players
   horolezciNamespace.to(gameId).emit("newRound", {data: gameState, newSecret: allLettersGuessed, msRemaining: gameState.roundEndTime! - Date.now()});
 }
 function evaluateAndStartNewRound(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
+  // Safety net: if the game has already been cleaned up (e.g. this call
+  // came from a stale/duplicate timer that raced the real one), do nothing.
+  // Without this, an orphaned timer can re-run guess evaluation on
+  // already-finished game objects, corrupting distanceTraveled and
+  // double-firing MMR/stat updates.
+  if (!horolezciGameData.has(gameId)) {
+    return;
+  }
+
   evaluateGuesses(gameState, player!, enemy!, horolezciNamespace, gameId);
 
   const sentenceGuessed = gameState.correctLetters.every((letter) => gameState.guessedLetters.includes(letter));
@@ -91,15 +111,15 @@ export function setupHorolezciNamespace(io: Server) {
 
     const generalGameData = GameRoomsMap.get(gameId) as GameData;
     const id = generalGameData?.players.find(
-      (player) => player.token === token,
+        (player) => player.token === token,
     )!.id;
 
     socket.data.userId = id;
     activeSockets.set(`${gameId}:${id}`, socket.id);
 
     if (
-      !horolezciGameData.has(gameId) ||
-      !horolezciGameData.get(gameId)?.players
+        !horolezciGameData.has(gameId) ||
+        !horolezciGameData.get(gameId)?.players
     ) {
       console.log(`Initializing game state for gameId: ${gameId}`);
       const players = generalGameData?.players.map((player) => {
@@ -163,16 +183,16 @@ export function setupHorolezciNamespace(io: Server) {
     });
 
     socket.on("lockInGuess", (data: {letter: string, scoreMultiplier: number}) => {
-        player!.lockedInGuess = data;
+      player!.lockedInGuess = data;
     })
     socket.on("setReadyForNextRound", () => {
       player!.readyForNextRound = true;
     })
 
     socket.on("placeSafety", () => {
-        if (player!.safetyPins > 0) {
-            player!.lockedInGuess = null;
-        }
+      if (player!.safetyPins > 0) {
+        player!.lockedInGuess = null;
+      }
     })
 
     socket.on("startNextRound", () => {
@@ -203,7 +223,7 @@ export function setupHorolezciNamespace(io: Server) {
         horolezciNamespace.to(gameId).emit("playerDisconnected", { id });
 
         if (
-          gameData.players?.filter((player) => player.isConnected).length === 0
+            gameData.players?.filter((player) => player.isConnected).length === 0
         ) {
           // If all players are disconnected, remove the game data
           // Remove all timeouts
