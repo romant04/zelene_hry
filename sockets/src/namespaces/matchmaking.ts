@@ -187,15 +187,21 @@ export function setupMatchmakingNamespace(io: Server) {
     });
 
     socket.on("cancelMatchmaking", () => {
-      console.log(
-        `User ${userData.username} cancelled matchmaking for game ${gameId}`,
-      );
-      clearInterval(interval!);
-      interval = null;
+      if (!userData.isSearching) {
+        // never actually joined the queue (or already cancelled/matched) — nothing to undo
+        return;
+      }
+
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+
       userData.isSearching = false;
       users.delete(key);
       matchedUserIds.delete(userData.id);
-      queueSize.set(gameId, (queueSize.get(gameId) || 0) - 1);
+
+      queueSize.set(gameId, Math.max(0, (queueSize.get(gameId) || 0) - 1));
       matchmakingNamespace.emit("usersInQueue", queueSize.get(gameId) || 0);
     });
 

@@ -20,6 +20,10 @@
 	function handleCancel() {
 		isOpen = false;
 		timeSearching = 0; // Reset the time when matchmaking is cancelled
+
+		// Safe to always emit: the parent only opens this overlay after
+		// `startMatchmaking` has actually been sent, so if the cancel button
+		// is visible at all, the server genuinely has us in the queue.
 		socket?.emit('cancelMatchmaking');
 	}
 </script>

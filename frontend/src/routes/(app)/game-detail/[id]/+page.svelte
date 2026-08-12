@@ -16,11 +16,25 @@
 	import { slugify } from '../../../../utils/slugify';
 	import ChallengeFriendOverlay from './components/challenge-friend-overlay.svelte';
 	import { redirect } from '@sveltejs/kit';
+	import Spinner from '../../components/spinner.svelte';
 
 	let { data }: PageProps = $props();
 	let socket: Socket | null = $state(null);
 	let isMatchmakingOpen = $state(false);
 	let isChallengeFriendOpen = $state(false);
+
+	// Set when the user wants to join matchmaking but the socket may not
+	// exist yet. The effect that owns socket creation is responsible for
+	// consuming this flag once the socket is actually ready, so we never
+	// silently no-op an emit on a null socket.
+	let pendingStart = $state(false);
+
+	// True from the moment the user clicks "Hrát hned" until matchmaking has
+	// actually started (auth sync done + socket ready + startMatchmaking
+	// emitted). Drives a loading state on the button so there's still
+	// feedback during that gap, since the overlay itself no longer opens
+	// until the join is real.
+	let isJoining = $state(false);
 
 	const images = {
 		slovniFotbal: slovniFotbal,
@@ -45,10 +59,18 @@
 		console.log(res);
 
 		const mmr: MMR = await res.json();
-		$auth.data!.player!.mmr.push(mmr);
+
+		// Update through the store instead of mutating $auth.data in place.
+		// A direct `.push()` on the current value doesn't notify subscribers,
+		// so effects depending on $auth.data?.player?.mmr would never re-run.
+		auth.update((state) => {
+			state.data!.player!.mmr.push(mmr);
+			return state;
+		});
 	}
 
 	async function syncDataAndJoin() {
+		isJoining = true;
 		try {
 			// 1. Refresh the local auth state from your Spring Boot API
 			const res = await fetch(`${API}/api/secured/user`, {
@@ -66,11 +88,15 @@
 			console.log(syncedData);
 			$auth.data = syncedData;
 
-			// Only join after we have the latest auth data
-			isMatchmakingOpen = true;
-			socket?.emit('startMatchmaking');
+			// Don't open the overlay here. The socket may not exist yet if
+			// this is the first time the socket-creation effect is running
+			// (it's scheduled, not synchronous), so mark intent instead and
+			// let the dedicated effect below open the overlay once
+			// `startMatchmaking` has actually been emitted.
+			pendingStart = true;
 		} catch (err) {
 			console.error('Could not refresh auth before matchmaking', err);
+			isJoining = false;
 		}
 	}
 
@@ -89,6 +115,7 @@
 			}
 		}
 	});
+
 	$effect(() => {
 		if (
 			$auth.data?.player?.mmr.find((mmr: MMR) => mmr.gameId === data.game.gameId) &&
@@ -122,6 +149,23 @@
 					goto('/');
 				}, 3000);
 			});
+		}
+	});
+
+	// Consumes the `pendingStart` intent as soon as a socket actually
+	// exists, guaranteeing `startMatchmaking` is never emitted on a null
+	// socket regardless of ordering between the two effects above.
+	//
+	// The overlay is opened here — and only here — right after the emit
+	// actually happens. That means the cancel button can never be shown for
+	// an attempt that hasn't really started on the server, so there's no
+	// window where `cancelMatchmaking` would be meaningless to send.
+	$effect(() => {
+		if (socket && pendingStart) {
+			socket.emit('startMatchmaking');
+			pendingStart = false;
+			isJoining = false;
+			isMatchmakingOpen = true;
 		}
 	});
 
@@ -188,9 +232,15 @@
 					<div class="flex md:flex-row flex-col gap-x-5 gap-y-3">
 						<button
 							onclick={handleJoiningMatchmaking}
-							class="button px-8 py-[6px] rounded-sm font-bold variant-filled-primary uppercase hover:!bg-success-800"
-							>Hrát hned</button
+							disabled={isJoining}
+							class="button min-w-[180px] px-8 py-[6px] rounded-sm font-bold variant-filled-primary uppercase hover:!bg-success-800 disabled:opacity-60 disabled:cursor-not-allowed"
 						>
+							{#if isJoining}
+								<Spinner w="w-5" h="h-5" />
+							{:else}
+								Hrát hned
+							{/if}
+						</button>
 						<button
 							onclick={handleChallengeFriend}
 							class="button px-8 py-[6px] rounded-sm font-bold variant-filled-secondary !bg-secondary-600 !text-white uppercase hover:!bg-secondary-500"

@@ -2,7 +2,8 @@ import {HorolezciGameState, HorolezciPlayer} from "../../types/game";
 import {calculateAndUpdateMMR} from "../calculateAndUpdateMMR";
 
 export function evaluateGuesses(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
-    const distanceMultiplier = 30; // We do * 50 because the height is roughly 1500, and we want to make sure the player can reach the top of the pyramid in a reasonable number of rounds
+    const distanceMultiplier = 100; // We do * 50 because the height is roughly 1500, and we want to make sure the player can reach the top of the pyramid in a reasonable number of rounds
+    const wrongGuessPenalty = 1; // 20; // The penalty for a wrong guess
     // Evaluate the guesses of both players
     const playerGuess = player!.lockedInGuess?.letter?.toLowerCase();
     const enemyGuess = enemy!.lockedInGuess?.letter?.toLowerCase();
@@ -14,7 +15,7 @@ export function evaluateGuesses(gameState: HorolezciGameState, player: Horolezci
             player!.distanceTraveled += distance * distanceMultiplier;
         }
         else {
-            player!.distanceTraveled -= 20 * distanceMultiplier; // Penalize the player for an incorrect guess
+            player!.distanceTraveled -= wrongGuessPenalty * distanceMultiplier; // Penalize the player for an incorrect guess
             if (player!.distanceTraveled < player.lastSafetyPin) {
                 player!.distanceTraveled = player.lastSafetyPin; // Ensure the distance doesn't go below 0
             }
@@ -31,7 +32,7 @@ export function evaluateGuesses(gameState: HorolezciGameState, player: Horolezci
             enemy!.distanceTraveled += distance * distanceMultiplier;
         }
         else {
-            enemy!.distanceTraveled -= 20 * distanceMultiplier; // Penalize the enemy for an incorrect guess
+            enemy!.distanceTraveled -= wrongGuessPenalty * distanceMultiplier; // Penalize the enemy for an incorrect guess
             if (enemy!.distanceTraveled < enemy.lastSafetyPin) {
                 enemy!.distanceTraveled = enemy.lastSafetyPin; // Ensure the distance doesn't go below 0
             }

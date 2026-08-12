@@ -147,6 +147,33 @@ export default class MainScene extends Phaser.Scene {
 		});
 		this.socket.on('gameOver', async (data: { winner: HorolezciPlayer | null }) => {
 			await new Promise((resolve) => setTimeout(resolve, 5800));
+			if (data.winner) {
+				const target = data.winner.token === this.token ? this.player! : this.enemy!;
+				const camera = this.cameras.main;
+
+				camera.stopFollow();
+
+				// 1. Pan smoothly to the target over 1000ms with a smooth ease curve
+				camera.pan(
+					target.x,
+					target.y,
+					1000, // Duration in milliseconds
+					'Power2', // Easing function ('Cubic.easeOut', 'Sine.easeInOut', etc.)
+					false, // Force constant speed (false = allow easing)
+					(cam, progress) => {
+						// 2. Once the pan reaches 100% completion, start following
+						if (progress === 1) {
+							cam.startFollow(
+								target,
+								true, // Round pixels (prevents jitter)
+								0.05, // Lerp X (smooth lag while following)
+								0.05 // Lerp Y
+							);
+						}
+					}
+				);
+			}
+			await new Promise((resolve) => setTimeout(resolve, 1300));
 			toggleGameOverOn(data.winner === null ? 'Remíza' : data.winner.name);
 		});
 	}
