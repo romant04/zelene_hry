@@ -99,6 +99,7 @@ export async function calculateAndUpdateMMR(
   const newWinnerMMR = Math.max(0, winnerMMR + winnerGain);
   const newLoserMMR = Math.max(0, loserMMR + loserGain);
 
+  console.log("newWinnerMMR:", newWinnerMMR);
   const res = await fetch(`${process.env.API_URL}/api/mmr/update`, {
     method: "PUT",
     headers: {
@@ -111,6 +112,7 @@ export async function calculateAndUpdateMMR(
       mmrSecret: process.env.MMR_SECRET,
     }),
   });
+  console.log("MMR update response for winner:", res.status, res.statusText);
   if (!res.ok) {
     console.error("Failed to update winner MMR:", await res.text());
     return;
