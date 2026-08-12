@@ -12,7 +12,7 @@
 	import type { MMR, User } from '../../../../types/user';
 	import { API } from '../../../../constants/urls';
 	import MatchmakingOverlay from './components/matchmaking-overlay.svelte';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { slugify } from '../../../../utils/slugify';
 	import ChallengeFriendOverlay from './components/challenge-friend-overlay.svelte';
 	import { redirect } from '@sveltejs/kit';
@@ -22,6 +22,7 @@
 	let socket: Socket | null = $state(null);
 	let isMatchmakingOpen = $state(false);
 	let isChallengeFriendOpen = $state(false);
+	let isFreshData = $state(false);
 
 	// Set when the user wants to join matchmaking but the socket may not
 	// exist yet. The effect that owns socket creation is responsible for
@@ -100,10 +101,28 @@
 		}
 	}
 
+	// We should refetch the auth data on mount to ensure we have the latest MMR information for the player.
+	// This is important because the player might have played other games
+	// or had their MMR updated since they last logged in. By refreshing the auth data,
+	// we can ensure that we have the most up-to-date information before attempting to join matchmaking.
+	onMount(async () => {
+		const res = await fetch(`${API}/api/secured/user`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${localStorage.getItem('token')}`
+			}
+		});
+		const syncedData = (await res.json()) as User;
+		$auth.data = syncedData;
+
+		isFreshData = true;
+	});
+
 	let playersInQueue = $state(0);
 
 	$effect(() => {
-		if (!socket && $auth.data?.player) {
+		if (!socket && isFreshData && $auth.data?.player) {
 			// If player doesn't have MMR yet, we will need to assign a default MMR value for him
 			if (
 				!$auth.data.player.mmr.find(
@@ -119,7 +138,8 @@
 	$effect(() => {
 		if (
 			$auth.data?.player?.mmr.find((mmr: MMR) => mmr.gameId === data.game.gameId) &&
-			!socket
+			!socket &&
+			isFreshData
 		) {
 			console.log('Player has MMR, no need to initialize');
 
