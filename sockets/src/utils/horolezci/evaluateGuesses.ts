@@ -2,8 +2,8 @@ import {HorolezciGameState, HorolezciPlayer} from "../../types/game";
 import {calculateAndUpdateMMR} from "../calculateAndUpdateMMR";
 
 export function evaluateGuesses(gameState: HorolezciGameState, player: HorolezciPlayer, enemy: HorolezciPlayer, horolezciNamespace: any, gameId: string) {
-    const distanceMultiplier = 100; // We do * 50 because the height is roughly 1500, and we want to make sure the player can reach the top of the pyramid in a reasonable number of rounds
-    const wrongGuessPenalty = 1; // 20; // The penalty for a wrong guess
+    const distanceMultiplier = 30; // We do *this because the height is roughly 1500, and we want to make sure the player can reach the top of the pyramid in a reasonable number of rounds
+    const wrongGuessPenalty = 20; // The penalty for a wrong guess
     // Evaluate the guesses of both players
     const playerGuess = player!.lockedInGuess?.letter?.toLowerCase();
     const enemyGuess = enemy!.lockedInGuess?.letter?.toLowerCase();

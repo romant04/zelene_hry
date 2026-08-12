@@ -123,12 +123,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 	}
 
 	public placeSafetyPin(y?: number) {
-		const pin = this.scene.add.image(this.x, y ? this.bottom - y : this.y - 20, 'safety_pin');
+		const pin = this.scene.add.image(this.x, y ? this.bottom - y : this.y - 50, 'safety_pin');
 		pin.setDisplaySize(10, 30);
 		pin.setOrigin(0.5, 1);
 		pin.setRotation(Math.PI / 6);
 		pin.setDepth(1);
-		pin.setTint(0xffd83d);
+		pin.setTint(0x0fb1ef);
 	}
 
 	public updatePosition(y: number) {
