@@ -26,6 +26,8 @@ services:
       - DB_URL=${DB_URL}
       - JWT_SECRET=${JWT_SECRET}
       - PROFILE=${PROFILE}
+      - MMR_SECRET=${MMR_SECRET}
+      - PORT=${PORT}
     networks:
       - app-network
 

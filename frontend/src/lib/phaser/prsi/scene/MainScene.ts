@@ -113,31 +113,43 @@ export default class MainScene extends Phaser.Scene {
 		this.updateHandLayout();
 	}
 	initGameState(state: PrsiGameState) {
+		// Guard: Scene must be ready (cameras / scale exist)
+		if (!this.cameras?.main || !this.scale) {
+			console.warn('[MainScene] initGameState called before Scene is ready – queuing');
+			this.pendingGameState = state;
+			return;
+		}
+
+		// Prefer scale (more stable) but fall back to cameras
+		const width = this.scale.width || this.cameras.main.width;
+		const height = this.scale.height || this.cameras.main.height;
+
 		this.myTurn =
 			state.currentPlayerId === state.players.find((x) => x.token === this.token)?.id;
 
-		const texture = getTextureFromSuit(
-			state.svrsek ? state.svrsek : state.centerCards[state.centerCards.length - 1].suit
-		);
+		// Safety: centerCards can theoretically be empty
+		const topCardSuit = state.svrsek ? state.svrsek : (state.centerCards?.at(-1)?.suit ?? 'k'); // fallback to 'kule'
+
+		const texture = getTextureFromSuit(topCardSuit);
+
 		this.turnToken = new TurnToken(
 			this,
-			this.cameras.main.width * 0.7,
-			this.myTurn
-				? this.cameras.main.height * BOTTOM_TOKEN_POSITION
-				: this.cameras.main.height * TOP_TOKEN_POSITION,
+			width * 0.7,
+			this.myTurn ? height * BOTTOM_TOKEN_POSITION : height * TOP_TOKEN_POSITION,
 			texture
 		).setInteractive();
+
 		this.turnToken.on('pointerdown', () => {
 			if (this.isEffectActive && this.eso) {
 				this.myTurn = false;
 				this.socket.emit('turnSkipped');
 				this.turnToken?.deactivateToken();
-				this.turnToken?.changePosition(this.cameras.main.height * TOP_TOKEN_POSITION);
-				this.eso = false; // Reset eso effect after skipping turn
+				this.turnToken?.changePosition(height * TOP_TOKEN_POSITION);
+				this.eso = false;
 			}
 		});
 
-		if (state.centerCards) {
+		if (state.centerCards?.length) {
 			for (const c of state.centerCards) {
 				this.updateCenterAfterEnemyPlayed(c, true, true);
 			}
@@ -150,9 +162,7 @@ export default class MainScene extends Phaser.Scene {
 		if (!gameInProgress) {
 			this.enemyHand = 5;
 			this.initHands(state);
-		}
-
-		if (gameInProgress) {
+		} else {
 			console.log('Game in progress, initializing player hands');
 			this.enemyHand = state.players.find((x) => x.token !== this.token)?.cards.length || 0;
 			this.initHands(state);
@@ -352,12 +362,18 @@ export default class MainScene extends Phaser.Scene {
 		});
 
 		this.socket.on('gameState', (data: PrsiGameState) => {
-			if (this.deck.length > 0) {
-				return; // Don't redraw deck if it's already populated
+			// Already initialised → ignore
+			if (this.deck.length > 0) return;
+
+			// Scene not ready yet → queue it
+			if (!this.cameras?.main || !this.sys?.isActive()) {
+				this.pendingGameState = data;
+				return;
 			}
 
+			// Assets not loaded yet (your existing check)
 			if (this.registry && this.registry.get('assetsLoaded') !== true) {
-				this.pendingGameState = data; // Store pending game state
+				this.pendingGameState = data;
 				return;
 			}
 
@@ -404,8 +420,6 @@ export default class MainScene extends Phaser.Scene {
 		super('MainScene');
 		this.socket = socket;
 		this.token = token;
-		this.setupListeners();
-		this.socket.emit('getGameState');
 	}
 
 	preload() {
@@ -459,11 +473,15 @@ export default class MainScene extends Phaser.Scene {
 			this.pendingGameState = null; // Clear pending game state after processing
 		}
 
-		this.add
-			.image(0, 0, 'wood')
-			.setOrigin(0)
-			.setDisplaySize(this.cameras.main.width, this.cameras.main.height)
-			.setDepth(-10); // behind everything
+		const { width, height } = this.cameras.main;
+		const bg = this.add.image(width / 2, height / 2, 'wood');
+
+		// Calculate the scale ratio
+		const scaleX = width / bg.width;
+		const scaleY = height / bg.height;
+		const scale = Math.max(scaleX, scaleY);
+
+		bg.setScale(scale).setScrollFactor(0).setDepth(-10);
 
 		this.playArea = this.add
 			.zone(this.cameras.main.width / 2, this.cameras.main.height / 2, 150, 200)
@@ -476,6 +494,9 @@ export default class MainScene extends Phaser.Scene {
 		this.playAreaGraphics.setVisible(false); // Hide the play area graphics by default
 
 		this.redrawEnemyHand();
+
+		this.setupListeners();
+		this.socket.emit('getGameState');
 	}
 
 	updateCenterAfterEnemyPlayed(c: CardData, start = false, rejoin = false) {

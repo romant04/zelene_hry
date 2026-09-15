@@ -94,16 +94,16 @@
 ></div>
 
 <div class="top-0 left-0 w-full fixed bg-tertiary-600 flex justify-between items-center">
-	<div class="flex items-center gap-4 bg-tertiary-800 pl-5">
+	<div class="flex items-center gap-4 bg-tertiary-800 w-[200px] pl-5">
 		<p class="text-2xl font-bold uppercase">{playerName}</p>
-		<p class="text-3xl bg-tertiary-900 p-5">{$score.player.goals}</p>
+		<p class="text-3xl bg-tertiary-900 p-5 ml-auto">{$score.player.goals}</p>
 	</div>
 
 	<div class="bg-tertiary-800 py-5 px-8">
 		<p class="text-3xl font-bold uppercase">{time}</p>
 	</div>
 
-	<div class="flex items-center gap-4 bg-tertiary-800 pr-5">
+	<div class="flex items-center gap-4 bg-tertiary-800 w-[200px] pr-5">
 		<p class="text-3xl bg-tertiary-900 p-5">{$score.enemy.goals}</p>
 		<p class="text-2xl font-bold uppercase">{enemyName}</p>
 	</div>

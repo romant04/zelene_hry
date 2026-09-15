@@ -9,6 +9,7 @@
 	import GameOver from '$lib/phaser/components/GameOver.svelte';
 	import Disconnect from '$lib/phaser/components/Disconnect.svelte';
 	import VolumeControl from '$lib/phaser/components/VolumeControl.svelte';
+	import bg from '../../../../assets/prsi/wood.jpg';
 
 	let {
 		socket,
@@ -70,6 +71,7 @@
 <div
 	id="phaser-container"
 	class="w-screen h-screen overflow-hidden flex justify-center items-center"
+	style="background: url({bg}) no-repeat center center fixed; background-size: cover;"
 ></div>
 <p class="fixed top-10 left-32 text-3xl font-bold">{enemyName}</p>
 <p class="fixed bottom-10 right-32 text-3xl font-bold">{playerName}</p>

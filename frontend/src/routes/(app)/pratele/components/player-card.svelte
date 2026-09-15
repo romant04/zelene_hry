@@ -40,7 +40,7 @@
 >
 	<p class="font-semibold">{friend.username}</p>
 	{#if isFriend}
-		<div class="flex items-center gap-2">
+		<div class="flex items-center gap-3">
 			<button onclick={handleChatRedirect}>
 				<Icon
 					width="32"
@@ -48,8 +48,9 @@
 					class="h-9 w-9 cursor-pointer rounded-full bg-primary-500 p-2 transition-all duration-150 hover:bg-primary-400"
 				/>
 			</button>
-			<button onclick={handleRemoveFriend} class="variant-filled-error btn h-9 w-32 text-sm"
-				>Odebrat z přátel</button
+			<button
+				onclick={handleRemoveFriend}
+				class="variant-filled-surface btn h-9 w-[120px] text-sm">Odebrat z přátel</button
 			>
 		</div>
 	{:else if friendRequestSent}

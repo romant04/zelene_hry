@@ -14,6 +14,7 @@
 	import { clearSocket } from '../../../utils/socket';
 	import { onDestroy } from 'svelte';
 	import type { FetchedSocialData } from './+page';
+	import FriendList from './components/friend-list.svelte';
 
 	let friendSocket: Socket | null = $state(null);
 	let { data }: { data: { data: FetchedSocialData } } = $props();
@@ -123,12 +124,10 @@
 {/if}
 <div class="container mt-16 grid grid-cols-1 lg:grid-cols-2 gap-10">
 	<div>
-		<h2 class="font-heading text-4xl font-semibold">Najít hráče</h2>
-		<div
-			class="mt-5 rounded-md bg-gradient-to-tr from-tertiary-700 to-tertiary-500 p-5 shadow-sm shadow-primary-600"
-		>
+		<h2 class="font-heading text-3xl font-semibold">Najít hráče</h2>
+		<div class="mt-5 rounded-md p-5 bg-surface-700">
 			<Search bind:filter />
-			<div class="mt-5 flex h-[30rem] flex-col gap-2 overflow-auto">
+			<div class="mt-5 flex h-[31.75rem] flex-col gap-2 overflow-auto">
 				{#if data.data && $auth.data !== null}
 					{@const userId = $auth.data.id}
 					{#each data.data.suggestedFriends
@@ -152,33 +151,10 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-10">
+	<div class="flex flex-col gap-5">
+		<FriendList {friendships} bind:friendToBeRemoved pageSize={4} />
 		<div>
-			<h2 class="font-heading text-4xl font-semibold">Moji přátelé</h2>
-			<div class="mt-5 flex max-h-[15rem] flex-col gap-2 overflow-auto">
-				{#if $auth.data !== null}
-					{@const userId = $auth.data.id}
-					{#each friendships.map((friendship) => {
-						if (userId === friendship.user1.id) {
-							return friendship.user2;
-						} else {
-							return friendship.user1;
-						}
-					}) as friend}
-						<PlayerCard
-							bgColor="bg-surface-600"
-							{friend}
-							isFriend={true}
-							bind:friendToBeRemoved
-						/>
-					{/each}
-				{:else}
-					<p>Loading...</p>
-				{/if}
-			</div>
-		</div>
-		<div>
-			<h2 class="font-heading text-4xl font-semibold">Žádosti o přátelství</h2>
+			<h2 class="font-heading text-3xl font-semibold">Žádosti o přátelství</h2>
 			<div class="mt-5 flex max-h-[15rem] flex-col gap-2 overflow-auto">
 				{#if $auth.data?.id}
 					{@const userId = $auth.data.id}
