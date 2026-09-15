@@ -12,7 +12,7 @@ Online herní platforma se sociálními prkvy. Je tvořena s myšlenkou náhradi
 - Notifikace ✅
 
 #### Herní  
-- 1v1 online hry ❌ (Prší ✅)
+- 1v1 online hry ✅
 - Matchmaking ✅
 - Ranking system ✅
 - Vytvoření soukromé hry pomocí kódu ✅
