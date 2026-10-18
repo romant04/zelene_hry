@@ -1,8 +1,5 @@
 <script lang="ts">
 	import type { PageProps } from '../../../../../.svelte-kit/types/src/routes/(app)/game-detail/[id]/$types';
-	import slovniFotbal from '../../../../assets/images/slovni-fotbal.webp';
-	import prsi from '../../../../assets/images/prsi.webp';
-	import horolezci from '../../../../assets/images/horolezci.webp';
 	import GameInfo from './components/game-info.svelte';
 	import { auth } from '../../../../stores/auth';
 	import { goto } from '$app/navigation';
@@ -13,12 +10,15 @@
 	import { API } from '../../../../constants/urls';
 	import MatchmakingOverlay from './components/matchmaking-overlay.svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import { slugify } from '../../../../utils/slugify';
 	import ChallengeFriendOverlay from './components/challenge-friend-overlay.svelte';
 	import { redirect } from '@sveltejs/kit';
 	import Spinner from '../../components/spinner.svelte';
+	import { i18n, localizeGame, resolveGameCode, t, tt } from '$lib/i18n';
+	import { getGameImage } from '../../../../utils/gameAssets';
 
 	let { data }: PageProps = $props();
+	let game = $derived(localizeGame(data.game, i18n.locale));
+	let gameCode = $derived(resolveGameCode(game));
 	let socket: Socket | null = $state(null);
 	let isMatchmakingOpen = $state(false);
 	let isChallengeFriendOpen = $state(false);
@@ -37,12 +37,6 @@
 	// until the join is real.
 	let isJoining = $state(false);
 
-	const images = {
-		slovniFotbal: slovniFotbal,
-		prsi: prsi,
-		horolezci: horolezci
-	};
-
 	async function initializeMMR(): Promise<void> {
 		console.log("Player doesn't have MMR, initializing...");
 		const res = await fetch(`${API}/api/secured/mmr`, {
@@ -52,7 +46,7 @@
 				Authorization: `Bearer ${localStorage.getItem('token')}`
 			},
 			body: JSON.stringify({
-				gameId: data.game.gameId,
+				gameId: game.gameId,
 				userId: $auth.data!.id
 			})
 		});
@@ -82,7 +76,7 @@
 				}
 			});
 			if (!res.ok) {
-				addToast('Vypršela platnost přihlášení', 'error');
+				addToast(tt('gameDetail.sessionExpired'), 'error');
 				redirect(303, '/login');
 			}
 			const syncedData = (await res.json()) as User;
@@ -106,15 +100,27 @@
 	// or had their MMR updated since they last logged in. By refreshing the auth data,
 	// we can ensure that we have the most up-to-date information before attempting to join matchmaking.
 	onMount(async () => {
+		const token = localStorage.getItem('token');
+		if (!token) {
+			// Never treat an error payload as a user (was flipping the header to "signed in").
+			if ($auth.data) {
+				auth.set({ token: null, data: null, loaded: true });
+			}
+			isFreshData = true;
+			return;
+		}
+
 		const res = await fetch(`${API}/api/secured/user`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				Authorization: `Bearer ${localStorage.getItem('token')}`
+				Authorization: `Bearer ${token}`
 			}
 		});
-		const syncedData = (await res.json()) as User;
-		$auth.data = syncedData;
+		if (res.ok) {
+			const syncedData = (await res.json()) as User;
+			$auth.data = syncedData;
+		}
 
 		isFreshData = true;
 	});
@@ -127,7 +133,7 @@
 			if (
 				!$auth.data.player.mmr.find(
 					(mmr: MMR) =>
-						mmr.gameId === data.game.gameId && mmr.userId === $auth.data?.player?.id
+						mmr.gameId === game.gameId && mmr.userId === $auth.data?.player?.id
 				)
 			) {
 				initializeMMR();
@@ -137,7 +143,7 @@
 
 	$effect(() => {
 		if (
-			$auth.data?.player?.mmr.find((mmr: MMR) => mmr.gameId === data.game.gameId) &&
+			$auth.data?.player?.mmr.find((mmr: MMR) => mmr.gameId === game.gameId) &&
 			!socket &&
 			isFreshData
 		) {
@@ -145,7 +151,7 @@
 
 			console.log('Creating matchmaking socket');
 
-			socket = createMatchmakingSocket($auth.data, data.game.gameId);
+			socket = createMatchmakingSocket($auth.data, game.gameId);
 
 			socket.on('usersInQueue', (count: number) => {
 				playersInQueue = count;
@@ -155,15 +161,11 @@
 				localStorage.setItem('playerToken', x.playerToken);
 				localStorage.setItem('gameId', x.gameId);
 				socket?.emit('joinGame');
-				goto(`/game/${slugify(data.game.name)}`);
+				goto(`/game/${gameCode}`);
 			});
 
 			socket.on('alreadyInMatchmaking', () => {
-				addToast(
-					'Již máte otevřené okno s touto hrou. Prosím vyvarujte se připojování více her najednou.',
-					'warning',
-					3000
-				);
+				addToast(tt('gameDetail.alreadyInGame'), 'warning', 3000);
 				isMatchmakingOpen = false;
 				setTimeout(() => {
 					goto('/');
@@ -195,7 +197,7 @@
 			return;
 		}
 		if ($auth.data.player === null) {
-			addToast('Pouze hráčské účty mohou hrát hry.', 'warning');
+			addToast(tt('gameDetail.playersOnly'), 'warning');
 			return;
 		}
 
@@ -215,29 +217,25 @@
 </script>
 
 <svelte:head>
-	<title>Duelovky | {data.game.name}</title>
+	<title>Duelovky | {game.name}</title>
 </svelte:head>
 
 <MatchmakingOverlay bind:isOpen={isMatchmakingOpen} {socket} />
-<ChallengeFriendOverlay bind:isOpen={isChallengeFriendOpen} game={data.game} />
-{#if data.game}
+<ChallengeFriendOverlay bind:isOpen={isChallengeFriendOpen} {game} />
+{#if game}
 	<div class="container flex flex-col gap-20 mt-10 w-[min(64rem,100%)]">
 		<div
 			class="flex lg:flex-row flex-col w-full justify-center items-center lg:items-stretch gap-12"
 		>
 			<img
 				class="max-w-[30rem] w-full object-cover rounded-t-md object-top"
-				src={data.game.name === 'Horolezci'
-					? images.horolezci
-					: data.game.name === 'Prší'
-						? images.prsi
-						: images.slovniFotbal}
+				src={getGameImage(game)}
 				alt=""
 			/>
 			<div class="flex flex-col max-w-[32.5rem]">
-				<h1 class="text-4xl font-heading font-semibold mb-2">{data.game.name}</h1>
+				<h1 class="text-4xl font-heading font-semibold mb-2">{game.name}</h1>
 				<p class="font-light tracking-[0.03em] md:text-base text-sm mb-5">
-					{data.game.description}
+					{game.description}
 				</p>
 
 				<div class="flex flex-col gap-3 mt-auto">
@@ -246,32 +244,32 @@
 							<span
 								class="block bg-success-400 rounded-full w-3 h-3"
 								style="box-shadow: 0px 0px 8px 1px #00bb00;"
-							></span>{playersInQueue} hráčů ve frontě
+							></span>{t('gameDetail.playersInQueue', { count: playersInQueue })}
 						</p>
 					{/if}
 					<div class="flex md:flex-row flex-col gap-x-5 gap-y-3">
 						<button
 							onclick={handleJoiningMatchmaking}
 							disabled={isJoining}
-							class="button min-w-[180px] px-8 py-[6px] rounded-sm font-bold variant-filled-primary uppercase hover:!bg-success-800 disabled:opacity-60 disabled:cursor-not-allowed"
+							class="button min-w-[180px] px-8 py-3 rounded-sm font-bold variant-filled-primary uppercase hover:!bg-success-800 disabled:opacity-60 disabled:cursor-not-allowed"
 						>
 							{#if isJoining}
 								<Spinner w="w-5" h="h-5" />
 							{:else}
-								Hrát hned
+								{t('gameDetail.playNow')}
 							{/if}
 						</button>
 						<button
 							onclick={handleChallengeFriend}
-							class="button px-8 py-[6px] rounded-sm font-bold variant-filled-secondary !bg-secondary-600 !text-white uppercase hover:!bg-secondary-500"
-							>Vyzvat kamaráda</button
+							class="button px-8 py-3 rounded-sm font-bold variant-filled-secondary !bg-secondary-600 !text-white uppercase hover:!bg-secondary-500 whitespace-nowrap"
+							>{t('gameDetail.challengeFriend')}</button
 						>
 					</div>
 				</div>
 			</div>
 		</div>
-		<GameInfo game={data.game} />
+		<GameInfo {game} />
 	</div>
 {:else}
-	<p>Loading...</p>
+	<p>{t('common.loading')}</p>
 {/if}

@@ -1,6 +1,7 @@
 package com.tarnai.duelovky.games.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.tarnai.duelovky.i18n.LocaleUtils;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,4 +27,23 @@ public class GameCategory {
     )
     @JsonManagedReference
     private List<Game> games;
+
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+    private List<GameCategoryTranslation> translations;
+
+    public String resolveName(String locale) {
+        if (translations == null || translations.isEmpty()) {
+            return name;
+        }
+
+        return translations.stream()
+                .filter(t -> locale.equals(t.getLocale()))
+                .map(GameCategoryTranslation::getName)
+                .findFirst()
+                .or(() -> translations.stream()
+                        .filter(t -> LocaleUtils.DEFAULT_LOCALE.equals(t.getLocale()))
+                        .map(GameCategoryTranslation::getName)
+                        .findFirst())
+                .orElse(name);
+    }
 }

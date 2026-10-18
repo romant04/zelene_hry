@@ -7,6 +7,7 @@
 	import { API } from '../../../../constants/urls';
 	import { addToast } from '../../../../stores/toast';
 	import Spinner from '../spinner.svelte';
+	import { t, tt } from '$lib/i18n';
 
 	let username = $state('');
 	let email = $state('');
@@ -43,14 +44,14 @@
 			setToken(data.token);
 			await goto('/');
 		} else {
-			addToast('Špatné přihlašovací údaje', 'error');
+			addToast(tt('auth.badCredentials'), 'error');
 			password = '';
 		}
 	}
 
 	async function handleSignUp() {
 		if (password !== password2) {
-			addToast('Hesla se neshodují', 'error');
+			addToast(tt('auth.passwordsMismatch'), 'error');
 			return;
 		}
 
@@ -82,7 +83,7 @@
 			setToken(data.token);
 			await goto('/');
 		} else {
-			addToast('Registrace se nezdařila', 'error');
+			addToast(tt('auth.registrationFailed'), 'error');
 		}
 	}
 
@@ -109,7 +110,7 @@
 		<div class="absolute -top-20 -left-20 bg-tertiary-600 w-52 h-52 rounded-full"></div>
 
 		<h2 class="text-center font-heading z-10 text-2xl font-bold lg:text-4xl">
-			{signIn ? 'Přihlásit se' : 'Registrovat se'}
+			{signIn ? t('auth.login') : t('auth.register')}
 		</h2>
 		<form
 			onsubmit={handleSubmit}
@@ -123,25 +124,37 @@
 					{signIn}
 					name="username"
 					type="text"
-					label="Přezdívka"
+					label={t('auth.username')}
 				/>
 			{/if}
-			<FormField bind:value={email} {signIn} name="email" type="email" label="E-mail" />
-			<FormField bind:value={password} {signIn} name="pass" type="password" label="Heslo" />
+			<FormField
+				bind:value={email}
+				{signIn}
+				name="email"
+				type="email"
+				label={t('auth.email')}
+			/>
+			<FormField
+				bind:value={password}
+				{signIn}
+				name="pass"
+				type="password"
+				label={t('auth.password')}
+			/>
 			{#if !signIn}
 				<FormField
 					bind:value={password2}
 					{signIn}
 					name="pass2"
 					type="password"
-					label="Heslo znovu"
+					label={t('auth.passwordAgain')}
 				/>
 			{/if}
 			<button type="submit" class="btn mt-2 h-11 w-full bg-primary-600 text-white">
 				{#if loading}
 					<Spinner />
 				{:else}
-					{signIn ? 'Přihlásit se' : 'Registrovat se'}
+					{signIn ? t('auth.login') : t('auth.register')}
 				{/if}
 			</button>
 		</form>
@@ -153,18 +166,16 @@
 		<div class="absolute -bottom-20 -right-20 bg-primary-500 w-52 h-52 rounded-full"></div>
 
 		<h2 class="text-center font-heading text-2xl font-bold lg:text-4xl">
-			{signIn ? 'Ještě nemáte účet ?' : 'Už máte svůj účet ?'}
+			{signIn ? t('auth.noAccount') : t('auth.hasAccount')}
 		</h2>
 		<p class="max-w-60 text-center">
-			{signIn
-				? 'Vytvořte si ho nyní a přidejte se k aktivní hráčské komunitě'
-				: 'Přihlašte se nyní ať můžete pokračovat v duelování'}
+			{signIn ? t('auth.createAccountHint') : t('auth.loginHint')}
 		</p>
 		<a
 			href={signIn ? '/register' : '/login'}
 			class="btn mt-5 h-12 w-full z-10 max-w-56 bg-tertiary-700"
 		>
-			{signIn ? 'Registrovat se' : 'Přihlásit se'}
+			{signIn ? t('auth.register') : t('auth.login')}
 		</a>
 	</div>
 </div>

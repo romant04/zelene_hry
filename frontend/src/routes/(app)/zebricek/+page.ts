@@ -5,6 +5,7 @@ import { API } from '../../../constants/urls';
 import type { MMR, User } from '../../../types/user';
 import { mmrCache } from '$lib/cache/mmr';
 import type { Game } from '../../../types/game';
+import { acceptLanguageHeaders, getClientLocale, type Locale } from '$lib/i18n';
 
 export interface FetchedMMRs {
 	MMRs: MMR[];
@@ -12,8 +13,10 @@ export interface FetchedMMRs {
 	users: User[];
 }
 
-export const load = async ({ fetch, data }) => {
+export const load = async ({ fetch, data, parent }) => {
 	const token = data?.token || (browser ? localStorage.getItem('token') : null);
+	const { locale: parentLocale } = (await parent()) as { locale: Locale };
+	const locale = getClientLocale(parentLocale);
 
 	if (!token) {
 		throw redirect(303, '/login');
@@ -28,7 +31,10 @@ export const load = async ({ fetch, data }) => {
 
 	// 3. Fetching
 	try {
-		const headers = { Authorization: `Bearer ${token}` };
+		const headers = {
+			Authorization: `Bearer ${token}`,
+			...acceptLanguageHeaders(locale)
+		};
 		const [mmrs, games, users] = await Promise.all([
 			fetch(`${API}/api/secured/mmr`, { headers }).then((res) => res.json()),
 			fetch(`${API}/api/games`, { headers }).then((res) => res.json()),

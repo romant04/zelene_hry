@@ -5,14 +5,17 @@ import { API } from '../../../constants/urls';
 import type { User } from '../../../types/user';
 import type { Game } from '../../../types/game';
 import { profileCache } from '$lib/cache/profile';
+import { acceptLanguageHeaders, getClientLocale, type Locale } from '$lib/i18n';
 
 export interface FetchedProfile {
 	user: User;
 	games: Game[];
 }
 
-export const load = async ({ fetch, data }) => {
+export const load = async ({ fetch, data, parent }) => {
 	const token = data?.token || (browser ? localStorage.getItem('token') : null);
+	const { locale: parentLocale } = (await parent()) as { locale: Locale };
+	const locale = getClientLocale(parentLocale);
 
 	if (!token) {
 		throw redirect(303, '/login');
@@ -27,7 +30,10 @@ export const load = async ({ fetch, data }) => {
 
 	// 3. Fetching
 	try {
-		const headers = { Authorization: `Bearer ${token}` };
+		const headers = {
+			Authorization: `Bearer ${token}`,
+			...acceptLanguageHeaders(locale)
+		};
 		const [user, games] = await Promise.all([
 			fetch(`${API}/api/secured/user`, { headers }).then((res) => res.json()),
 			fetch(`${API}/api/games`, { headers }).then((res) => res.json())

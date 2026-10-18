@@ -6,6 +6,7 @@
 	import { chatsCache } from '$lib/cache/chats';
 	import { goto } from '$app/navigation';
 	import { API } from '../../../../constants/urls';
+	import { formatNotificationMessage, pluralKey, t } from '$lib/i18n';
 
 	let {
 		isOpenNotifications = $bindable(),
@@ -19,10 +20,11 @@
 		const hours = Math.floor(minutes / 60);
 		const days = Math.floor(hours / 24);
 
-		if (days > 0) return `Před ${days} dn${days === 1 ? 'em' : 'y'}`;
-		if (hours > 0) return `Před ${hours} hodin${hours === 1 ? 'ou' : 'ami'}`;
-		if (minutes > 0) return `Před ${minutes} minut${minutes === 1 ? 'ou' : 'ami'}`;
-		return `Před ${seconds} sekund${seconds === 1 ? 'ou' : 'ami'}`;
+		if (days > 0) return t(pluralKey('notifications.daysAgo', days), { count: days });
+		if (hours > 0) return t(pluralKey('notifications.hoursAgo', hours), { count: hours });
+		if (minutes > 0)
+			return t(pluralKey('notifications.minutesAgo', minutes), { count: minutes });
+		return t(pluralKey('notifications.secondsAgo', seconds), { count: seconds });
 	}
 
 	async function handleNotificationClick(notification: Notification) {
@@ -81,20 +83,20 @@
 				onclick={() => handleNotificationClick(notification)}
 				class="bg-tertiary-700 flex flex-col justify-between min-h-20 p-2 rounded-md hover:bg-tertiary-800 cursor-pointer"
 			>
-				<span class="text-sm">{notification.message}</span>
+				<span class="text-sm">{formatNotificationMessage(notification, t)}</span>
 				<small class="text-xs text-gray-400"
 					>{getTimeDifference(new Date(), new Date(notification.createdAt))}</small
 				>
 			</button>
 		{/each}
 		{#if $notifications.length === 0}
-			<p class="text-center text-gray-400">Žádná oznámení</p>
+			<p class="text-center text-gray-400">{t('notifications.empty')}</p>
 		{/if}
 	</div>
 
 	<button
 		onclick={deleteAllNotifications}
 		class="btn variant-filled-warning h-8 mt-3 !text-sm !text-white"
-		>Smazat všechny oznámení</button
+		>{t('notifications.deleteAll')}</button
 	>
 </div>

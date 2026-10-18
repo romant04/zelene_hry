@@ -11,6 +11,7 @@
 	import { addToast } from '../../../../stores/toast';
 	import { API } from '../../../../constants/urls';
 	import type { Restriction } from '../../../../types/restriction';
+	import { t, tt } from '$lib/i18n';
 
 	let {
 		loading,
@@ -76,9 +77,9 @@
 			const data = await res.json();
 			setActiveChat(data);
 			isMemberOfChatroom = true;
-			addToast('Úspěšně jste se připojili do chatovací místnosti', 'success');
+			addToast(tt('chat.joinSuccess'), 'success');
 		} else {
-			addToast('Nastala chyba při připojování do chatovací místnosti', 'error');
+			addToast(tt('chat.joinError'), 'error');
 		}
 	}
 
@@ -89,12 +90,12 @@
 	<div
 		class="p-3 md:p-5 h-[calc(100vh-144px)] flex flex-col justify-center items-center text-center"
 	>
-		<h2 class="text-5xl font-semibold text-warning-500 mb-3 leading-10">Byl jsi zabanován</h2>
+		<h2 class="text-5xl font-semibold text-warning-500 mb-3 leading-10">{t('chat.bannedTitle')}</h2>
 		<p class="font-semibold">
-			Tvoje restrikce potrvá do: {new Date(restriction.endAt).toLocaleDateString()}
+			{t('chat.bannedUntil', { date: new Date(restriction.endAt).toLocaleDateString() })}
 		</p>
 		<p class="text-sm mt-3">
-			Kontaktuj administrátora, pokud se domníváte, že došlo k nedorozumění.
+			{t('chat.bannedContact')}
 		</p>
 	</div>
 {:else}
@@ -123,7 +124,7 @@
 					bind:this={chatContainer}
 				>
 					{#if loading}
-						<p>loading...</p>
+						<p>{t('common.loading')}</p>
 					{:else if $auth.data && messages.length > 0}
 						{#each messages as message}
 							<ChatBubble
@@ -132,7 +133,7 @@
 							/>
 						{/each}
 					{:else}
-						<p>S tímto uživatelem jste si zatím neposlali žádnou zprávu</p>
+						<p>{t('chat.noMessagesYet')}</p>
 					{/if}
 				</div>
 				<form onsubmit={() => sendMessage(inputElement)} class="flex gap-1 mt-auto">
@@ -155,7 +156,7 @@
 						{#if loadingSending}
 							<Spinner w="w-5" h="h-5" fill="fill-white" />
 						{:else}
-							Poslat
+							{t('chat.send')}
 						{/if}
 					</button>
 				</form>
@@ -163,12 +164,12 @@
 		{:else}
 			<div class="flex flex-col gap-5 justify-center items-center">
 				<p class="text-2xl max-w-[420px] text-center">
-					Nejste členem této skupiny, pokud chcete zde chatovat musíte se připojit
+					{t('chat.notMember')}
 				</p>
 				<button
 					onclick={handleJoinChatroom}
 					class="btn variant-filled-primary text-lg w-72 h-16"
-					>Připojit se do chatovací místnosti</button
+					>{t('chat.joinRoom')}</button
 				>
 			</div>
 		{/if}

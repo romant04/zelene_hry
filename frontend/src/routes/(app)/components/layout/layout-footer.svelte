@@ -1,52 +1,53 @@
 <script lang="ts">
 	import SocialLink from './social-link.svelte';
 	import { page } from '$app/state';
+	import { t } from '$lib/i18n';
 
-	const LINKS = [
+	let LINKS = $derived([
 		{
-			title: 'Populární hry',
+			title: t('footer.popularGames'),
 			links: [
 				{
-					label: 'Slovní fotbal',
+					label: t('footer.wordFootball'),
 					href: './game-detail.html'
 				},
 				{
-					label: 'Horolezci',
+					label: t('footer.climbers'),
 					href: './game-detail.html'
 				},
 				{
-					label: 'Prší',
+					label: t('footer.prsi'),
 					href: './game-detail.html'
 				},
 				{
-					label: 'Lodě',
+					label: t('footer.ships'),
 					href: './game-detail.html'
 				}
 			]
 		},
 		{
-			title: 'Můj účet',
+			title: t('footer.myAccount'),
 			links: [
 				{
-					label: 'Přihlášení',
+					label: t('footer.login'),
 					href: '/login'
 				},
 				{
-					label: 'Registrace',
+					label: t('footer.register'),
 					href: '/register'
 				},
 				{
-					label: 'Přátelé',
+					label: t('footer.friends'),
 					href: '/pratele'
 				},
 				{
-					label: 'Chat',
+					label: t('footer.chat'),
 					href: '/chat'
 				}
 			]
 		},
 		{
-			title: 'Kontaktujte nás',
+			title: t('footer.contactUs'),
 			links: [
 				{
 					label: '+420 630 520 710'
@@ -57,7 +58,7 @@
 				}
 			]
 		}
-	];
+	]);
 </script>
 
 <footer
@@ -87,10 +88,10 @@
 		<div class="mr-4 hidden h-full w-px bg-tertiary-200 md:block lg:mr-8 xl:mr-16"></div>
 		<div class="flex w-full justify-center">
 			<div class="w-full max-w-[24rem]">
-				<h4 class="mb-3 text-2xl">Narazili jste na bug ?</h4>
+				<h4 class="mb-3 text-2xl">{t('footer.foundBug')}</h4>
 				<form class="w-full">
 					<div>
-						<label for="email" class="label">E-mail</label>
+						<label for="email" class="label">{t('footer.email')}</label>
 						<input
 							name="email"
 							type="email"
@@ -98,14 +99,14 @@
 						/>
 					</div>
 					<div class="mt-2">
-						<label class="label" for="bug-desc">Popis bugu</label>
+						<label class="label" for="bug-desc">{t('footer.bugDescription')}</label>
 						<textarea
 							name="bug-desc"
 							class="textarea resize-none !bg-tertiary-800 p-2 text-sm"
 							rows="3"
 						></textarea>
 					</div>
-					<button class="btn h-9 w-full bg-secondary-700">Náhlasit bug</button>
+					<button class="btn h-9 w-full bg-secondary-700">{t('footer.reportBug')}</button>
 				</form>
 			</div>
 		</div>

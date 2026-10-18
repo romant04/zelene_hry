@@ -1,6 +1,16 @@
 <script lang="ts">
 	import hpHeroVideo from '../../../assets/videos/hp-hero-optimised.mp4';
 	import hpHeroPoster from '../../../assets/images/hp-hero-poster.jpg';
+	import { i18n, t } from '$lib/i18n';
+
+	let subtitle = $derived.by(() => {
+		void i18n.locale;
+		return t('home.heroSubtitle');
+	});
+	let explore = $derived.by(() => {
+		void i18n.locale;
+		return t('home.explore');
+	});
 </script>
 
 <div class="relative h-[95vh] w-full overflow-hidden">
@@ -17,15 +27,14 @@
 		<p
 			class="font-heading text-xl md:text-2xl lg:text-4xl font-semibold lg:leading-[2.75rem] tracking-wide text-success-400"
 		>
-			Klasické deskové hry, všechny <br />
-			na jednom místě
+			{@html subtitle}
 		</p>
 	</div>
 	<a
 		href="#hry"
 		class="group relative bottom-28 lg:bottom-32 left-1/2 flex w-fit -translate-x-1/2 cursor-pointer flex-col items-center gap-1 lg:gap-3"
 	>
-		<p class="text-xl lg:text-[1.65rem] uppercase tracking-[0.2em] text-success-400">Prozkoumat</p>
+		<p class="text-xl lg:text-[1.65rem] uppercase tracking-[0.2em] text-success-400">{explore}</p>
 		<svg
 			width="36"
 			height="36"

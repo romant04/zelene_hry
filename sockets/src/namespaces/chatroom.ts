@@ -3,8 +3,7 @@ import { Message } from "../types/message";
 import { getClientId } from "../utils/getClient";
 import { User } from "../types/user";
 import { Chatroom } from "../types/chat";
-import { Notification, NotificationInput } from "../types/notificationMessage";
-import { createNotification, notifyUser } from "./notification";
+import { createNotification } from "./notification";
 import { deliverToUser } from "../utils/deliverToUser";
 
 const users = new Map<number, User>();
@@ -61,10 +60,14 @@ export function setupChatroomNamespace(io: Server) {
           // managing 2 maps could be more demanding than just iterating through all users though
           await deliverToUser(io, NAMESPACE, id, "receiveMessage", data, () =>
             createNotification(
-              `Nová zpráva v chatovací místnosti ${data.room.name} od uživatele ${data.message.sender.username}`,
               id,
               `/chat/rooms`,
               "CHAT_ROOMS",
+              "system.newChatroomMessage",
+              {
+                room: data.room.name,
+                username: data.message.sender.username,
+              },
             ),
           );
         }

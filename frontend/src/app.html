@@ -4,6 +4,15 @@
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 		<meta name="viewport" content="width=device-width" />
+		<script>
+			try {
+				var locale = localStorage.getItem('locale');
+				if (locale === 'cs' || locale === 'en') {
+					document.documentElement.lang = locale;
+					document.cookie = 'locale=' + locale + '; path=/; max-age=31536000; SameSite=Lax';
+				}
+			} catch (e) {}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover" data-theme="duelovky">

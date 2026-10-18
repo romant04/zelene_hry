@@ -3,6 +3,7 @@
 	import type { Game } from '../../../../types/game';
 	import { calculateRank, rankImageMap } from '../../../../utils/rank';
 	import type { MMR, PlayerStats } from '../../../../types/user';
+	import { t } from '$lib/i18n';
 
 	const { games, MMRs, playerStats }: { games: Game[]; MMRs: MMR[]; playerStats: PlayerStats[] } =
 		$props();
@@ -19,7 +20,7 @@
 
 <div class="flex flex-col">
 	<div class="flex gap-3 lg:gap-6 items-center">
-		<h2 class="text-2xl lg:text-3xl font-heading font-bold">Herní statistiky</h2>
+		<h2 class="text-2xl lg:text-3xl font-heading font-bold">{t('profile.gameStats')}</h2>
 		<Select
 			options={games.map((game) => ({
 				option: game.name,
@@ -40,7 +41,7 @@
 					{(activePlayerStats.winRatio * 100).toFixed(2)}% winrate
 				</p>
 				<p>
-					{activePlayerStats.gamesPlayed} odehraných her
+					{t('profile.gamesPlayed', { count: activePlayerStats.gamesPlayed })}
 				</p>
 			{/if}
 			<p>{activeMMR} MMR</p>

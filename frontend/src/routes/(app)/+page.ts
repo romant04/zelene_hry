@@ -1,10 +1,16 @@
 import type { PageLoad } from '../../../.svelte-kit/types/src/routes/(app)/$types';
 import { API } from '../../constants/urls';
 import type { GamePreview } from '../../types/game';
+import { acceptLanguageHeaders, getClientLocale } from '$lib/i18n';
 
-export const load: PageLoad = async () => {
+export const load: PageLoad = async ({ fetch, parent }) => {
+	const { locale: parentLocale } = await parent();
+	const locale = getClientLocale(parentLocale);
+
 	try {
-		const games = await fetch(`${API}/api/games`).then((res) => res.json());
+		const games = await fetch(`${API}/api/games`, {
+			headers: acceptLanguageHeaders(locale)
+		}).then((res) => res.json());
 
 		return {
 			data: {

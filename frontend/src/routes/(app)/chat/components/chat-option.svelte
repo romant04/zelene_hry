@@ -5,6 +5,7 @@
 	import { notifications, updateNotifications } from '../../../../stores/notifications';
 	import { API } from '../../../../constants/urls';
 	import type { Notification } from '../../../../types/notificationMessage';
+	import { isDmNotificationForUser } from '../../../../utils/notificationMatch';
 
 	let { friend, loading = $bindable() }: { friend: User; loading: boolean } = $props();
 
@@ -25,28 +26,17 @@
 		setActiveChat(friend);
 
 		acknowledgeNotifications(
-			$notifications.filter(
-				(notification) =>
-					notification.message.includes(friend.username) &&
-					notification.redirectUrl === '/chat/dms'
-			)
+			$notifications.filter((notification) => isDmNotificationForUser(notification, friend.username))
 		);
 		updateNotifications(
-			$notifications.filter(
-				(notification) =>
-					!notification.message.includes(friend.username) ||
-					notification.redirectUrl !== '/chat/dms'
-			)
+			$notifications.filter((notification) => !isDmNotificationForUser(notification, friend.username))
 		);
 		loading = true;
 	}
 
 	let unreadMessages = $derived(
-		$notifications.filter(
-			(notification) =>
-				notification.message.includes(friend.username) &&
-				notification.redirectUrl === '/chat/dms'
-		).length
+		$notifications.filter((notification) => isDmNotificationForUser(notification, friend.username))
+			.length
 	);
 </script>
 

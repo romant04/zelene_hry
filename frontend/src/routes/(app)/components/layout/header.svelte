@@ -5,11 +5,16 @@
 	import Icon from '@iconify/svelte';
 	import { auth } from '../../../../stores/auth';
 	import MobileMenu from './mobile-menu.svelte';
-	import { headerLinks } from '../../../../constants/links';
+	import { getHeaderLinks } from '../../../../constants/links';
 	import UserMenuModal from './user-menu/user-menu-modal.svelte';
 	import Notifications from './notifications.svelte';
 	import NotificationModal from './notification-modal.svelte';
 	import Link from './link.svelte';
+	import LanguageSelect from './language-select.svelte';
+	import { invalidateAll } from '$app/navigation';
+	import { i18n, t } from '$lib/i18n';
+	import { profileCache } from '$lib/cache/profile';
+	import { mmrCache } from '$lib/cache/mmr';
 
 	let mobileMenuOpened = false;
 
@@ -20,6 +25,17 @@
 	let scrollPosition = 0;
 	let scrollFromLastDirectionChange = 0;
 	const scrollTolerance = 25;
+
+	let headerLinks = $derived.by(() => {
+		void i18n.locale;
+		return getHeaderLinks(t);
+	});
+
+	function handleLocaleChange() {
+		profileCache.clear();
+		mmrCache.clear();
+		void invalidateAll();
+	}
 
 	$effect(() => {
 		if (!header) {
@@ -61,12 +77,8 @@
 		isOpen = !isOpen;
 	}
 
-	let isAuthenticated = $state(0);
-
-	$effect(() => {
-		isAuthenticated =
-			$auth.loaded === false ? 0 : $auth.data !== null ? 1 : $auth.data === null ? 2 : 0;
-	});
+	// 0 loading · 1 signed in · 2 signed out
+	let isAuthenticated = $derived($auth.loaded === false ? 0 : $auth.data ? 1 : 2);
 
 	let isOpenModal = $state(false);
 	let isOpenNotifications = $state(false);
@@ -110,6 +122,9 @@
 		{/if}
 
 		{#snippet trail()}
+			<div class="mr-2">
+				<LanguageSelect onChange={handleLocaleChange} />
+			</div>
 			{#if isAuthenticated === 1 && $auth.data}
 				<div class="hidden md:block lg:hidden">
 					<UserMenu bind:isOpenModal bind:modal />
@@ -136,7 +151,7 @@
 					href="/login"
 					class="variant-filled-primary btn hidden h-10 w-40 items-center justify-center text-sm font-bold uppercase tracking-wide lg:flex"
 				>
-					Přihlásit se
+					{t('nav.login')}
 				</a>
 			{:else}
 				<LoginSkeleton />
@@ -151,4 +166,4 @@
 {#if isOpenNotifications}
 	<NotificationModal bind:isOpenNotifications bind:modal={notificationModal} />
 {/if}
-<MobileMenu links={headerLinks} bind:isOpen {isAuthenticated} />
+<MobileMenu links={headerLinks} bind:isOpen {isAuthenticated} onLocaleChange={handleLocaleChange} />

@@ -15,22 +15,55 @@
 	import { onDestroy } from 'svelte';
 	import type { FetchedSocialData } from './+page';
 	import FriendList from './components/friend-list.svelte';
+	import { t, tt } from '$lib/i18n';
+
+	type HubTab = 'friends' | 'requests' | 'find';
 
 	let friendSocket: Socket | null = $state(null);
 	let { data }: { data: { data: FetchedSocialData } } = $props();
 
 	let filter = $state('');
 	let activeFriend: User | null = $state(null);
-
 	let friendToBeRemoved: User | null = $state(null);
-
 	let friendRequests: FriendRequest[] = $state([]);
 	let friendships: Friendship[] = $state([]);
+	let activeTab = $state<HubTab>('friends');
+	let didPickInitialTab = $state(false);
+
+	let incomingRequests = $derived(
+		$auth.data?.id
+			? friendRequests.filter((fr) => fr.receiver.id === $auth.data!.id)
+			: []
+	);
+
+	let suggestedPlayers = $derived.by(() => {
+		if (!data.data || !$auth.data) return [];
+		const userId = $auth.data.id;
+		return data.data.suggestedFriends
+			.filter(
+				(user) =>
+					user.id !== userId &&
+					!friendships.some(
+						(friendship) =>
+							friendship.user1.id === user.id || friendship.user2.id === user.id
+					)
+			)
+			.filter((user) => user.username.toLowerCase().includes(filter.toLowerCase()));
+	});
 
 	$effect(() => {
 		if (data.data) {
 			friendships = data.data.friendships;
 			friendRequests = data.data.friendRequests;
+		}
+	});
+
+	// Land on Requests when there are incoming requests and no friends yet.
+	$effect(() => {
+		if (didPickInitialTab || !data.data || !$auth.data) return;
+		didPickInitialTab = true;
+		if (friendships.length === 0 && incomingRequests.length > 0) {
+			activeTab = 'requests';
 		}
 	});
 
@@ -74,7 +107,7 @@
 
 			friendSocket.on('friendRequestRejected', (friendRequest: FriendRequest) => {
 				addToast(
-					`Vaše žádost o přátelství uživateli ${friendRequest.receiver.username} byla zamítnuta`,
+					tt('friends.requestRejected', { username: friendRequest.receiver.username }),
 					'error',
 					10000
 				);
@@ -82,21 +115,21 @@
 			});
 			friendSocket.on(
 				'friendRequestAccepted',
-				(data: { friendRequest: FriendRequest; newFriend: Friendship }) => {
-					updateAfterFriendRequest(true, data.friendRequest, data.newFriend);
+				(payload: { friendRequest: FriendRequest; newFriend: Friendship }) => {
+					updateAfterFriendRequest(true, payload.friendRequest, payload.newFriend);
 				}
 			);
 
 			friendSocket.on('friendRequestSent', (friendRequest: FriendRequest) => {
 				addToast(
-					`Přišla vám nová žádost o přátelství od uživatele ${friendRequest.sender.username}`,
+					tt('friends.newRequest', { username: friendRequest.sender.username }),
 					'success'
 				);
 				friendRequests.push(friendRequest);
 			});
 
 			friendSocket.on('friendRemoved', (friend: User) => {
-				addToast(`Uživatel ${friend.username} si vás odstranil z přátel`, 'error');
+				addToast(tt('friends.removedYou', { username: friend.username }), 'error');
 				updateAfterFriendRemoved(friend);
 			});
 		}
@@ -109,11 +142,16 @@
 		}
 	});
 
-	// TODO: Implement pagination instead of scrollbar where it looks better
+	const tabs: { id: HubTab; labelKey: 'friends.myFriends' | 'friends.friendRequests' | 'friends.findPlayers' }[] =
+		[
+			{ id: 'friends', labelKey: 'friends.myFriends' },
+			{ id: 'requests', labelKey: 'friends.friendRequests' },
+			{ id: 'find', labelKey: 'friends.findPlayers' }
+		];
 </script>
 
 <svelte:head>
-	<title>Duelovky | Přátelé</title>
+	<title>{t('friends.pageTitle')}</title>
 </svelte:head>
 
 {#if friendToBeRemoved}
@@ -122,43 +160,68 @@
 {#if activeFriend}
 	<FriendRequestModal bind:friend={activeFriend} bind:friendRequests bind:friendSocket />
 {/if}
-<div class="container mt-16 grid grid-cols-1 lg:grid-cols-2 gap-10">
-	<div>
-		<h2 class="font-heading text-3xl font-semibold">Najít hráče</h2>
-		<div class="mt-5 rounded-md p-5 bg-surface-700">
-			<Search bind:filter />
-			<div class="mt-5 flex h-[31.75rem] flex-col gap-2 overflow-auto">
-				{#if data.data && $auth.data !== null}
-					{@const userId = $auth.data.id}
-					{#each data.data.suggestedFriends
-						.filter((user) => user.id !== userId && friendships.find((friendship) => friendship.user1.id === user.id || friendship.user2.id === user.id) === undefined)
-						.filter((x) => x.username
-								.toLowerCase()
-								.includes(filter.toLowerCase())) as player}
-						<PlayerCard
-							friend={player}
-							isFriend={false}
-							bind:activeFriend
-							friendRequestSent={friendRequests.some(
-								(fr) => fr.receiver.id === player.id
-							)}
-						/>
-					{/each}
-				{:else}
-					<p>Loading...</p>
-				{/if}
-			</div>
-		</div>
-	</div>
 
-	<div class="flex flex-col gap-5">
-		<FriendList {friendships} bind:friendToBeRemoved pageSize={4} />
-		<div>
-			<h2 class="font-heading text-3xl font-semibold">Žádosti o přátelství</h2>
-			<div class="mt-5 flex max-h-[15rem] flex-col gap-2 overflow-auto">
-				{#if $auth.data?.id}
-					{@const userId = $auth.data.id}
-					{#each friendRequests.filter((fr) => fr.receiver.id === userId) as request}
+<div class="container mx-auto mt-14 max-w-5xl px-4 pb-16">
+	<header class="mb-8">
+		<h1 class="font-heading text-4xl font-semibold tracking-wide md:text-5xl">
+			{t('friends.hubTitle')}
+		</h1>
+		<p class="mt-2 max-w-xl text-base text-surface-200 md:text-lg">
+			{t('friends.hubSubtitle')}
+		</p>
+	</header>
+
+	<div class="overflow-hidden rounded-xl bg-surface-700/80">
+		<div
+			class="flex flex-wrap gap-1 border-b border-surface-600/60 bg-surface-800/50 p-1.5 sm:flex-nowrap"
+			role="tablist"
+			aria-label={t('friends.hubTitle')}
+		>
+			{#each tabs as tab}
+				<button
+					type="button"
+					role="tab"
+					aria-selected={activeTab === tab.id}
+					onclick={() => (activeTab = tab.id)}
+					class="relative flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-semibold tracking-wide transition-colors sm:text-base
+						{activeTab === tab.id
+						? 'bg-primary-500 text-white shadow-sm'
+						: 'text-surface-200 hover:bg-surface-700/80 hover:text-white'}"
+				>
+					{t(tab.labelKey)}
+					{#if tab.id === 'requests' && incomingRequests.length > 0}
+						<span
+							class="min-w-[1.25rem] rounded-full px-1.5 py-0.5 text-center text-xs font-bold
+								{activeTab === 'requests' ? 'bg-white/20 text-white' : 'bg-primary-500 text-white'}"
+						>
+							{incomingRequests.length}
+						</span>
+					{/if}
+				</button>
+			{/each}
+		</div>
+
+		<section class="flex min-h-[28rem] max-h-[34rem] flex-col" role="tabpanel">
+		{#if activeTab === 'find'}
+			<div class="shrink-0 border-b border-surface-600/60 px-4 py-3">
+				<Search bind:filter />
+			</div>
+		{/if}
+
+		{#if activeTab === 'friends'}
+			<FriendList {friendships} bind:friendToBeRemoved pageSize={8} />
+		{:else if activeTab === 'requests'}
+			<div class="min-h-0 flex-1 overflow-auto">
+				{#if !$auth.data}
+					<p class="px-4 py-6 text-surface-200">{t('common.loading')}</p>
+				{:else if incomingRequests.length === 0}
+					<div
+						class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-6 text-center"
+					>
+						<p class="text-surface-200">{t('friends.noRequests')}</p>
+					</div>
+				{:else}
+					{#each incomingRequests as request (request.sender.id + '-' + request.receiver.id)}
 						<FriendRequestTab
 							friendRequest={request}
 							{updateAfterFriendRequest}
@@ -167,6 +230,28 @@
 					{/each}
 				{/if}
 			</div>
-		</div>
+		{:else if activeTab === 'find'}
+			<div class="min-h-0 flex-1 overflow-auto">
+				{#if !data.data || !$auth.data}
+					<p class="px-4 py-6 text-surface-200">{t('common.loading')}</p>
+				{:else if suggestedPlayers.length === 0}
+					<div
+						class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-6 text-center"
+					>
+						<p class="text-surface-200">{t('friends.noPlayersFound')}</p>
+					</div>
+				{:else}
+					{#each suggestedPlayers as player (player.id)}
+						<PlayerCard
+							friend={player}
+							isFriend={false}
+							bind:activeFriend
+							friendRequestSent={friendRequests.some((fr) => fr.receiver.id === player.id)}
+						/>
+					{/each}
+				{/if}
+			</div>
+		{/if}
+		</section>
 	</div>
 </div>

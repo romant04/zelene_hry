@@ -1,5 +1,6 @@
 import { type Handle, redirect } from '@sveltejs/kit';
 import { protectedRoutes } from './constants/protectedRoutes';
+import { parseLocaleCookie } from '$lib/i18n';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const token = event.cookies.get('token'); // 1. Read the token from cookies
@@ -12,6 +13,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	// 2. Pass it into "locals" so all load functions can see it
 	event.locals.token = token || null;
+	event.locals.locale = parseLocaleCookie(event.cookies.get('locale'));
 
 	// 3. Proceed with the request
 	return resolve(event);

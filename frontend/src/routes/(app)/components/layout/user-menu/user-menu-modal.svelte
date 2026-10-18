@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { userMenuLinks } from '../../../../../constants/links.js';
+	import { getUserMenuLinks } from '../../../../../constants/links.js';
 	import { fly } from 'svelte/transition';
 	import { auth } from '../../../../../stores/auth.js';
 	import { clearToken } from '../../../../../stores/auth.js';
@@ -8,11 +8,14 @@
 	import { chatsCache } from '$lib/cache/chats';
 	import { protectedRoutes } from '../../../../../constants/protectedRoutes';
 	import { goto } from '$app/navigation';
+	import { t } from '$lib/i18n';
 
 	let {
 		modal = $bindable(),
 		isOpen = $bindable()
 	}: { modal: HTMLElement | undefined; isOpen: boolean } = $props();
+
+	let userMenuLinks = $derived(getUserMenuLinks(t));
 
 	function handleSignOut() {
 		isOpen = false;
@@ -57,7 +60,7 @@
 			</ul>
 		</div>
 		<button onclick={handleSignOut} class="btn variant-filled-secondary !text-white h-8 w-full"
-			>Odhlásit se</button
+			>{t('nav.logout')}</button
 		>
 	</div>
 </div>

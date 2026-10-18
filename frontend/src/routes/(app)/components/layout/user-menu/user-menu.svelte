@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import { onDestroy } from 'svelte';
+	import { t } from '$lib/i18n';
 	let {
 		isOpenModal = $bindable(),
 		modal = $bindable()
@@ -37,7 +38,7 @@
 	bind:this={button}
 	onclick={handleClick}
 	class="bg-primary-500 hover:bg-primary-400 w-10 h-10 rounded-full flex justify-center items-center"
-	title="Uživatelské menu"
+	title={t('nav.userMenu')}
 >
 	<Icon icon="mdi:user" width="30" class="text-white" />
 </button>

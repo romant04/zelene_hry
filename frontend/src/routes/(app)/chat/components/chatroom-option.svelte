@@ -5,6 +5,7 @@
 	import { notifications, updateNotifications } from '../../../../stores/notifications';
 	import type { Notification } from '../../../../types/notificationMessage';
 	import { API } from '../../../../constants/urls';
+	import { isChatroomNotificationForRoom } from '../../../../utils/notificationMatch';
 
 	let { room, loading = $bindable() }: { room: Chatroom; loading: boolean } = $props();
 
@@ -25,17 +26,13 @@
 		setActiveChat(room);
 
 		acknowledgeNotifications(
-			$notifications.filter(
-				(notification) =>
-					notification.message.includes(room.name) &&
-					notification.redirectUrl === '/chat/rooms'
+			$notifications.filter((notification) =>
+				isChatroomNotificationForRoom(notification, room.name)
 			)
 		);
 		updateNotifications(
 			$notifications.filter(
-				(notification) =>
-					!notification.message.includes(room.name) ||
-					notification.redirectUrl !== '/chat/rooms'
+				(notification) => !isChatroomNotificationForRoom(notification, room.name)
 			)
 		);
 
@@ -43,11 +40,8 @@
 	}
 
 	let unreadMessages = $derived(
-		$notifications.filter(
-			(notification) =>
-				notification.message.includes(room.name) &&
-				notification.redirectUrl === '/chat/rooms'
-		).length
+		$notifications.filter((notification) => isChatroomNotificationForRoom(notification, room.name))
+			.length
 	);
 </script>
 

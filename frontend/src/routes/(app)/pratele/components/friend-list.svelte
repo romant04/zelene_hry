@@ -3,17 +3,14 @@
 	import { auth } from '../../../../stores/auth';
 	import type { Friendship } from '../../../../types/friendship';
 	import type { User } from '../../../../types/user';
+	import { t } from '$lib/i18n';
 
 	let {
-		title = 'Moji přátelé',
 		friendships,
-		bgColor = 'bg-surface-700',
-		pageSize = 5,
+		pageSize = 8,
 		friendToBeRemoved = $bindable()
 	}: {
-		title?: string;
 		friendships: Friendship[];
-		bgColor?: string;
 		pageSize?: number;
 		friendToBeRemoved: User | null;
 	} = $props();
@@ -33,7 +30,6 @@
 
 	const pagedFriends = $derived(friends.slice(page * pageSize, page * pageSize + pageSize));
 
-	// Clamp page if the list shrinks (e.g. after removing a friend)
 	$effect(() => {
 		if (page > totalPages - 1) {
 			page = Math.max(0, totalPages - 1);
@@ -49,40 +45,42 @@
 	}
 </script>
 
-<div class="flex h-[380px] flex-col">
-	<h2 class="font-heading text-3xl font-semibold shrink-0">{title}</h2>
-
-	<div class="mt-5 flex min-h-0 flex-1 flex-col justify-start gap-2">
+<div class="flex min-h-0 flex-1 flex-col">
+	<div class="min-h-0 flex-1 overflow-auto">
 		{#if $auth.data !== null}
-			{#if pagedFriends.length === 0}
-				<p class="text-md text-surface-200">Nemáte žádné přátele.</p>
+			{#if friends.length === 0}
+				<div class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-6 text-center">
+					<p class="text-surface-200">{t('friends.noFriends')}</p>
+				</div>
+			{:else}
+				{#each pagedFriends as friend (friend.id)}
+					<PlayerCard {friend} isFriend={true} bind:friendToBeRemoved />
+				{/each}
 			{/if}
-
-			{#each pagedFriends as friend}
-				<PlayerCard {bgColor} {friend} isFriend={true} bind:friendToBeRemoved />
-			{/each}
 		{:else}
-			<p>Loading...</p>
+			<p class="px-4 py-6 text-surface-200">{t('common.loading')}</p>
 		{/if}
 	</div>
 
-	<div class="mt-3 flex h-10 shrink-0 items-center justify-center gap-3">
-		{#if $auth.data !== null && totalPages > 1}
+	{#if $auth.data !== null && totalPages > 1}
+		<div class="flex h-12 shrink-0 items-center justify-center gap-4 border-t border-surface-600/60">
 			<button
-				class="rounded px-2 py-1 disabled:opacity-40 text-xl"
+				type="button"
+				class="rounded px-2 py-1 text-xl disabled:opacity-40"
 				onclick={prevPage}
 				disabled={page === 0}
 			>
 				←
 			</button>
-			<span class="text-md">{page + 1} / {totalPages}</span>
+			<span class="text-sm tabular-nums">{page + 1} / {totalPages}</span>
 			<button
-				class="rounded px-2 py-1 disabled:opacity-40 text-xl"
+				type="button"
+				class="rounded px-2 py-1 text-xl disabled:opacity-40"
 				onclick={nextPage}
 				disabled={page === totalPages - 1}
 			>
 				→
 			</button>
-		{/if}
-	</div>
+		</div>
+	{/if}
 </div>

@@ -9,8 +9,8 @@
 	import { auth } from '../../../../../stores/auth';
 	import { onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { slugify } from '../../../../../utils/slugify';
 	import type { Game } from '../../../../../types/game';
+	import { resolveGameCode, t, tt } from '$lib/i18n';
 
 	let { isOpen = $bindable(), game }: { isOpen: boolean; game: Game } = $props();
 	let matchId = $state('');
@@ -28,7 +28,7 @@
 				localStorage.setItem('playerToken', data.playerToken);
 				localStorage.setItem('gameId', data.gameId);
 				socket?.emit('joinGame');
-				goto(`/game/${slugify(game.name)}`);
+				goto(`/game/${resolveGameCode(game)}`);
 			});
 		}
 	});
@@ -37,11 +37,11 @@
 		navigator.clipboard.writeText(urlForMatch).then(
 			() => {
 				// Successfully copied
-				addToast('Odkaz zkopírován do schránky', 'success');
+				addToast(tt('gameDetail.linkCopied'), 'success');
 			},
 			() => {
 				// Failed to copy
-				addToast('Nepodařilo se zkopírovat odkaz do schránky', 'error');
+				addToast(tt('gameDetail.linkCopyFailed'), 'error');
 			}
 		);
 	}
@@ -72,9 +72,9 @@
 				<h1
 					class="text-4xl flex sm:flex-row text-center flex-col items-center gap-7 mb-2 font-bold tracking-wider"
 				>
-					Vytvářím soukromé lobby <span class="block dot-elastic"></span>
+					{t('gameDetail.creatingLobby')} <span class="block dot-elastic"></span>
 				</h1>
-				<p class="text-xl mb-1">Odkaz pro připojení do hry</p>
+				<p class="text-xl mb-1">{t('gameDetail.joinLink')}</p>
 				<button onclick={handleUrlCopy} class="btn variant-filled-surface flex gap-2">
 					<span class="text-sm">{urlForMatch}</span>
 					<Icon icon="mdi:content-copy" class="w-5 h-5 ml-2" />
@@ -83,7 +83,7 @@
 				<button
 					onclick={handleCancel}
 					class="mt-8 button variant-filled-surface px-8 rounded-md text-lg font-semibold py-2"
-					>Zrušit</button
+					>{t('gameDetail.cancel')}</button
 				>
 			</div>
 		</div>

@@ -7,6 +7,7 @@
 	import type { FriendRequest } from '../../../../types/friendRequest';
 	import type { Socket } from 'socket.io-client';
 	import { socialCache } from '$lib/cache/socials';
+	import { t, tt } from '$lib/i18n';
 
 	let {
 		friend = $bindable(),
@@ -65,13 +66,13 @@
 		if (response.ok) {
 			socialCache.clear();
 			friend = null;
-			addToast('Žádost o přátelství byla úspěšně odeslána', 'success');
+			addToast(tt('friends.requestSentSuccess'), 'success');
 			friendSocket?.emit('friendRequestSent', data);
 			friendRequests.push(data);
 			return;
 		}
 
-		addToast('Nepodařilo se odeslat žádost o přátelství', 'error');
+		addToast(tt('friends.requestSentError'), 'error');
 	}
 </script>
 
@@ -85,8 +86,8 @@
 	onclick={handleClose}
 >
 	<div class="bg-tertiary-600 rounded-md p-5 w-[max(280px,50%)]">
-		<h1 class="text-xl mb-5 font-semibold uppercase">Nová žádost o přátelství</h1>
-		<p class="text-sm">Zpráva pro '{friend?.username}'</p>
+		<h1 class="text-xl mb-5 font-semibold uppercase">{t('friends.newRequestTitle')}</h1>
+		<p class="text-sm">{t('friends.messageFor', { username: friend?.username ?? '' })}</p>
 		<textarea
 			bind:value={message}
 			class="input mt-1 !bg-tertiary-800 px-2 py-1 resize-none"
@@ -95,14 +96,14 @@
 			maxlength="300"
 		></textarea>
 		<button
-			title="Odeslat žádost"
+			title={t('friends.sendRequest')}
 			onclick={handleAddFriend}
 			class="btn variant-filled-primary mt-5 w-full"
 		>
 			{#if loading}
 				<Spinner w="w-5" h="h-5" fill="fill-white" />
 			{:else}
-				Přidat do přátel
+				{t('friends.addFriend')}
 			{/if}
 		</button>
 	</div>

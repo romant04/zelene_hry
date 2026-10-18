@@ -12,9 +12,9 @@ public class GameInfoDto {
     private String gameInfo;
     private GameInfoType infoLabel;
 
-    public GameInfoDto(GameInfo gameInfo) {
+    public GameInfoDto(GameInfo gameInfo, String locale) {
         this.gameInfoId = gameInfo.getGameInfoId();
-        this.gameInfo = gameInfo.getGameInfo();
+        this.gameInfo = gameInfo.resolveText(locale);
         this.infoLabel = gameInfo.getInfoLabel();
     }
 }

@@ -2,6 +2,7 @@
 	import { blur } from 'svelte/transition';
 	import swordAnimation from '../../../../../assets/videos/sword_animation.gif';
 	import type { Socket } from 'socket.io-client';
+	import { t } from '$lib/i18n';
 
 	let { isOpen = $bindable(), socket }: { isOpen: boolean; socket: Socket | null } = $props();
 	let timeSearching = $state(0);
@@ -37,17 +38,17 @@
 				<h1
 					class="text-4xl flex sm:flex-row text-center flex-col items-center gap-7 mb-8 font-bold tracking-wider"
 				>
-					Hledám soupeře <span class="block dot-elastic"></span>
+					{t('gameDetail.searchingOpponent')} <span class="block dot-elastic"></span>
 				</h1>
 				<img src={swordAnimation} alt="sword animation" class="w-56" />
-				<p class="mt-5 text-xl font-semibold">Hledání ({timeSearching}s)</p>
+				<p class="mt-5 text-xl font-semibold">{t('gameDetail.searching', { seconds: timeSearching })}</p>
 				<p class="mt-1 text-sm tracking-[0.03em] font-medium text-center">
-					Snažíme se najít nejvhodnějšího protivníka <br /> k vaší úrovni
+					{@html t('gameDetail.searchingHint')}
 				</p>
 				<button
 					onclick={handleCancel}
 					class="mt-8 button variant-filled-tertiary px-8 rounded-md text-lg font-semibold py-2 hover:!bg-tertiary-700"
-					>Zrušit</button
+					>{t('gameDetail.cancel')}</button
 				>
 			</div>
 		</div>

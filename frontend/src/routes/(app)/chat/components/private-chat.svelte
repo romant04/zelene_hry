@@ -18,6 +18,7 @@
 	import { chatSocket, clearChatSocket, setChatSocket } from '../../../../stores/chat-socket';
 	import { isChatroomMessage } from '../../../../utils/isChatroomMessage';
 	import type { Restriction } from '../../../../types/restriction';
+	import { t, tt } from '$lib/i18n';
 
 	let {
 		friends,
@@ -92,7 +93,7 @@
 		}
 
 		if (message === '') {
-			addToast('Zpráva nesmí být prázdná', 'error');
+			addToast(tt('chat.emptyMessage'), 'error');
 			return;
 		}
 
@@ -262,17 +263,17 @@
 
 <div class="hidden md:grid grid-cols-[auto,1fr] h-[calc(100vh-72px)]">
 	<div class="bg-tertiary-600 py-5 px-4 w-80">
-		<h2 class="text-3xl font-semibold">Chaty</h2>
+		<h2 class="text-3xl font-semibold">{t('chat.chats')}</h2>
 
 		<Select
 			options={[
 				{
-					option: 'Privátní chaty',
+					option: t('chat.privateChats'),
 					value: 'dms',
 					defaultOption: chatType === 'dm'
 				},
 				{
-					option: 'Chatovací místnosti',
+					option: t('chat.chatRooms'),
 					value: 'rooms',
 					defaultOption: chatType === 'group'
 				}
@@ -284,7 +285,7 @@
 
 		<input
 			name="search"
-			placeholder={`Vyhledat ${chatType === 'dm' ? 'kamaráda' : 'místnost'}...`}
+			placeholder={chatType === 'dm' ? t('chat.searchFriend') : t('chat.searchRoom')}
 			class="input !bg-tertiary-800 py-2 text-sm font-semibold px-2 mt-3"
 			type="text"
 			oninput={handleSearch}
@@ -326,16 +327,16 @@
 			? 'w-full px-4'
 			: 'w-0 px-0'} py-5 overflow-hidden transition-all duration-300 ease-out h-full"
 	>
-		<h2 class="text-3xl font-semibold">Chaty</h2>
+		<h2 class="text-3xl font-semibold">{t('chat.chats')}</h2>
 		<Select
 			options={[
 				{
-					option: 'Privátní chaty',
+					option: t('chat.privateChats'),
 					value: 'dms',
 					defaultOption: chatType === 'dm'
 				},
 				{
-					option: 'Chatovací místnosti',
+					option: t('chat.chatRooms'),
 					value: 'rooms',
 					defaultOption: chatType === 'group'
 				}
@@ -345,7 +346,7 @@
 			styles="mt-5 mb-10 bg-tertiary-700 p-2 rounded-sm"
 		/>
 		<input
-			placeholder={`Vyhledat ${chatType === 'dm' ? 'kamaráda' : 'místnost'}...`}
+			placeholder={chatType === 'dm' ? t('chat.searchFriend') : t('chat.searchRoom')}
 			class="input !bg-tertiary-800 py-2 text-sm font-semibold px-2 mt-3"
 			type="text"
 			oninput={handleSearch}

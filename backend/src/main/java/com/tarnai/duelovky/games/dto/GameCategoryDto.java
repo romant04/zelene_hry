@@ -10,8 +10,8 @@ public class GameCategoryDto {
     private Long gameCategoryId;
     private String name;
 
-    public GameCategoryDto(GameCategory gameCategory) {
+    public GameCategoryDto(GameCategory gameCategory, String locale) {
         this.gameCategoryId = gameCategory.getGameCategoryId();
-        this.name = gameCategory.getName();
+        this.name = gameCategory.resolveName(locale);
     }
 }

@@ -42,11 +42,19 @@
 	});
 
 	$effect(() => {
-		if (options.length > 0) {
-			const defaultOption = options.find((option) => option.defaultOption);
-			if (defaultOption) {
-				selected = defaultOption;
+		if (options.length === 0) return;
+
+		if (value !== undefined) {
+			const match = options.find((option) => option.value === value);
+			if (match) {
+				selected = match;
+				return;
 			}
+		}
+
+		const defaultOption = options.find((option) => option.defaultOption);
+		if (defaultOption) {
+			selected = defaultOption;
 		}
 	});
 </script>

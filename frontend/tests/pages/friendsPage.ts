@@ -8,6 +8,7 @@ export class FriendsPage {
 	}
 
 	async sendFriendRequest(friend: string, message: string) {
+		await this.page.getByRole('tab', { name: 'Najít hráče' }).click();
 		await this.page.locator(`text=${friend}`).waitFor({ state: 'visible', timeout: 10000 });
 		await this.page.click('div:has(p:has-text("Test friend")) >> text=Přidat do přátel');
 
@@ -19,11 +20,12 @@ export class FriendsPage {
 	}
 
 	async acceptFriendRequest(friend: string) {
+		await this.page.getByRole('tab', { name: /Žádosti/ }).click();
 		await this.page
 			.locator(`text=${friend}`)
 			.first()
 			.waitFor({ state: 'visible', timeout: 10000 });
-		const card = this.page.locator(`div:has(div > p:has-text("${friend}"))`);
+		const card = this.page.locator(`div:has(p:has-text("${friend}"))`);
 		await card.locator('text=Přijmout').click();
 	}
 

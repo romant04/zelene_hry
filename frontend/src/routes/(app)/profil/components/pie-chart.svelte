@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { convertTimeToBestFormat } from '../../../../utils/time';
+	import { t } from '$lib/i18n';
 
 	const { data }: { data: { label: string; mins: number }[] } = $props();
 
@@ -77,12 +78,12 @@
 </script>
 
 <div class="chart-wrapper">
-	<h2 class="font-heading font-bold text-4xl mb-5">Celkový herní čas</h2>
+	<h2 class="font-heading font-bold text-4xl mb-5">{t('profile.totalPlayTime')}</h2>
 
 	{#if totalMins === 0}
-		<p class="text-2xl font-semibold text-error-400">Zatím jste neodehrál žádné hry</p>
+		<p class="text-2xl font-semibold text-error-400">{t('profile.noGamesPlayed')}</p>
 		<a class="btn variant-filled-primary mt-5 text-lg font-semibold w-40" href="/#hry"
-			>Jít hrát</a
+			>{t('profile.goPlay')}</a
 		>
 	{/if}
 	<div class="container">

@@ -7,6 +7,7 @@
 	import type { Socket } from 'socket.io-client';
 	import { auth } from '../../../../stores/auth';
 	import { socialCache } from '$lib/cache/socials';
+	import { t, tt } from '$lib/i18n';
 
 	let {
 		friend = $bindable(),
@@ -61,13 +62,13 @@
 		if (response.ok) {
 			socialCache.clear();
 			updateAfterFriendRemoved(friend);
-			addToast('Přítel byl úspěšně odstraněn', 'success');
+			addToast(tt('friends.friendRemovedSuccess'), 'success');
 			friendSocket?.emit('friendRemoved', { user: $auth.data, friend: friend.id }); // We use $auth.data?.id, because the other user needs to know who ended friendship with him
 			friend = null;
 			return;
 		}
 
-		addToast('Nepodařilo se odstranit přítele', 'error');
+		addToast(tt('friends.friendRemovedError'), 'error');
 	}
 </script>
 
@@ -81,17 +82,19 @@
 	onclick={handleClose}
 >
 	<div class="bg-tertiary-600 rounded-md p-5 w-[max(280px,50%)]">
-		<h1 class="text-xl mb-5 font-semibold uppercase">Odstranit přítele '{friend?.username}'</h1>
-		<p>Opravdu si přejete smazat {friend?.username} z vašeho seznamu přátel ?</p>
+		<h1 class="text-xl mb-5 font-semibold uppercase">
+			{t('friends.removeFriendTitle', { username: friend?.username ?? '' })}
+		</h1>
+		<p>{t('friends.removeFriendConfirm', { username: friend?.username ?? '' })}</p>
 		<div class="mt-5 w-full flex gap-1">
 			<button onclick={handleRemoveFriend} class="btn variant-filled-primary">
 				{#if loading}
 					<Spinner w="w-5" h="h-5" fill="fill-white" />
 				{:else}
-					Potvrdit
+					{t('friends.confirm')}
 				{/if}
 			</button>
-			<button onclick={handleClose} class="btn variant-filled-error">Zrušit</button>
+			<button onclick={handleClose} class="btn variant-filled-error">{t('friends.cancel')}</button>
 		</div>
 	</div>
 </div>

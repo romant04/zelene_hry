@@ -6,6 +6,7 @@
 	import { API } from '../../../../constants/urls';
 	import { chatSocket } from '../../../../stores/chat-socket';
 	import { restrictionOverlay } from '../../../../stores/restriction-overlay';
+	import { t } from '$lib/i18n';
 
 	let { message, messageType }: { message: Message; messageType: 'dm' | 'group' } = $props();
 
@@ -106,11 +107,11 @@
 					>
 						<button
 							onclick={handleMessageDelete}
-							class="hover:bg-tertiary-700 py-1 px-3 rounded-lg">Smazat zprávu</button
+							class="hover:bg-tertiary-700 py-1 px-3 rounded-lg">{t('chat.deleteMessage')}</button
 						>
 						<button
 							onclick={openRestrictionOverlay}
-							class="hover:bg-tertiary-700 py-1 px-3 rounded-lg">Zabanovat</button
+							class="hover:bg-tertiary-700 py-1 px-3 rounded-lg">{t('chat.banUser')}</button
 						>
 					</div>
 				{/if}

@@ -20,7 +20,7 @@ export function setupNotificationNamespace(io: Server) {
 
     socket.on("receiveNotification", (notification: Notification) => {
       console.log(
-        `User ${userId} received notification: ${notification.message}`,
+        `User ${userId} received notification: ${notification.messageKey ?? notification.message}`,
       );
       socket.emit("receiveNotification", notification);
     });
@@ -43,16 +43,18 @@ export async function notifyUser(io: Server, notification: Notification) {
 }
 
 export async function createNotification(
-  msg: string,
   userId: number,
   redirectUrl: string,
   type: string,
+  messageKey: string,
+  messageParams: Record<string, string | number> = {},
 ): Promise<Notification> {
   const message: NotificationInput = {
-    message: msg,
-    type: type,
-    redirectUrl: redirectUrl,
-    userId: userId,
+    messageKey,
+    messageParams: JSON.stringify(messageParams),
+    type,
+    redirectUrl,
+    userId,
     mmrSecret: process.env.MMR_SECRET!,
   };
   const res = await fetch(`${process.env.API_URL}/api/notifications`, {

@@ -3,13 +3,16 @@
 	import ProfileInfo from './components/profile-info.svelte';
 	import PieChart from './components/pie-chart.svelte';
 	import GameStats from './components/game-stats.svelte';
+	import { i18n, localizeGame } from '$lib/i18n';
 
 	const { data }: { data: { data: FetchedProfile } } = $props();
+
+	let games = $derived(data.data.games.map((game) => localizeGame(game, i18n.locale)));
 
 	const pieChartData = $derived.by(() => {
 		if (!data.data.user.player) return [];
 		return data.data.user.player.playerStats.map((stat) => ({
-			label: data.data.games.find((game) => game.gameId === stat.gameId)?.name || 'Unknown',
+			label: games.find((game) => game.gameId === stat.gameId)?.name || 'Unknown',
 			mins: stat.playTimeMinutes
 		}));
 	});
@@ -22,7 +25,7 @@
 		<ProfileInfo user={data.data.user} />
 		{#if data.data.user.player}
 			<GameStats
-				games={data.data.games}
+				{games}
 				MMRs={data.data.user.player.mmr}
 				playerStats={data.data.user.player.playerStats}
 			/>

@@ -12,6 +12,8 @@ import java.util.Date;
 public class NotificationDto {
     private Long notificationId;
     private String message;
+    private String messageKey;
+    private String messageParams;
     private String type;
     private Boolean isRead;
     private AccountDto user;
@@ -21,6 +23,8 @@ public class NotificationDto {
     public NotificationDto(Notification notification) {
         this.notificationId = notification.getNotificationId();
         this.message = notification.getMessage();
+        this.messageKey = notification.getMessageKey();
+        this.messageParams = notification.getMessageParams();
         this.type = notification.getType();
         this.isRead = notification.getIsRead();
         this.user = new AccountDto(notification.getUser());

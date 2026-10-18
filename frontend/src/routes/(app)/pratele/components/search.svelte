@@ -1,31 +1,36 @@
 <script lang="ts">
+	import Icon from '@iconify/svelte';
+	import { t } from '$lib/i18n';
+
 	let { filter = $bindable() }: { filter: string } = $props();
 
 	let searchTerm = $state('');
 	let debounceTimeout: number | null = $state(null);
-	function handleSearch(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
-		if (!event.target) {
-			return;
-		}
 
-		searchTerm = (event.target as HTMLInputElement).value;
+	function handleSearch(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
+		searchTerm = event.currentTarget.value;
 		if (debounceTimeout) {
 			clearTimeout(debounceTimeout);
 		}
 		debounceTimeout = window.setTimeout(() => {
 			filter = searchTerm;
 			debounceTimeout = null;
-		}, 750);
+		}, 400);
 	}
 </script>
 
-<div class="flex items-center gap-2">
-	<label for="search" class="label text-sm font-bold">Vyhledat: </label>
+<label class="relative block w-full max-w-md">
+	<span class="sr-only">{t('friends.searchLabel')}</span>
+	<Icon
+		icon="mdi:magnify"
+		width="20"
+		class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-surface-300"
+	/>
 	<input
-		type="text"
+		type="search"
 		name="search"
-		class="input !bg-surface-900 px-2 py-1"
-		placeholder="Jméno hráče"
+		class="input w-full !bg-surface-800 py-2 pl-10 pr-3 text-sm"
+		placeholder={t('friends.playerNamePlaceholder')}
 		oninput={handleSearch}
 	/>
-</div>
+</label>

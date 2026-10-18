@@ -46,10 +46,11 @@ export function setupChatNamespace(io: Server) {
         message,
         () =>
           createNotification(
-            `Obdrželi jste novou zprávu od uživatele ${message.sender.username}`,
             friendId,
             `/chat/dms`,
             "DM",
+            "system.newDm",
+            { username: message.sender.username },
           ),
       );
     });

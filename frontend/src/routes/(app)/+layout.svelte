@@ -13,15 +13,30 @@
 	import { notifications, updateNotifications } from '../../stores/notifications';
 	import type { Notification } from '../../types/notificationMessage';
 	import { API } from '../../constants/urls';
+	import { alignLocaleWithServer, i18n, syncLocaleFromStorage, type Locale } from '$lib/i18n';
+	import { invalidateAll } from '$app/navigation';
+	import { profileCache } from '$lib/cache/profile';
+	import { mmrCache } from '$lib/cache/mmr';
 
 	interface Props {
+		data: { locale: Locale; token: string | null };
 		children?: import('svelte').Snippet;
 	}
 
-	let { children }: Props = $props();
+	let { data, children }: Props = $props();
 	let notificationSocket: Socket | null = null;
 
 	onMount(() => {
+		const ssrLocale = data.locale;
+		// Start from the SSR locale, then apply localStorage so en always
+		// triggers a real locale transition (hero + flag re-render).
+		alignLocaleWithServer(ssrLocale);
+		syncLocaleFromStorage();
+		if (i18n.locale !== ssrLocale) {
+			profileCache.clear();
+			mmrCache.clear();
+			void invalidateAll();
+		}
 		if (localStorage.getItem('out-of-service')) {
 			updateUserState(); // Test if service is back online
 		}

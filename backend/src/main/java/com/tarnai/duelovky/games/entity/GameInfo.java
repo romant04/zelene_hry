@@ -1,8 +1,11 @@
 package com.tarnai.duelovky.games.entity;
 
+import com.tarnai.duelovky.i18n.LocaleUtils;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Entity(name = "game_info")
 @Getter
@@ -23,4 +26,23 @@ public class GameInfo {
     @ManyToOne
     @JoinColumn(name = "game_id", referencedColumnName = "game_id")
     private Game game;
+
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+    private List<GameInfoTranslation> translations;
+
+    public String resolveText(String locale) {
+        if (translations == null || translations.isEmpty()) {
+            return gameInfo;
+        }
+
+        return translations.stream()
+                .filter(t -> locale.equals(t.getLocale()))
+                .map(GameInfoTranslation::getGameInfo)
+                .findFirst()
+                .or(() -> translations.stream()
+                        .filter(t -> LocaleUtils.DEFAULT_LOCALE.equals(t.getLocale()))
+                        .map(GameInfoTranslation::getGameInfo)
+                        .findFirst())
+                .orElse(gameInfo);
+    }
 }

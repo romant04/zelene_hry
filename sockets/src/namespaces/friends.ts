@@ -1,9 +1,8 @@
 import { Server, Socket } from "socket.io";
 import { FriendRequest } from "../types/friendRequest";
-import { getClientId } from "../utils/getClient";
 import { Friendship } from "../types/friendship";
 import { User } from "../types/user";
-import { createNotification, notifyUser } from "./notification";
+import { createNotification } from "./notification";
 import { deliverToUser } from "../utils/deliverToUser";
 
 const NAMESPACE = "/friends";
@@ -32,10 +31,11 @@ export function setupFriendsNamespace(io: Server) {
           data,
           () =>
             createNotification(
-              `Vaše žádost o přátelství uživateli ${data.friendRequest.receiver.username} byla akecptovaná.`,
               data.friendRequest.sender.id,
               "/pratele",
               "FRIENDS",
+              "system.friendRequestAccepted",
+              { username: data.friendRequest.receiver.username },
             ),
         );
       },
@@ -51,10 +51,11 @@ export function setupFriendsNamespace(io: Server) {
         friendRequest,
         () =>
           createNotification(
-            `Vaše žádost o přátelství uživateli ${friendRequest.receiver.username} byla zamítnuta.`,
             friendRequest.sender.id,
             "/pratele",
             "FRIENDS",
+            "system.friendRequestRejected",
+            { username: friendRequest.receiver.username },
           ),
       );
     });
@@ -69,10 +70,11 @@ export function setupFriendsNamespace(io: Server) {
         friendRequest,
         () =>
           createNotification(
-            `${friendRequest.sender.username} vám poslal žádost o přátelství.`,
             friendRequest.receiver.id,
             "/pratele",
             "FRIENDS",
+            "system.friendRequestReceived",
+            { username: friendRequest.sender.username },
           ),
       );
     });
@@ -87,10 +89,11 @@ export function setupFriendsNamespace(io: Server) {
         data.user,
         () =>
           createNotification(
-            `${data.user.username} si vás odebral z přátel.`,
             data.friend,
             "/pratele",
             "FRIENDS",
+            "system.friendRemoved",
+            { username: data.user.username },
           ),
       );
     });

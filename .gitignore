@@ -1,3 +1,7 @@
 .idea
 .test.env
 .dev.env
+# Keep graph.json, GRAPH_REPORT.md, and graph.html in Git, but ignore local caches:
+graphify-out/manifest.json
+graphify-out/cost.json
+graphify-out/cache/

@@ -2,9 +2,11 @@
 	import type { FetchedMMRs } from './+page';
 	import Select from '../components/select.svelte';
 	import Winner from './components/winner.svelte';
+	import { i18n, localizeGamePreview, t } from '$lib/i18n';
 
 	const { data }: { data: { data: FetchedMMRs } } = $props();
 
+	let games = $derived(data.data.games.map((game) => localizeGamePreview(game, i18n.locale)));
 	let activeGameId = $state('all');
 
 	function getTopPlayersByGame(gameId: string, amount: number) {
@@ -46,19 +48,21 @@
 </script>
 
 <svelte:head>
-	<title>Duelovky | Žebříček</title>
+	<title>{t('leaderboard.pageTitle')}</title>
 </svelte:head>
 
 <div class="mt-12 flex flex-col justify-center items-center">
 	<h1 class="text-3xl sm:text-4xl text-center font-bold font-heading">
 		{activeGameId === 'all'
-			? 'Žebříček celkově nejlepších hráčů'
-			: `Žebříček nejlepších hráčů ${data.data.games.find((x) => x.gameId.toString() === activeGameId)?.name}`}
+			? t('leaderboard.overall')
+			: t('leaderboard.forGame', {
+					game: games.find((x) => x.gameId.toString() === activeGameId)?.name ?? ''
+				})}
 	</h1>
 	<Select
 		options={[
-			{ option: 'Všechny hry', value: 'all', defaultOption: activeGameId === 'all' },
-			...data.data.games.map((game) => ({
+			{ option: t('leaderboard.allGames'), value: 'all', defaultOption: activeGameId === 'all' },
+			...games.map((game) => ({
 				option: game.name,
 				value: game.gameId.toString(),
 				defaultOption: game.gameId.toString() === activeGameId
@@ -76,9 +80,9 @@
 	<table class="w-11/12 sm:w-4/5 lg:w-3/5 mt-12 rounded-md overflow-hidden">
 		<thead class="bg-primary-500 text-lg">
 			<tr>
-				<th class="border-r-2 py-1 border-gray-200 w-fit px-2 lg:w-36">Pozice</th>
-				<th class="border-r-2 border-gray-200 w-max">Jméno</th>
-				<th class="w-fit lg:w-64 px-2">Skóre</th>
+				<th class="border-r-2 py-1 border-gray-200 w-fit px-2 lg:w-36">{t('leaderboard.position')}</th>
+				<th class="border-r-2 border-gray-200 w-max">{t('leaderboard.name')}</th>
+				<th class="w-fit lg:w-64 px-2">{t('leaderboard.score')}</th>
 			</tr>
 		</thead>
 		<tbody>

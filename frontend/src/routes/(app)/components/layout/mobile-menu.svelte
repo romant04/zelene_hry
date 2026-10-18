@@ -1,14 +1,18 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
+	import LanguageSelect from './language-select.svelte';
+	import { t, type Locale } from '$lib/i18n';
 
 	let {
 		isOpen = $bindable(false),
 		links,
-		isAuthenticated
+		isAuthenticated,
+		onLocaleChange
 	}: {
 		isOpen: boolean;
 		links: { href: string; text: string }[];
 		isAuthenticated: number;
+		onLocaleChange?: (locale: Locale) => void;
 	} = $props();
 
 	function handleClose() {
@@ -27,10 +31,13 @@
 		: 'translate-x-0'} fixed -right-full top-0 z-50 h-full w-full bg-tertiary-800 p-6 transition-all duration-500 md:w-1/2"
 >
 	<div class="flex items-center justify-between">
-		<a href="/frontend/static" onclick={handleClose}>
+		<a href="/" onclick={handleClose}>
 			<h2 class="font-heading text-3xl font-semibold">Duelovky</h2>
 		</a>
-		<Icon width="28" icon="system-uicons:cross" class="cursor-pointer" onclick={handleClose} />
+		<div class="flex items-center gap-3">
+			<LanguageSelect onChange={onLocaleChange} />
+			<Icon width="28" icon="system-uicons:cross" class="cursor-pointer" onclick={handleClose} />
+		</div>
 	</div>
 
 	<div class="mt-10 flex flex-col gap-3">
@@ -49,7 +56,7 @@
 			href="/login"
 			class="flex variant-filled-primary absolute bottom-10 left-1/2 -translate-x-1/2 btn h-10 w-[90%] items-center justify-center text-sm font-bold uppercase tracking-wide"
 		>
-			Přihlásit se
+			{t('nav.login')}
 		</a>
 	{/if}
 </div>

@@ -4,6 +4,7 @@
 declare namespace App {
 	interface Locals {
 		token: string | null;
+		locale: 'cs' | 'en';
 	}
 	// interface PageData {}
 	// interface Error {}

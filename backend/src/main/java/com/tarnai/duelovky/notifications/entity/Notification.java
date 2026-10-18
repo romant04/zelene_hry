@@ -22,8 +22,14 @@ public class Notification {
     @Column(name = "type", nullable = false)
     private String type;
 
-    @Column(name = "message", nullable = false)
+    @Column(name = "message")
     private String message;
+
+    @Column(name = "message_key")
+    private String messageKey;
+
+    @Column(name = "message_params", columnDefinition = "TEXT")
+    private String messageParams;
 
     @Column(name = "is_read", nullable = false)
     private Boolean isRead;
@@ -42,6 +48,8 @@ public class Notification {
         this.user = user;
         this.type = inputDto.getType();
         this.message = inputDto.getMessage();
+        this.messageKey = inputDto.getMessageKey();
+        this.messageParams = inputDto.getMessageParams();
         this.isRead = false;
         this.redirectUrl = inputDto.getRedirectUrl();
         this.createdAt = new Date();

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { MMR, PlayerStats, User } from '../../../../types/user';
 	import { convertTimeToBestFormat } from '../../../../utils/time';
+	import { t } from '$lib/i18n';
 
 	const { user }: { user: User } = $props();
 
@@ -16,7 +17,7 @@
 </script>
 
 <svelte:head>
-	<title>Duelovky | Můj profil</title>
+	<title>{t('profile.pageTitle')}</title>
 </svelte:head>
 
 <div class="flex gap-10">
@@ -29,24 +30,24 @@
 	<div class="flex flex-col gap-3">
 		<h2 class="text-3xl lg:text-4xl font-bold">{user.username}</h2>
 		<div class="flex flex-col gap-1">
-			<p>Role: <span class="font-semibold">{user.player ? 'Player' : 'Admin'}</span></p>
+			<p>{t('profile.role')}: <span class="font-semibold">{user.player ? 'Player' : 'Admin'}</span></p>
 			{#if user.player}
 				<p>
-					Odehraný čas: <span class="font-semibold"
+					{t('profile.playedTime')}: <span class="font-semibold"
 						>{getSumOfPlayedTime(user.player.playerStats) === ''
 							? '0m'
 							: getSumOfPlayedTime(user.player.playerStats)}</span
 					>
 				</p>
 				<p>
-					Celkové MMR: <span class="font-semibold"
+					{t('profile.totalMmr')}: <span class="font-semibold"
 						>{getSumOfMMR(user.player.mmr)} MMR</span
 					>
 				</p>
 			{/if}
 
 			{#if user.admin}
-				<p>Level oprávnění: <span class="font-bold">{user.admin.permissionLevel}</span></p>
+				<p>{t('profile.permissionLevel')}: <span class="font-bold">{user.admin.permissionLevel}</span></p>
 			{/if}
 		</div>
 	</div>
