@@ -1,25 +1,28 @@
 import { type Writable, writable } from 'svelte/store';
-import type { MMR, User } from '../../types/user';
 import type { Game } from '../../types/game';
 
-interface MMRCahce {
-	MMRs: MMR[];
-	games: Game[];
-	users: User[];
-	lastFetched: number;
+export interface LeaderboardEntry {
+	username: string;
+	mmr: number;
 }
 
-const initialMMRCache: MMRCahce = {
-	MMRs: [],
+interface MMRCache {
+	games: Game[];
+	/** keyed by 'all' or gameId string */
+	leaderboards: Record<string, LeaderboardEntry[]>;
+	leaderboardFetched: Record<string, number>;
+	gamesFetched: number;
+}
+
+const initialMMRCache: MMRCache = {
 	games: [],
-	users: [],
-	lastFetched: 0
+	leaderboards: {},
+	leaderboardFetched: {},
+	gamesFetched: 0
 };
 
-// Cache data for friends page
-const { subscribe, set, update }: Writable<MMRCahce> = writable(initialMMRCache);
+const { subscribe, set, update }: Writable<MMRCache> = writable(initialMMRCache);
 
-// 3. Export a custom object that includes the default methods + your new ones
 export const mmrCache = {
 	subscribe,
 	set,

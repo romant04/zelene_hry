@@ -1,3 +1,9 @@
+/** Lean user shape for social/friendship payloads (id + username only). */
+export interface PublicUser {
+	id: number;
+	username: string;
+}
+
 export interface User {
 	id: number;
 	email: string;

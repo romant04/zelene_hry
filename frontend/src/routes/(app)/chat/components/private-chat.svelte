@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { User } from '../../../../types/user';
+	import type { PublicUser } from '../../../../types/user';
 	import { createChatSocket } from '$lib/socket';
 	import type { Dm } from '../../../../types/dm';
 	import { onDestroy, tick } from 'svelte';
@@ -24,12 +24,14 @@
 		friends,
 		chatRooms,
 		chatType,
-		restrictions
+		restrictions,
+		currentUserId
 	}: {
-		friends: User[];
+		friends: PublicUser[];
 		chatRooms: Chatroom[];
 		chatType: 'dm' | 'group';
 		restrictions: Restriction[];
+		currentUserId: number;
 	} = $props();
 
 	let isMemberOfChatroom = $state(false);
@@ -44,7 +46,7 @@
 
 		if ($activeChat.activeChat && isChatroom($activeChat.activeChat)) {
 			isMemberOfChatroom = $activeChat.activeChat.users.some(
-				(user) => user.id === $auth.data?.id
+				(user) => user.id === currentUserId
 			);
 			restriction =
 				restrictions
@@ -52,7 +54,7 @@
 					.find(
 						(restriction) =>
 							restriction.chatId === $activeChat.activeChat?.id &&
-							restriction.userId === $auth.data?.id
+							restriction.userId === currentUserId
 					) || null;
 		} else {
 			isMemberOfChatroom = false;
@@ -88,7 +90,7 @@
 	}
 
 	async function sendMessage(inputElement: HTMLInputElement | undefined) {
-		if (!$activeChat.activeChat || !$auth.data || !$chatSocket.chatSocket || !inputElement) {
+		if (!$activeChat.activeChat || !$chatSocket.chatSocket || !inputElement) {
 			return;
 		}
 
@@ -145,7 +147,7 @@
 	}
 
 	async function fetchMessages(friendId: number) {
-		if (!$auth.data || !$activeChat.activeChat) {
+		if (!$activeChat.activeChat) {
 			return;
 		}
 
@@ -203,11 +205,11 @@
 		if (
 			$activeChat.activeChat &&
 			$chatSocket.chatSocket === null &&
-			$auth.data?.id &&
 			isMemberOfChatroom &&
 			!restriction
 		) {
 			if (isChatroom($activeChat.activeChat)) {
+				if (!$auth.data) return;
 				// If it's a chatroom, we need to create a socket for the chatroom
 				setChatSocket(
 					createChatroomSocket(
@@ -218,13 +220,13 @@
 				);
 			} else {
 				// If it's a DM, we create a socket for the DM
-				setChatSocket(createChatSocket($auth.data.id, $activeChat.activeChat.id));
+				setChatSocket(createChatSocket(currentUserId, $activeChat.activeChat.id));
 			}
 		}
 	});
 
 	$effect(() => {
-		if (!$auth.data?.id || !$activeChat.activeChat?.id || $chatSocket.chatSocket === null) {
+		if (!$activeChat.activeChat?.id || $chatSocket.chatSocket === null) {
 			return;
 		}
 

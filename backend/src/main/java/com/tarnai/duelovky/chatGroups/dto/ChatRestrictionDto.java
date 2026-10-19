@@ -1,7 +1,7 @@
 package com.tarnai.duelovky.chatGroups.dto;
 
 import com.tarnai.duelovky.chatGroups.entity.ChatRestriction;
-import com.tarnai.duelovky.users.dto.AccountDto;
+import com.tarnai.duelovky.users.dto.AccountMinimumDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,7 +15,7 @@ public class ChatRestrictionDto {
     private String reason;
     private Date startAt;
     private Date endAt;
-    private AccountDto admin;
+    private AccountMinimumDto admin;
 
     public ChatRestrictionDto() {}
 
@@ -26,7 +26,7 @@ public class ChatRestrictionDto {
         this.startAt = chatRestriction.getStartAt();
         this.endAt = chatRestriction.getEndDate();
         if (chatRestriction.getAdmin() != null && chatRestriction.getAdmin().getAccount() != null) {
-            this.admin = new AccountDto(chatRestriction.getAdmin().getAccount());
+            this.admin = new AccountMinimumDto(chatRestriction.getAdmin().getAccount());
         } else {
             this.admin = null;
         }

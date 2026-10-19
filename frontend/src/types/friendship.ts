@@ -1,7 +1,7 @@
-import type { User } from './user';
+import type { PublicUser } from './user';
 
 export interface Friendship {
-	user1: User;
-	user2: User;
+	user1: PublicUser;
+	user2: PublicUser;
 	startAt: Date;
 }

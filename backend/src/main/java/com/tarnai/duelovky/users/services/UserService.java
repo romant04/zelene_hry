@@ -3,6 +3,8 @@ package com.tarnai.duelovky.users.services;
 import com.tarnai.duelovky.users.entity.Account;
 import com.tarnai.duelovky.users.repositories.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +25,11 @@ public class UserService {
 
     public List<Account> getUsersBySearchTerm(String searchTerm) {
         return accountRepository.findBySearchTerm(searchTerm);
+    }
+
+    public Page<Account> searchNonFriends(Long currentUserId, String searchTerm, Pageable pageable) {
+        String term = searchTerm == null ? "" : searchTerm.trim();
+        return accountRepository.searchNonFriends(currentUserId, term, pageable);
     }
 
     public Optional<Account> getUserById(Long id) {

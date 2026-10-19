@@ -2,49 +2,43 @@
 	import type { FetchedMMRs } from './+page';
 	import Select from '../components/select.svelte';
 	import Winner from './components/winner.svelte';
+	import { goto } from '$app/navigation';
 	import { i18n, localizeGamePreview, t } from '$lib/i18n';
 
 	const { data }: { data: { data: FetchedMMRs } } = $props();
 
 	let games = $derived(data.data.games.map((game) => localizeGamePreview(game, i18n.locale)));
-	let activeGameId = $state('all');
+	let activeGameId = $state(data.data.gameKey || 'all');
 
-	function getTopPlayersByGame(gameId: string, amount: number) {
-		if (gameId === 'all') {
-			const summedMMRsOfPlayer = data.data.MMRs.reduce(
-				(acc, mmr) => {
-					if (!acc[mmr.userId]) {
-						acc[mmr.userId] = 0;
-					}
-					acc[mmr.userId] += mmr.mmr;
-					return acc;
-				},
-				{} as Record<number, number>
-			);
-			const sortedPlayers = Object.entries(summedMMRsOfPlayer)
-				.sort(([, mmrA], [, mmrB]) => mmrB - mmrA)
-				.slice(0, amount)
-				.map(([userId, mmr]) => {
-					const user = data.data.users.find(
-						(user) => user.player?.id === parseInt(userId)
-					);
-					return { name: user ? user.username : 'Unknown', MMR: mmr };
-				});
-			return sortedPlayers;
+	$effect(() => {
+		activeGameId = data.data.gameKey || 'all';
+	});
+
+	$effect(() => {
+		const selected = activeGameId;
+		const loaded = data.data.gameKey || 'all';
+		if (selected === loaded) return;
+
+		const params = new URLSearchParams();
+		if (selected !== 'all') {
+			params.set('game', selected);
 		}
+		const query = params.toString();
+		goto(query ? `?${query}` : '?', { replaceState: true, keepFocus: true, noScroll: true });
+	});
 
-		const filteredMMRs =
-			gameId === 'all'
-				? data.data.MMRs
-				: data.data.MMRs.filter((mmr) => mmr.gameId.toString() === gameId);
-		const sortedMMRs = filteredMMRs.sort((a, b) => b.mmr - a.mmr);
-		return sortedMMRs.slice(0, amount).map((mmr) => {
-			const user = data.data.users.find((user) => user.player?.id === mmr.userId);
-			return { name: user ? user.username : 'Unknown', MMR: mmr.mmr };
-		});
-	}
-	let topPlayers = $derived.by(() => getTopPlayersByGame(activeGameId, 3));
-	let playersToDisplay = $derived(getTopPlayersByGame(activeGameId, 10).slice(3));
+	let topPlayers = $derived(
+		data.data.entries.slice(0, 3).map((entry) => ({
+			name: entry.username,
+			MMR: entry.mmr
+		}))
+	);
+	let playersToDisplay = $derived(
+		data.data.entries.slice(3).map((entry) => ({
+			name: entry.username,
+			MMR: entry.mmr
+		}))
+	);
 </script>
 
 <svelte:head>
@@ -72,9 +66,15 @@
 		styles="mt-5 bg-tertiary-700 py-2 px-4  w-[180px] rounded-sm"
 	/>
 	<div class="flex gap-x-16 gap-y-2 mt-10 md:mt-16 justify-center flex-wrap px-5">
-		<Winner name={topPlayers[1].name} position={2} MMR={topPlayers[1].MMR} styles="md:mt-8" />
-		<Winner name={topPlayers[0].name} position={1} MMR={topPlayers[0].MMR} />
-		<Winner name={topPlayers[2].name} position={3} MMR={topPlayers[2].MMR} styles="md:mt-12" />
+		{#if topPlayers[1]}
+			<Winner name={topPlayers[1].name} position={2} MMR={topPlayers[1].MMR} styles="md:mt-8" />
+		{/if}
+		{#if topPlayers[0]}
+			<Winner name={topPlayers[0].name} position={1} MMR={topPlayers[0].MMR} />
+		{/if}
+		{#if topPlayers[2]}
+			<Winner name={topPlayers[2].name} position={3} MMR={topPlayers[2].MMR} styles="md:mt-12" />
+		{/if}
 	</div>
 
 	<table class="w-11/12 sm:w-4/5 lg:w-3/5 mt-12 rounded-md overflow-hidden">

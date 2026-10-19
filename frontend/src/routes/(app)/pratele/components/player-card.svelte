@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import type { User } from '../../../../types/user';
+	import type { PublicUser } from '../../../../types/user';
 	import { setActiveChat } from '../../../../stores/active-chat';
 	import { goto } from '$app/navigation';
 	import { t } from '$lib/i18n';
@@ -12,11 +12,11 @@
 		friendRequestSent,
 		friendToBeRemoved = $bindable()
 	}: {
-		friend: User;
+		friend: PublicUser;
 		isFriend: boolean;
-		activeFriend?: User | null;
+		activeFriend?: PublicUser | null;
 		friendRequestSent?: boolean;
-		friendToBeRemoved?: User | null;
+		friendToBeRemoved?: PublicUser | null;
 	} = $props();
 
 	let initial = $derived(friend.username.charAt(0).toUpperCase());

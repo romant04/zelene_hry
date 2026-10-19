@@ -4,23 +4,25 @@ import type { Chatroom } from '../../types/chat';
 import type { Restriction } from '../../types/restriction';
 
 interface ChatsCache {
+	currentUserId: number | null;
 	friendships: Friendship[] | null;
+	friendsFetched: number;
 	chatRooms: Chatroom[] | null;
 	restrictions: Restriction[] | null;
-	lastFetched: number;
+	roomsFetched: number;
 }
 
 const initialChatsCache: ChatsCache = {
+	currentUserId: null,
 	friendships: null,
+	friendsFetched: 0,
 	chatRooms: null,
 	restrictions: null,
-	lastFetched: 0
+	roomsFetched: 0
 };
 
-// Cache data for friends page
 const { subscribe, set, update }: Writable<ChatsCache> = writable(initialChatsCache);
 
-// 3. Export a custom object that includes the default methods + your new ones
 export const chatsCache = {
 	subscribe,
 	set,

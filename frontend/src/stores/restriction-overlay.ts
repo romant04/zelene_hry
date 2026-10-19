@@ -1,9 +1,9 @@
 import { writable } from 'svelte/store';
-import type { User } from '../types/user';
+import type { PublicUser } from '../types/user';
 
 export const restrictionOverlay = writable<{
 	isOpen: boolean;
-	user: User | null;
+	user: PublicUser | null;
 }>({
 	isOpen: false,
 	user: null

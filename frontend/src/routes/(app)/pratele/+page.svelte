@@ -3,7 +3,7 @@
 	import FriendRequestTab from './components/friend-request.svelte';
 	import { auth } from '../../../stores/auth';
 	import FriendRequestModal from './components/friend-request-modal.svelte';
-	import type { User } from '../../../types/user';
+	import type { PublicUser } from '../../../types/user';
 	import type { FriendRequest } from '../../../types/friendRequest';
 	import type { Friendship } from '../../../types/friendship';
 	import RemoveFriendModal from './components/remove-friend-modal.svelte';
@@ -16,40 +16,42 @@
 	import type { FetchedSocialData } from './+page';
 	import FriendList from './components/friend-list.svelte';
 	import { t, tt } from '$lib/i18n';
+	import { API } from '../../../constants/urls';
 
 	type HubTab = 'friends' | 'requests' | 'find';
+
+	interface UserSearchPage {
+		content: PublicUser[];
+		totalPages: number;
+		number: number;
+		empty: boolean;
+	}
+
+	const FIND_PAGE_SIZE = 20;
 
 	let friendSocket: Socket | null = $state(null);
 	let { data }: { data: { data: FetchedSocialData } } = $props();
 
 	let filter = $state('');
-	let activeFriend: User | null = $state(null);
-	let friendToBeRemoved: User | null = $state(null);
+	let activeFriend: PublicUser | null = $state(null);
+	let friendToBeRemoved: PublicUser | null = $state(null);
 	let friendRequests: FriendRequest[] = $state([]);
 	let friendships: Friendship[] = $state([]);
 	let activeTab = $state<HubTab>('friends');
 	let didPickInitialTab = $state(false);
 
-	let incomingRequests = $derived(
-		$auth.data?.id
-			? friendRequests.filter((fr) => fr.receiver.id === $auth.data!.id)
-			: []
-	);
+	let findResults: PublicUser[] = $state([]);
+	let findPage = $state(0);
+	let findTotalPages = $state(1);
+	let findLoading = $state(false);
+	let findError = $state(false);
+	let findRequestId = 0;
 
-	let suggestedPlayers = $derived.by(() => {
-		if (!data.data || !$auth.data) return [];
-		const userId = $auth.data.id;
-		return data.data.suggestedFriends
-			.filter(
-				(user) =>
-					user.id !== userId &&
-					!friendships.some(
-						(friendship) =>
-							friendship.user1.id === user.id || friendship.user2.id === user.id
-					)
-			)
-			.filter((user) => user.username.toLowerCase().includes(filter.toLowerCase()));
-	});
+	let currentUserId = $derived(data.data?.currentUserId);
+
+	let incomingRequests = $derived(
+		currentUserId != null ? friendRequests.filter((fr) => fr.receiver.id === currentUserId) : []
+	);
 
 	$effect(() => {
 		if (data.data) {
@@ -60,19 +62,75 @@
 
 	// Land on Requests when there are incoming requests and no friends yet.
 	$effect(() => {
-		if (didPickInitialTab || !data.data || !$auth.data) return;
+		if (didPickInitialTab || !data.data || currentUserId == null) return;
 		didPickInitialTab = true;
 		if (friendships.length === 0 && incomingRequests.length > 0) {
 			activeTab = 'requests';
 		}
 	});
 
+	async function loadFindPage(page: number, query: string) {
+		const token = localStorage.getItem('token');
+		if (!token) return;
+
+		const requestId = ++findRequestId;
+		findLoading = true;
+		findError = false;
+
+		try {
+			const params = new URLSearchParams({
+				q: query,
+				page: String(page),
+				size: String(FIND_PAGE_SIZE)
+			});
+			const res = await fetch(`${API}/api/secured/users/search?${params}`, {
+				headers: { Authorization: `Bearer ${token}` }
+			});
+
+			if (!res.ok) {
+				throw new Error('search failed');
+			}
+
+			const body = (await res.json()) as UserSearchPage;
+			if (requestId !== findRequestId) return;
+
+			findResults = body.content ?? [];
+			findTotalPages = Math.max(1, body.totalPages ?? 1);
+			findPage = body.number ?? page;
+		} catch {
+			if (requestId !== findRequestId) return;
+			findError = true;
+			findResults = [];
+			findTotalPages = 1;
+			findPage = 0;
+		} finally {
+			if (requestId === findRequestId) {
+				findLoading = false;
+			}
+		}
+	}
+
+	// Fetch Find results when tab is open; refetch on search filter changes.
+	$effect(() => {
+		if (activeTab !== 'find') return;
+		const query = filter;
+		void loadFindPage(0, query);
+	});
+
+	function prevFindPage() {
+		if (findPage > 0) void loadFindPage(findPage - 1, filter);
+	}
+
+	function nextFindPage() {
+		if (findPage < findTotalPages - 1) void loadFindPage(findPage + 1, filter);
+	}
+
 	function updateAfterFriendRequest(
 		gotAccepted: boolean,
 		friendRequest: FriendRequest,
 		newFriend?: Friendship
 	) {
-		if (!$auth.data || !data.data) {
+		if (currentUserId == null || !data.data) {
 			return;
 		}
 
@@ -84,11 +142,15 @@
 
 		if (gotAccepted && newFriend) {
 			friendships = [...friendships, newFriend];
+			findResults = findResults.filter(
+				(user) =>
+					user.id !== friendRequest.sender.id && user.id !== friendRequest.receiver.id
+			);
 		}
 	}
 
-	function updateAfterFriendRemoved(friend: User) {
-		if (!$auth.data || !data.data) {
+	function updateAfterFriendRemoved(friend: PublicUser) {
+		if (currentUserId == null || !data.data) {
 			return;
 		}
 
@@ -128,7 +190,7 @@
 				friendRequests.push(friendRequest);
 			});
 
-			friendSocket.on('friendRemoved', (friend: User) => {
+			friendSocket.on('friendRemoved', (friend: PublicUser) => {
 				addToast(tt('friends.removedYou', { username: friend.username }), 'error');
 				updateAfterFriendRemoved(friend);
 			});
@@ -142,12 +204,14 @@
 		}
 	});
 
-	const tabs: { id: HubTab; labelKey: 'friends.myFriends' | 'friends.friendRequests' | 'friends.findPlayers' }[] =
-		[
-			{ id: 'friends', labelKey: 'friends.myFriends' },
-			{ id: 'requests', labelKey: 'friends.friendRequests' },
-			{ id: 'find', labelKey: 'friends.findPlayers' }
-		];
+	const tabs: {
+		id: HubTab;
+		labelKey: 'friends.myFriends' | 'friends.friendRequests' | 'friends.findPlayers';
+	}[] = [
+		{ id: 'friends', labelKey: 'friends.myFriends' },
+		{ id: 'requests', labelKey: 'friends.friendRequests' },
+		{ id: 'find', labelKey: 'friends.findPlayers' }
+	];
 </script>
 
 <svelte:head>
@@ -201,57 +265,97 @@
 			{/each}
 		</div>
 
-		<section class="flex min-h-[28rem] max-h-[34rem] flex-col" role="tabpanel">
-		{#if activeTab === 'find'}
-			<div class="shrink-0 border-b border-surface-600/60 px-4 py-3">
-				<Search bind:filter />
-			</div>
-		{/if}
+		<section class="flex h-[28rem] flex-col" role="tabpanel">
+			{#if activeTab === 'find'}
+				<div class="shrink-0 border-b border-surface-600/60 px-4 py-3">
+					<Search bind:filter />
+				</div>
+			{/if}
 
-		{#if activeTab === 'friends'}
-			<FriendList {friendships} bind:friendToBeRemoved pageSize={8} />
-		{:else if activeTab === 'requests'}
-			<div class="min-h-0 flex-1 overflow-auto">
-				{#if !$auth.data}
-					<p class="px-4 py-6 text-surface-200">{t('common.loading')}</p>
-				{:else if incomingRequests.length === 0}
-					<div
-						class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-6 text-center"
-					>
-						<p class="text-surface-200">{t('friends.noRequests')}</p>
-					</div>
+			{#if activeTab === 'friends'}
+				{#if currentUserId != null}
+					<FriendList {friendships} {currentUserId} bind:friendToBeRemoved pageSize={8} />
 				{:else}
-					{#each incomingRequests as request (request.sender.id + '-' + request.receiver.id)}
-						<FriendRequestTab
-							friendRequest={request}
-							{updateAfterFriendRequest}
-							{friendSocket}
-						/>
-					{/each}
-				{/if}
-			</div>
-		{:else if activeTab === 'find'}
-			<div class="min-h-0 flex-1 overflow-auto">
-				{#if !data.data || !$auth.data}
 					<p class="px-4 py-6 text-surface-200">{t('common.loading')}</p>
-				{:else if suggestedPlayers.length === 0}
-					<div
-						class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-6 text-center"
-					>
-						<p class="text-surface-200">{t('friends.noPlayersFound')}</p>
-					</div>
-				{:else}
-					{#each suggestedPlayers as player (player.id)}
-						<PlayerCard
-							friend={player}
-							isFriend={false}
-							bind:activeFriend
-							friendRequestSent={friendRequests.some((fr) => fr.receiver.id === player.id)}
-						/>
-					{/each}
 				{/if}
-			</div>
-		{/if}
+			{:else if activeTab === 'requests'}
+				<div class="min-h-0 flex-1 overflow-auto">
+					{#if currentUserId == null}
+						<p class="px-4 py-6 text-surface-200">{t('common.loading')}</p>
+					{:else if incomingRequests.length === 0}
+						<div
+							class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-6 text-center"
+						>
+							<p class="text-surface-200">{t('friends.noRequests')}</p>
+						</div>
+					{:else}
+						{#each incomingRequests as request (request.sender.id + '-' + request.receiver.id)}
+							<FriendRequestTab
+								friendRequest={request}
+								{updateAfterFriendRequest}
+								{friendSocket}
+							/>
+						{/each}
+					{/if}
+				</div>
+			{:else if activeTab === 'find'}
+				<div class="flex min-h-0 flex-1 flex-col">
+					<div class="min-h-0 flex-1 overflow-auto">
+						{#if findLoading && findResults.length === 0}
+							<p class="px-4 py-6 text-surface-200">{t('common.loading')}</p>
+						{:else if findError}
+							<div
+								class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-6 text-center"
+							>
+								<p class="text-surface-200">{t('friends.noPlayersFound')}</p>
+							</div>
+						{:else if findResults.length === 0}
+							<div
+								class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-6 text-center"
+							>
+								<p class="text-surface-200">{t('friends.noPlayersFound')}</p>
+							</div>
+						{:else}
+							{#each findResults as player (player.id)}
+								<PlayerCard
+									friend={player}
+									isFriend={false}
+									bind:activeFriend
+									friendRequestSent={friendRequests.some(
+										(fr) => fr.receiver.id === player.id
+									)}
+								/>
+							{/each}
+						{/if}
+					</div>
+
+					{#if findTotalPages > 1}
+						<div
+							class="flex h-12 shrink-0 items-center justify-center gap-4 border-t border-surface-600/60"
+						>
+							<button
+								type="button"
+								class="rounded px-2 py-1 text-xl disabled:opacity-40"
+								onclick={prevFindPage}
+								disabled={findPage === 0 || findLoading}
+							>
+								←
+							</button>
+							<span class="text-sm tabular-nums"
+								>{findPage + 1} / {findTotalPages}</span
+							>
+							<button
+								type="button"
+								class="rounded px-2 py-1 text-xl disabled:opacity-40"
+								onclick={nextFindPage}
+								disabled={findPage >= findTotalPages - 1 || findLoading}
+							>
+								→
+							</button>
+						</div>
+					{/if}
+				</div>
+			{/if}
 		</section>
 	</div>
 </div>

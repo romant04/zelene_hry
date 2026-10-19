@@ -1,8 +1,14 @@
 package com.tarnai.duelovky.users.controllers;
 
 import com.tarnai.duelovky.users.dto.AccountDto;
+import com.tarnai.duelovky.users.dto.AccountMinimumDto;
+import com.tarnai.duelovky.users.entity.Account;
 import com.tarnai.duelovky.users.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +31,26 @@ public class UsersController {
     @GetMapping("/users")
     public List<AccountDto> getUsers(@RequestParam Optional<String> search) {
         return search.map(s -> userService.getUsersBySearchTerm(s).stream().map(AccountDto::new).toList()).orElseGet(() -> userService.getAllUsers().stream().map(AccountDto::new).toList());
+    }
+
+    @GetMapping("/users/search")
+    public ResponseEntity<Page<AccountMinimumDto>> searchUsers(
+            Authentication authentication,
+            @RequestParam(defaultValue = "") String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Account currentUser = userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst().orElse(null);
+        if (currentUser == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        int pageSize = Math.min(Math.max(size, 1), 50);
+        int pageIndex = Math.max(page, 0);
+        Page<AccountMinimumDto> results = userService
+                .searchNonFriends(currentUser.getId(), q, PageRequest.of(pageIndex, pageSize, Sort.by("username").ascending()))
+                .map(AccountMinimumDto::new);
+
+        return ResponseEntity.ok(results);
     }
 
     @GetMapping("/user")

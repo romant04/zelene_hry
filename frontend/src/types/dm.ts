@@ -1,9 +1,9 @@
-import type { User } from './user';
+import type { PublicUser } from './user';
 
 export interface Dm {
 	dmId: number;
-	sender: User;
-	receiver: User;
+	sender: PublicUser;
+	receiver: PublicUser;
 	message: string;
 	createdAt: Date;
 }

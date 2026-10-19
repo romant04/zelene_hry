@@ -1,4 +1,4 @@
-import type { User } from './user';
+import type { PublicUser } from './user';
 
 export interface Restriction {
 	chatId: number;
@@ -6,5 +6,5 @@ export interface Restriction {
 	reason: string;
 	startAt: Date;
 	endAt: Date;
-	admin: User;
+	admin: PublicUser | null;
 }

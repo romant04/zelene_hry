@@ -1,8 +1,8 @@
-import type { User } from './user';
+import type { PublicUser } from './user';
 
 export interface FriendRequest {
-	sender: User;
-	receiver: User;
+	sender: PublicUser;
+	receiver: PublicUser;
 	message: string;
 	sentAt: Date;
 }

@@ -1,11 +1,12 @@
 package com.tarnai.duelovky.chatGroups.dto;
 
 import com.tarnai.duelovky.chatGroups.entity.Chat;
-import com.tarnai.duelovky.users.dto.AccountDto;
+import com.tarnai.duelovky.users.dto.AccountMinimumDto;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -13,7 +14,7 @@ public class ChatDto {
     private Long id;
     private String name;
     private boolean isPublic;
-    private Set<AccountDto> users;
+    private Set<AccountMinimumDto> users;
 
     public ChatDto() {
     }
@@ -23,7 +24,7 @@ public class ChatDto {
         this.name = chat.getName();
         this.isPublic = chat.isPublic();
         this.users = chat.getUsers().stream()
-                .map(AccountDto::new)
-                .collect(java.util.stream.Collectors.toSet());
+                .map(AccountMinimumDto::new)
+                .collect(Collectors.toSet());
     }
 }

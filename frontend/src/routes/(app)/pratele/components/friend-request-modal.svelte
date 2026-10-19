@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { User } from '../../../../types/user';
+	import type { PublicUser } from '../../../../types/user';
 	import { onMount } from 'svelte';
 	import { addToast } from '../../../../stores/toast';
 	import Spinner from '../../components/spinner.svelte';
@@ -14,7 +14,7 @@
 		friendRequests = $bindable(),
 		friendSocket = $bindable()
 	}: {
-		friend: User | null;
+		friend: PublicUser | null;
 		friendRequests: FriendRequest[];
 		friendSocket: Socket | null;
 	} = $props();

@@ -1,6 +1,7 @@
 package com.tarnai.duelovky.friendShips.controllers;
 
 import com.tarnai.duelovky.friendShips.dto.FriendShipDto;
+import com.tarnai.duelovky.friendShips.dto.FriendsDashboardDto;
 import com.tarnai.duelovky.friendShips.services.FriendShipService;
 import com.tarnai.duelovky.users.entity.Account;
 import com.tarnai.duelovky.users.services.UserService;
@@ -30,14 +31,15 @@ public class FriendShipsController {
     }
 
     @GetMapping("/user/friends")
-    public List<FriendShipDto> getUsersFriends(Authentication authentication) {
+    public ResponseEntity<FriendsDashboardDto> getUsersFriends(Authentication authentication) {
         Account acc = userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst().orElse(null);
 
         if (acc == null) {
-            return null;
+            return ResponseEntity.badRequest().build();
         }
 
-        return friendShipService.getUsersFriends(acc).stream().map(FriendShipDto::new).toList();
+        List<FriendShipDto> friendships = friendShipService.getUsersFriends(acc).stream().map(FriendShipDto::new).toList();
+        return ResponseEntity.ok(new FriendsDashboardDto(acc.getId(), friendships));
     }
 
     @DeleteMapping("/friendShip")

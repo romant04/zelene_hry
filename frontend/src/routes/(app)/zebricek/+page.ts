@@ -2,18 +2,36 @@ import { browser } from '$app/environment';
 import { error, redirect } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import { API } from '../../../constants/urls';
-import type { MMR, User } from '../../../types/user';
-import { mmrCache } from '$lib/cache/mmr';
+import { mmrCache, type LeaderboardEntry } from '$lib/cache/mmr';
 import type { Game } from '../../../types/game';
 import { acceptLanguageHeaders, getClientLocale, type Locale } from '$lib/i18n';
 
+const CACHE_DURATION = 300000;
+const LEADERBOARD_LIMIT = 10;
+
 export interface FetchedMMRs {
-	MMRs: MMR[];
 	games: Game[];
-	users: User[];
+	entries: LeaderboardEntry[];
+	gameKey: string;
 }
 
-export const load = async ({ fetch, data, parent }) => {
+async function fetchLeaderboard(
+	fetchFn: typeof fetch,
+	headers: HeadersInit,
+	gameKey: string
+): Promise<LeaderboardEntry[]> {
+	const params = new URLSearchParams({ limit: String(LEADERBOARD_LIMIT) });
+	if (gameKey !== 'all') {
+		params.set('gameId', gameKey);
+	}
+	const res = await fetchFn(`${API}/api/secured/mmr/leaderboard?${params}`, { headers });
+	if (!res.ok) {
+		throw new Error('Failed to load leaderboard');
+	}
+	return (await res.json()) as LeaderboardEntry[];
+}
+
+export const load = async ({ fetch, data, parent, url }) => {
 	const token = data?.token || (browser ? localStorage.getItem('token') : null);
 	const { locale: parentLocale } = (await parent()) as { locale: Locale };
 	const locale = getClientLocale(parentLocale);
@@ -22,38 +40,64 @@ export const load = async ({ fetch, data, parent }) => {
 		throw redirect(303, '/login');
 	}
 
+	const gameKey = url.searchParams.get('game') || 'all';
+	const headers = {
+		Authorization: `Bearer ${token}`,
+		...acceptLanguageHeaders(locale)
+	};
+
 	if (browser) {
 		const cache = get(mmrCache);
-		if (cache.MMRs && Date.now() - cache.lastFetched < 300000) {
-			return { data: cache };
+		const gamesFresh = cache.games.length > 0 && Date.now() - cache.gamesFetched < CACHE_DURATION;
+		const boardFresh =
+			cache.leaderboards[gameKey] &&
+			Date.now() - (cache.leaderboardFetched[gameKey] ?? 0) < CACHE_DURATION;
+
+		if (gamesFresh && boardFresh) {
+			return {
+				data: {
+					games: cache.games,
+					entries: cache.leaderboards[gameKey],
+					gameKey
+				} satisfies FetchedMMRs
+			};
+		}
+
+		try {
+			let games = cache.games;
+			if (!gamesFresh) {
+				games = (await fetch(`${API}/api/games`, { headers }).then((res) => res.json())) as Game[];
+			}
+
+			let entries = cache.leaderboards[gameKey];
+			if (!boardFresh) {
+				entries = await fetchLeaderboard(fetch, headers, gameKey);
+			}
+
+			mmrCache.update((current) => ({
+				games,
+				gamesFetched: gamesFresh ? current.gamesFetched : Date.now(),
+				leaderboards: { ...current.leaderboards, [gameKey]: entries },
+				leaderboardFetched: {
+					...current.leaderboardFetched,
+					[gameKey]: boardFresh ? current.leaderboardFetched[gameKey] : Date.now()
+				}
+			}));
+
+			return { data: { games, entries, gameKey } satisfies FetchedMMRs };
+		} catch (err) {
+			console.error('Error fetching MMR data:', err);
+			throw error(500, 'Failed to load MMR data');
 		}
 	}
 
-	// 3. Fetching
 	try {
-		const headers = {
-			Authorization: `Bearer ${token}`,
-			...acceptLanguageHeaders(locale)
-		};
-		const [mmrs, games, users] = await Promise.all([
-			fetch(`${API}/api/secured/mmr`, { headers }).then((res) => res.json()),
-			fetch(`${API}/api/games`, { headers }).then((res) => res.json()),
-			fetch(`${API}/api/secured/users`, { headers }).then((res) => res.json())
+		const [games, entries] = await Promise.all([
+			fetch(`${API}/api/games`, { headers }).then((res) => res.json()) as Promise<Game[]>,
+			fetchLeaderboard(fetch, headers, gameKey)
 		]);
 
-		const newData = {
-			MMRs: mmrs as MMR[],
-			games: games as Game[],
-			users: users as User[],
-			lastFetched: Date.now()
-		};
-
-		// 4. Update Store (Browser Only)
-		if (browser) {
-			mmrCache.set({ ...newData, lastFetched: Date.now() });
-		}
-
-		return { data: newData };
+		return { data: { games, entries, gameKey } satisfies FetchedMMRs };
 	} catch (err) {
 		console.error('Error fetching MMR data:', err);
 		throw error(500, 'Failed to load MMR data');

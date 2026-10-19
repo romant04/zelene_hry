@@ -3,6 +3,7 @@ package com.tarnai.duelovky.mmr.services;
 import com.tarnai.duelovky.games.dto.GameDto;
 import com.tarnai.duelovky.games.entity.Game;
 import com.tarnai.duelovky.games.services.GameService;
+import com.tarnai.duelovky.mmr.dto.LeaderboardEntryDto;
 import com.tarnai.duelovky.mmr.dto.MmrDto;
 import com.tarnai.duelovky.mmr.dto.MmrInputDto;
 import com.tarnai.duelovky.mmr.entity.Mmr;
@@ -12,6 +13,7 @@ import com.tarnai.duelovky.users.entity.Account;
 import com.tarnai.duelovky.users.entity.Player;
 import com.tarnai.duelovky.users.services.UserService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,6 +41,15 @@ public class MmrService {
         return mmrRepository.findAll().stream()
                 .map(mmr -> new MmrDto(mmr.getUser(), mmr.getGame(), mmr.getMmr()))
                 .toList();
+    }
+
+    public List<LeaderboardEntryDto> getLeaderboard(Long gameId, int limit) {
+        int pageSize = Math.min(Math.max(limit, 1), 50);
+        var pageable = PageRequest.of(0, pageSize);
+        if (gameId == null) {
+            return mmrRepository.findOverallLeaderboard(pageable);
+        }
+        return mmrRepository.findLeaderboardByGame(gameId, pageable);
     }
 
     public MmrDto saveMmr(MmrInputDto mmrInputDto) {

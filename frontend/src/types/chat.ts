@@ -1,11 +1,11 @@
-import type { User } from './user';
+import type { PublicUser } from './user';
 import type { Dm } from './dm';
 
 export interface Chatroom {
 	id: number;
 	name: string;
 	isPublic: boolean;
-	users: User[];
+	users: PublicUser[];
 }
 
 export interface ChatMessage {
@@ -13,7 +13,7 @@ export interface ChatMessage {
 	message: string;
 	sentAt: Date;
 	chatId: number;
-	sender: User;
+	sender: PublicUser;
 }
 
 export type Message = ChatMessage | Dm;

@@ -1,5 +1,4 @@
 import type { PageLoad } from './$types';
-import type { Friendship } from '../../../../types/friendship';
 import { API } from '../../../../constants/urls';
 import type { Chatroom } from '../../../../types/chat';
 import type { Restriction } from '../../../../types/restriction';
@@ -8,11 +7,18 @@ import { get } from 'svelte/store';
 import { error, redirect } from '@sveltejs/kit';
 import { browser } from '$app/environment';
 
+interface ChatsDashboard {
+	currentUserId: number;
+	chats: Chatroom[];
+}
+
 export interface FetchedChatData {
-	friendships: Friendship[];
+	currentUserId: number;
 	chatRooms: Chatroom[];
 	restrictions: Restriction[];
 }
+
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export const load: PageLoad = async ({ fetch, data }) => {
 	const token = data?.token || (browser ? localStorage.getItem('token') : null);
@@ -23,59 +29,53 @@ export const load: PageLoad = async ({ fetch, data }) => {
 
 	if (browser) {
 		const cache = get(chatsCache);
-		const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-		// 1. Check if we have fresh data in the store
-		if (cache.chatRooms && Date.now() - cache.lastFetched < CACHE_DURATION) {
-			return { data: cache };
-		}
-
-		// Additional check to ensure restrictions are also present (when we fetch from DMs page)
 		if (
-			!cache.restrictions &&
 			cache.chatRooms &&
-			Date.now() - cache.lastFetched < CACHE_DURATION
+			cache.restrictions &&
+			cache.currentUserId != null &&
+			Date.now() - cache.roomsFetched < CACHE_DURATION
 		) {
-			const headers = { Authorization: `Bearer ${token}` };
-
-			try {
-				const restrictions = await fetch(`${API}/api/secured/chats/restrictions`, {
-					headers
-				}).then((res) => res.json());
-				const newData = {
-					...cache,
-					restrictions: restrictions as Restriction[],
-					lastFetched: Date.now()
-				};
-				chatsCache.set(newData);
-				return { data: newData as FetchedChatData };
-			} catch {
-				return error(500, 'Failed to load chat restrictions');
-			}
+			return {
+				data: {
+					currentUserId: cache.currentUserId,
+					chatRooms: cache.chatRooms,
+					restrictions: cache.restrictions
+				} satisfies FetchedChatData
+			};
 		}
 	}
 
 	try {
 		const headers = { Authorization: `Bearer ${token}` };
 
-		const [friendships, chatRooms, restrictions] = await Promise.all([
-			fetch(`${API}/api/secured/user/friends`, { headers }).then((res) => res.json()),
-			fetch(`${API}/api/secured/chats`, { headers }).then((res) => res.json()),
-			fetch(`${API}/api/secured/chats/restrictions`, { headers }).then((res) => res.json())
+		const [dashboard, restrictions] = await Promise.all([
+			fetch(`${API}/api/secured/chats`, { headers }).then(async (res) => {
+				if (!res.ok) throw new Error('chats failed');
+				return (await res.json()) as ChatsDashboard;
+			}),
+			fetch(`${API}/api/secured/chats/restrictions`, { headers }).then(async (res) => {
+				if (!res.ok) throw new Error('restrictions failed');
+				return (await res.json()) as Restriction[];
+			})
 		]);
 
-		const newData = {
-			friendships: friendships as Friendship[],
-			chatRooms: chatRooms as Chatroom[],
-			restrictions: restrictions as Restriction[],
-			lastFetched: Date.now()
-		};
-
 		if (browser) {
-			chatsCache.set(newData);
+			chatsCache.update((cache) => ({
+				...cache,
+				currentUserId: dashboard.currentUserId,
+				chatRooms: dashboard.chats,
+				restrictions,
+				roomsFetched: Date.now()
+			}));
 		}
 
-		return { data: newData as FetchedChatData };
+		return {
+			data: {
+				currentUserId: dashboard.currentUserId,
+				chatRooms: dashboard.chats,
+				restrictions
+			} satisfies FetchedChatData
+		};
 	} catch {
 		return error(500, 'Failed to load chat data');
 	}

@@ -1,5 +1,6 @@
 package com.tarnai.duelovky.mmr.controllers;
 
+import com.tarnai.duelovky.mmr.dto.LeaderboardEntryDto;
 import com.tarnai.duelovky.mmr.dto.MmrChangeDto;
 import com.tarnai.duelovky.mmr.dto.MmrDto;
 import com.tarnai.duelovky.mmr.dto.MmrInputDto;
@@ -34,6 +35,13 @@ public class MmrController {
     @GetMapping("/secured/mmr")
     public List<MmrDto> getAllMmr() {
         return mmrService.getAllMmrs();
+    }
+
+    @GetMapping("/secured/mmr/leaderboard")
+    public List<LeaderboardEntryDto> getLeaderboard(
+            @RequestParam(required = false) Long gameId,
+            @RequestParam(defaultValue = "10") int limit) {
+        return mmrService.getLeaderboard(gameId, limit);
     }
 
     @GetMapping("/secured/mmr/{gameId}")

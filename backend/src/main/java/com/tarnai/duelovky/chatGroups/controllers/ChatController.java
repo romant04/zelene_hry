@@ -83,10 +83,16 @@ public class ChatController {
     }
 
     @GetMapping
-    public List<ChatDto> getAllChats() {
-        return chatService.getAllChats().stream()
+    public ResponseEntity<ChatsDashboardDto> getAllChats(Authentication authentication) {
+        Optional<Account> account = userService.getUsersBySearchTerm(authentication.getName()).stream().findFirst();
+        if (account.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<ChatDto> chats = chatService.getAllChats().stream()
                 .map(ChatDto::new)
                 .toList();
+        return ResponseEntity.ok(new ChatsDashboardDto(account.get().getId(), chats));
     }
 
     @GetMapping("/{id}")

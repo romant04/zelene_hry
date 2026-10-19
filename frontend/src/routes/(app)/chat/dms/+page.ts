@@ -1,16 +1,22 @@
 import type { PageLoad } from './$types';
 import type { Friendship } from '../../../../types/friendship';
 import { API } from '../../../../constants/urls';
-import type { Chatroom } from '../../../../types/chat';
 import { chatsCache } from '$lib/cache/chats';
 import { get } from 'svelte/store';
 import { error, redirect } from '@sveltejs/kit';
 import { browser } from '$app/environment';
 
-export interface FetchedDmData {
+interface FriendsDashboard {
+	currentUserId: number;
 	friendships: Friendship[];
-	chatRooms: Chatroom[];
 }
+
+export interface FetchedDmData {
+	currentUserId: number;
+	friendships: Friendship[];
+}
+
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export const load: PageLoad = async ({ fetch, data }) => {
 	const token = data?.token || (browser ? localStorage.getItem('token') : null);
@@ -21,33 +27,42 @@ export const load: PageLoad = async ({ fetch, data }) => {
 
 	if (browser) {
 		const cache = get(chatsCache);
-		const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-		if (cache.chatRooms && Date.now() - cache.lastFetched < CACHE_DURATION) {
-			return { data: cache };
+		if (
+			cache.friendships &&
+			cache.currentUserId != null &&
+			Date.now() - cache.friendsFetched < CACHE_DURATION
+		) {
+			return {
+				data: {
+					currentUserId: cache.currentUserId,
+					friendships: cache.friendships
+				} satisfies FetchedDmData
+			};
 		}
 	}
 
 	try {
 		const headers = { Authorization: `Bearer ${token}` };
-
-		const [friendships, chatRooms] = await Promise.all([
-			fetch(`${API}/api/secured/user/friends`, { headers }).then((res) => res.json()),
-			fetch(`${API}/api/secured/chats`, { headers }).then((res) => res.json())
-		]);
-
-		const newData = {
-			friendships: friendships as Friendship[],
-			chatRooms: chatRooms as Chatroom[],
-			restrictions: null,
-			lastFetched: Date.now()
-		};
+		const dashboard = (await fetch(`${API}/api/secured/user/friends`, { headers }).then((res) => {
+			if (!res.ok) throw new Error('friends failed');
+			return res.json();
+		})) as FriendsDashboard;
 
 		if (browser) {
-			chatsCache.set(newData);
+			chatsCache.update((cache) => ({
+				...cache,
+				currentUserId: dashboard.currentUserId,
+				friendships: dashboard.friendships,
+				friendsFetched: Date.now()
+			}));
 		}
 
-		return { data: newData as FetchedDmData };
+		return {
+			data: {
+				currentUserId: dashboard.currentUserId,
+				friendships: dashboard.friendships
+			} satisfies FetchedDmData
+		};
 	} catch {
 		return error(500, 'Failed to load chat data');
 	}

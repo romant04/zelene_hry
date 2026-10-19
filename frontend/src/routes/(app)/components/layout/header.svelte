@@ -122,7 +122,7 @@
 		{/if}
 
 		{#snippet trail()}
-			<div class="mr-2">
+			<div class="mr-2 hidden md:block">
 				<LanguageSelect onChange={handleLocaleChange} />
 			</div>
 			{#if isAuthenticated === 1 && $auth.data}

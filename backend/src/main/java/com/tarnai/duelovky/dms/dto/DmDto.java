@@ -1,7 +1,7 @@
 package com.tarnai.duelovky.dms.dto;
 
 import com.tarnai.duelovky.dms.entity.DirectMessage;
-import com.tarnai.duelovky.users.dto.AccountDto;
+import com.tarnai.duelovky.users.dto.AccountMinimumDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,15 +11,15 @@ import java.util.Date;
 @Setter
 public class DmDto {
     private Long dmId;
-    private AccountDto sender;
-    private AccountDto receiver;
+    private AccountMinimumDto sender;
+    private AccountMinimumDto receiver;
     private String message;
     private Date createdAt;
 
     public DmDto(DirectMessage directMessage) {
         this.dmId = directMessage.getDmId();
-        this.sender = new AccountDto(directMessage.getSender());
-        this.receiver = new AccountDto(directMessage.getReceiver());
+        this.sender = new AccountMinimumDto(directMessage.getSender());
+        this.receiver = new AccountMinimumDto(directMessage.getReceiver());
         this.message = directMessage.getMessage();
         this.createdAt = directMessage.getCreatedAt();
     }

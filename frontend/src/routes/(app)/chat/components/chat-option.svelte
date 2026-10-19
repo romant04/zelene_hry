@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { User } from '../../../../types/user';
+	import type { PublicUser } from '../../../../types/user';
 	import { setActiveChat } from '../../../../stores/active-chat';
 	import { activeChat } from '../../../../stores/active-chat';
 	import { notifications, updateNotifications } from '../../../../stores/notifications';
@@ -7,7 +7,7 @@
 	import type { Notification } from '../../../../types/notificationMessage';
 	import { isDmNotificationForUser } from '../../../../utils/notificationMatch';
 
-	let { friend, loading = $bindable() }: { friend: User; loading: boolean } = $props();
+	let { friend, loading = $bindable() }: { friend: PublicUser; loading: boolean } = $props();
 
 	async function acknowledgeNotifications(notifications: Notification[]) {
 		await Promise.all(

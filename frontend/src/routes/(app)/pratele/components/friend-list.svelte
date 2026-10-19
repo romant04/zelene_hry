@@ -1,29 +1,27 @@
 <script lang="ts">
 	import PlayerCard from './player-card.svelte';
-	import { auth } from '../../../../stores/auth';
 	import type { Friendship } from '../../../../types/friendship';
-	import type { User } from '../../../../types/user';
+	import type { PublicUser } from '../../../../types/user';
 	import { t } from '$lib/i18n';
 
 	let {
 		friendships,
+		currentUserId,
 		pageSize = 8,
 		friendToBeRemoved = $bindable()
 	}: {
 		friendships: Friendship[];
+		currentUserId: number;
 		pageSize?: number;
-		friendToBeRemoved: User | null;
+		friendToBeRemoved: PublicUser | null;
 	} = $props();
 
 	let page = $state(0);
 
 	const friends = $derived(
-		$auth.data !== null
-			? friendships.map((friendship) => {
-					const userId = $auth.data!.id;
-					return userId === friendship.user1.id ? friendship.user2 : friendship.user1;
-				})
-			: []
+		friendships.map((friendship) =>
+			currentUserId === friendship.user1.id ? friendship.user2 : friendship.user1
+		)
 	);
 
 	const totalPages = $derived(Math.max(1, Math.ceil(friends.length / pageSize)));
@@ -47,22 +45,18 @@
 
 <div class="flex min-h-0 flex-1 flex-col">
 	<div class="min-h-0 flex-1 overflow-auto">
-		{#if $auth.data !== null}
-			{#if friends.length === 0}
-				<div class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-6 text-center">
-					<p class="text-surface-200">{t('friends.noFriends')}</p>
-				</div>
-			{:else}
-				{#each pagedFriends as friend (friend.id)}
-					<PlayerCard {friend} isFriend={true} bind:friendToBeRemoved />
-				{/each}
-			{/if}
+		{#if friends.length === 0}
+			<div class="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-6 text-center">
+				<p class="text-surface-200">{t('friends.noFriends')}</p>
+			</div>
 		{:else}
-			<p class="px-4 py-6 text-surface-200">{t('common.loading')}</p>
+			{#each pagedFriends as friend (friend.id)}
+				<PlayerCard {friend} isFriend={true} bind:friendToBeRemoved />
+			{/each}
 		{/if}
 	</div>
 
-	{#if $auth.data !== null && totalPages > 1}
+	{#if totalPages > 1}
 		<div class="flex h-12 shrink-0 items-center justify-center gap-4 border-t border-surface-600/60">
 			<button
 				type="button"

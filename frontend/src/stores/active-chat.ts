@@ -1,12 +1,12 @@
 import { writable } from 'svelte/store';
-import type { User } from '../types/user';
+import type { PublicUser } from '../types/user';
 import type { Chatroom } from '../types/chat';
 
-export const activeChat = writable<{ activeChat: User | Chatroom | null }>({
+export const activeChat = writable<{ activeChat: PublicUser | Chatroom | null }>({
 	activeChat: null
 });
 
-export function setActiveChat(chat: User | Chatroom) {
+export function setActiveChat(chat: PublicUser | Chatroom) {
 	activeChat.update(() => ({ activeChat: chat }));
 }
 

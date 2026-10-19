@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { User } from '../../../../types/user';
+	import type { PublicUser } from '../../../../types/user';
 	import { onMount } from 'svelte';
 	import { addToast } from '../../../../stores/toast';
 	import Spinner from '../../components/spinner.svelte';
@@ -14,9 +14,9 @@
 		friendSocket = $bindable(),
 		updateAfterFriendRemoved
 	}: {
-		friend: User | null;
+		friend: PublicUser | null;
 		friendSocket: Socket | null;
-		updateAfterFriendRemoved: (friend: User) => void;
+		updateAfterFriendRemoved: (friend: PublicUser) => void;
 	} = $props();
 
 	let modal: HTMLDivElement | null = $state(null);
