@@ -9,48 +9,77 @@ export class Balls extends Phaser.GameObjects.Container {
 	private enemyGoalText: FloatingText | undefined;
 	private playerGoalText: FloatingText | undefined;
 
+	// The layout is designed for landscape (goals on the left and right). In portrait the whole
+	// layout is turned 90° clockwise, so the goals end up at the top and bottom of the screen.
+	private readonly portrait: boolean;
+	private readonly trackLength: number; // distance between the goals
+	private readonly across: number; // width of the pitch
+	private readonly toScreen: (along: number, side: number) => { x: number; y: number };
+
 	constructor(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
 		super(scene, x, y);
 
-		this.enemyGoalText = new FloatingText(this.scene, 1100, 200, 'GOAL!', 'goal');
-		this.playerGoalText = new FloatingText(this.scene, 300, 200, 'GOAL!', 'goal');
+		this.portrait = height > width;
+		this.trackLength = this.portrait ? height : width;
+		this.across = this.portrait ? width : height;
+		this.toScreen = (along, side) =>
+			this.portrait ? { x: width - side, y: along } : { x: along, y: side };
+
+		const enemyGoalTextPos = this.toScreen(this.trackLength - 180, this.across * 0.28);
+		const playerGoalTextPos = this.toScreen(300, this.across * 0.28);
+		this.enemyGoalText = new FloatingText(
+			this.scene,
+			enemyGoalTextPos.x,
+			enemyGoalTextPos.y,
+			'GOAL!',
+			'goal'
+		);
+		this.playerGoalText = new FloatingText(
+			this.scene,
+			playerGoalTextPos.x,
+			playerGoalTextPos.y,
+			'GOAL!',
+			'goal'
+		);
 
 		// Configuration
 		const numCircles = 10;
-		const padding = 100; // Gap from left and right edges
+		const padding = 100; // Gap from the goal edges
 		const amplitude = 60;
 		const frequency = 2; // Full waves (starts and ends at center)
 
-		// Calculate the usable width
-		const trackWidth = width - padding * 2;
+		// Calculate the usable track length
+		const trackWidth = this.trackLength - padding * 2;
 
-		const topCenterY = height * 0.35;
-		const bottomCenterY = height * 0.65;
+		const topCenterY = this.across * 0.35;
+		const bottomCenterY = this.across * 0.65;
 
 		// --- Snake 1: Left to Right (Top) ---
 		for (let i = 0; i < numCircles; i++) {
 			// Distribute within the padded area
-			const x = padding + (trackWidth / (numCircles - 1)) * i;
+			const along = padding + (trackWidth / (numCircles - 1)) * i;
 
 			// Use i / (numCircles - 1) so the last circle hits exactly 1.0
 			const progress = i / (numCircles - 1);
 			const t = progress * Math.PI * 2 * frequency;
-			const y = topCenterY + Math.sin(t) * amplitude;
+			const side = topCenterY + Math.sin(t) * amplitude;
 
-			const node = new SnakeNode(scene, x, y);
+			const pos = this.toScreen(along, side);
+			const node = new SnakeNode(scene, pos.x, pos.y);
 			this.topSnakeNodes.push(node);
 		}
 
 		// --- Snake 2: Right to Left (Bottom) ---
 		for (let i = 0; i < numCircles; i++) {
-			// Start at (Width - Padding) and move towards Padding
-			const x = width - padding - (trackWidth / (numCircles - 1)) * i;
+			// Start at (Length - Padding) and move towards Padding
+			const along = this.trackLength - padding - (trackWidth / (numCircles - 1)) * i;
 
 			const progress = i / (numCircles - 1);
 			const t = progress * Math.PI * 2 * frequency;
 			// Adding Math.PI here mirrors it so they curve away from each other
-			const y = bottomCenterY + Math.cos(t + Math.PI) * amplitude;
-			const node = new SnakeNode(scene, x, y);
+			const side = bottomCenterY + Math.cos(t + Math.PI) * amplitude;
+			const pos = this.toScreen(along, side);
+			const node = new SnakeNode(scene, pos.x, pos.y);
 			this.bottomSnakeNodes.push(node);
 		}
 	}
@@ -60,9 +89,15 @@ export class Balls extends Phaser.GameObjects.Container {
 		if (enemy) this.enemyGoalText?.show();
 		else this.playerGoalText?.show();
 
-		const particles = this.scene.add.particles(enemy ? 1200 : 100, 380, 'particle', {
+		const origin = this.toScreen(enemy ? this.trackLength - 80 : 100, this.across * 0.53);
+		const rotation = this.portrait ? 90 : 0;
+		const particles = this.scene.add.particles(origin.x, origin.y, 'particle', {
 			speed: { min: 60, max: 150 },
-			angle: { min: enemy ? 155 : -80, max: enemy ? 205 : 25 }, // shoot right in a cone
+			// shoot from the goal towards the middle of the pitch in a cone
+			angle: {
+				min: (enemy ? 155 : -80) + rotation,
+				max: (enemy ? 205 : 25) + rotation
+			},
 
 			gravityY: 50, // slowly fall
 			lifespan: 2500,

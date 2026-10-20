@@ -11,6 +11,7 @@ import { gameOver, toggleGameOverOn } from '../../../../stores/gameGeneral/game-
 import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
 import { get } from 'svelte/store';
 import { volume } from '../../../../stores/gameGeneral/volume';
+import { isPortrait } from '$lib/phaser/utils/responsive';
 
 function getTextureFromSuit(suit: string) {
 	switch (suit) {
@@ -25,8 +26,26 @@ function getTextureFromSuit(suit: string) {
 	}
 }
 
-const TOP_TOKEN_POSITION = 0.25;
-const BOTTOM_TOKEN_POSITION = 0.65;
+// Positions on the table, in portrait (mobile) the deck and turn token sit beside the played cards
+function getTableLayout(width: number, height: number, portrait: boolean) {
+	return portrait
+		? {
+				deck: { x: width / 2 - 170, y: height / 2 },
+				tokenX: width / 2 + 170,
+				tokenTopY: height * 0.42,
+				tokenBottomY: height * 0.58,
+				enemyHandY: height * 0.12,
+				hand: { x: width / 2, y: height * 0.8 }
+			}
+		: {
+				deck: { x: width / 3 - 30, y: height / 2 - 50 },
+				tokenX: width * 0.7,
+				tokenTopY: height * 0.25,
+				tokenBottomY: height * 0.65,
+				enemyHandY: height * 0.15,
+				hand: { x: width / 2, y: height * 0.8 }
+			};
+}
 
 export default class MainScene extends Phaser.Scene {
 	private socket: Socket;
@@ -48,12 +67,12 @@ export default class MainScene extends Phaser.Scene {
 	private playAreaGraphics!: Phaser.GameObjects.Graphics;
 	private deck: Card[] = [];
 
+	private layout!: ReturnType<typeof getTableLayout>;
 	private handPosition = { x: 250, y: 530 };
 	private music!: Phaser.Sound.BaseSound;
 
 	initDeck(deck: CardData[]) {
-		const deckX = this.cameras.main.width / 3 - 30;
-		const deckY = this.cameras.main.height / 2 - 50;
+		const { x: deckX, y: deckY } = this.layout.deck;
 		let i = 0;
 
 		for (const c of deck) {
@@ -82,9 +101,7 @@ export default class MainScene extends Phaser.Scene {
 					this.drawCard(tempSedmaCount >= 1);
 				}
 				this.turnToken?.changePosition(
-					this.myTurn
-						? this.cameras.main.height * BOTTOM_TOKEN_POSITION
-						: this.cameras.main.height * TOP_TOKEN_POSITION
+					this.myTurn ? this.layout.tokenBottomY : this.layout.tokenTopY
 				);
 			});
 			i++;
@@ -120,10 +137,6 @@ export default class MainScene extends Phaser.Scene {
 			return;
 		}
 
-		// Prefer scale (more stable) but fall back to cameras
-		const width = this.scale.width || this.cameras.main.width;
-		const height = this.scale.height || this.cameras.main.height;
-
 		this.myTurn =
 			state.currentPlayerId === state.players.find((x) => x.token === this.token)?.id;
 
@@ -134,8 +147,8 @@ export default class MainScene extends Phaser.Scene {
 
 		this.turnToken = new TurnToken(
 			this,
-			width * 0.7,
-			this.myTurn ? height * BOTTOM_TOKEN_POSITION : height * TOP_TOKEN_POSITION,
+			this.layout.tokenX,
+			this.myTurn ? this.layout.tokenBottomY : this.layout.tokenTopY,
 			texture
 		).setInteractive();
 
@@ -144,7 +157,7 @@ export default class MainScene extends Phaser.Scene {
 				this.myTurn = false;
 				this.socket.emit('turnSkipped');
 				this.turnToken?.deactivateToken();
-				this.turnToken?.changePosition(height * TOP_TOKEN_POSITION);
+				this.turnToken?.changePosition(this.layout.tokenTopY);
 				this.eso = false;
 			}
 		});
@@ -263,7 +276,7 @@ export default class MainScene extends Phaser.Scene {
 
 				const texture = getTextureFromSuit(card.suit);
 				this.turnToken?.changeTexture(texture);
-				this.turnToken?.changePosition(this.cameras.main.height * TOP_TOKEN_POSITION);
+				this.turnToken?.changePosition(this.layout.tokenTopY);
 
 				if (card.rank !== 'svrsek') {
 					this.svrsek = null; // Reset svrsek effect if not played
@@ -294,7 +307,7 @@ export default class MainScene extends Phaser.Scene {
 			this.sound.play('draw', { volume: 0.4 });
 
 			this.myTurn = true;
-			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
+			this.turnToken?.changePosition(this.layout.tokenBottomY);
 			this.isEffectActive = false;
 			this.sedmaCount = 0;
 
@@ -330,7 +343,7 @@ export default class MainScene extends Phaser.Scene {
 
 		this.socket.on('turnSkipped', () => {
 			this.myTurn = true;
-			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
+			this.turnToken?.changePosition(this.layout.tokenBottomY);
 			this.isEffectActive = false;
 			this.eso = false; // Reset eso effect after skipping turn
 		});
@@ -342,7 +355,7 @@ export default class MainScene extends Phaser.Scene {
 			this.sound.play('place', { volume: 0.7 });
 
 			this.myTurn = true;
-			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
+			this.turnToken?.changePosition(this.layout.tokenBottomY);
 			this.isEffectActive = true;
 
 			if (card.rank === 'sedma') {
@@ -395,7 +408,7 @@ export default class MainScene extends Phaser.Scene {
 			this.eso = false; // svrsek was played, not eso - make sure a stale eso flag can't linger
 			const texture = getTextureFromSuit(data.suit);
 			this.turnToken?.changeTexture(texture);
-			this.turnToken?.changePosition(this.cameras.main.height * BOTTOM_TOKEN_POSITION);
+			this.turnToken?.changePosition(this.layout.tokenBottomY);
 		});
 		this.socket.on('suitChange', (suit: string) => {
 			this.svrsek = suit;
@@ -426,10 +439,12 @@ export default class MainScene extends Phaser.Scene {
 		setDisconnect(false); // Reset disconnect state when the scene is loaded
 		gameOver.set({ winner: '', gameOver: false }); // Reset game over state when the scene is loaded
 
-		this.handPosition = {
-			x: this.cameras.main.width / 2,
-			y: this.cameras.main.height * 0.8
-		};
+		this.layout = getTableLayout(
+			this.cameras.main.width,
+			this.cameras.main.height,
+			isPortrait(this)
+		);
+		this.handPosition = this.layout.hand;
 
 		this.sound.pauseOnBlur = false;
 		this.sound.volume = get(volume) / 100;
@@ -438,24 +453,7 @@ export default class MainScene extends Phaser.Scene {
 		});
 	}
 
-	createMobileLayout() {
-		console.log('hello');
-		const camera = this.cameras.main;
-
-		// zoom in more so it doesn't feel miniature
-		camera.setZoom(1.5);
-
-		// center same world, but now it feels larger
-		camera.centerOn(640, 360);
-	}
 	create() {
-		const isMobile = this.scale.width < 768;
-		console.log(isMobile, this.scale.width);
-
-		if (isMobile) {
-			this.createMobileLayout();
-		}
-
 		this.music = this.sound.add('bg', {
 			loop: true,
 			volume: 0.15
@@ -542,7 +540,7 @@ export default class MainScene extends Phaser.Scene {
 
 			const radius = this.enemyHand > 8 ? 200 : 300;
 			const x = this.cameras.main.width / 2 + radius * Math.sin(angle);
-			const y = this.cameras.main.height * 0.15 - radius * (1 - Math.cos(angle)); // flip curve upward
+			const y = this.layout.enemyHandY - radius * (1 - Math.cos(angle)); // flip curve upward
 
 			const card = new Card(this, x, y, 'card-front', 'card-back').setOrigin(0.5, 0.5);
 			card.angle = Phaser.Math.RadToDeg(-angle) * 0.6;

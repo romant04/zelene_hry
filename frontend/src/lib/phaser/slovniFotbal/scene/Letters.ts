@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { Letter } from '$lib/phaser/slovniFotbal/scene/Letter';
 import { addToast } from '../../../../stores/toast';
 
+const RADIUS = 250;
+const LETTER_HIT_RADIUS = 40;
+
 export class Letters extends Phaser.GameObjects.Container {
 	private readonly background: Phaser.GameObjects.Arc;
 	private readonly letters: Letter[] = [];
@@ -18,7 +21,7 @@ export class Letters extends Phaser.GameObjects.Container {
 	) {
 		super(scene, x, y);
 
-		this.background = scene.add.circle(0, 0, 250, 0x000000, 0.6);
+		this.background = scene.add.circle(0, 0, RADIUS, 0x000000, 0.6);
 		this.background.isStroked = true;
 		this.background.strokeColor = 0x000000;
 		this.background.strokeAlpha = 0.7;
@@ -27,15 +30,6 @@ export class Letters extends Phaser.GameObjects.Container {
 		this.background.setOrigin(0.5);
 
 		this.lines = scene.add.graphics();
-
-		// --- ADD MASK HERE ---
-		// 1. Create a geometry mask from the background shape
-		const maskShape = scene.make.graphics();
-		maskShape.fillStyle(0xffffff);
-		maskShape.fillCircle(x, y, 250);
-
-		const mask = maskShape.createGeometryMask();
-		this.lines.setMask(mask);
 
 		this.add([this.background, this.lines]);
 
@@ -91,12 +85,19 @@ export class Letters extends Phaser.GameObjects.Container {
 		this.lines.clear();
 	}
 
-	private getLetterAt(pointer: Phaser.Input.Pointer) {
-		return this.letters.find((letter) => {
-			const bounds = letter.getBounds();
+	// Converts the pointer into this container's local space
+	private readonly localPointer = new Phaser.Math.Vector2();
+	private toLocal(pointer: Phaser.Input.Pointer) {
+		return this.pointToContainer(pointer, this.localPointer) as Phaser.Math.Vector2;
+	}
 
-			return bounds.contains(pointer.worldX, pointer.worldY);
-		});
+	private getLetterAt(pointer: Phaser.Input.Pointer) {
+		const local = this.toLocal(pointer);
+		return this.letters.find(
+			(letter) =>
+				Phaser.Math.Distance.Between(local.x, local.y, letter.x, letter.y) <
+				LETTER_HIT_RADIUS
+		);
 	}
 
 	private drawLines(pointer?: Phaser.Input.Pointer) {
@@ -128,8 +129,10 @@ export class Letters extends Phaser.GameObjects.Container {
 		if (pointer && this.dragging) {
 			const lastLetter = this.selectedLetters[this.selectedLetters.length - 1];
 
-			// Convert world pointer coordinates into this container's local space
-			const localPointer = this.pointToContainer(pointer, new Phaser.Math.Vector2());
+			// Keep the line inside the circle (cheaper than masking the graphics)
+			const localPointer = this.toLocal(pointer);
+			const maxLength = RADIUS - lineWidth;
+			if (localPointer.length() > maxLength) localPointer.setLength(maxLength);
 
 			// Draw line to cursor
 			this.lines.lineBetween(lastLetter.x, lastLetter.y, localPointer.x, localPointer.y);

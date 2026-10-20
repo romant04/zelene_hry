@@ -10,6 +10,7 @@
 	import Disconnect from '$lib/phaser/components/Disconnect.svelte';
 	import VolumeControl from '$lib/phaser/components/VolumeControl.svelte';
 	import bg from '../../../../assets/prsi/wood.jpg';
+	import { getGameSize, reloadOnOrientationChange } from '$lib/phaser/utils/responsive';
 
 	let {
 		socket,
@@ -41,7 +42,10 @@
 		$svrsek.svrsekOpen = false;
 	}
 
+	let stopOrientationWatch: (() => void) | undefined;
+
 	onMount(async () => {
+		stopOrientationWatch = reloadOnOrientationChange();
 		const Phaser = await import('phaser');
 		const { default: MainScene } = await import('$lib/phaser/prsi/scene/MainScene');
 		const { default: PreloadScene } = await import('$lib/phaser/prsi/scene/PreloadScene');
@@ -55,8 +59,7 @@
 			scale: {
 				mode: Phaser.Scale.FIT,
 				autoCenter: Phaser.Scale.CENTER_BOTH,
-				width: 1460,
-				height: 733
+				...getGameSize(1460, 733, document.getElementById('phaser-container'))
 			}
 		};
 
@@ -64,17 +67,20 @@
 	});
 
 	onDestroy(() => {
+		stopOrientationWatch?.();
 		game?.destroy(true);
 	});
 </script>
 
 <div
 	id="phaser-container"
-	class="w-screen h-screen overflow-hidden flex justify-center items-center"
-	style="background: url({bg}) no-repeat center center fixed; background-size: cover;"
+	class="w-full h-full overflow-hidden flex justify-center items-center"
+	style="background: url({bg}) no-repeat center center; background-size: cover;"
 ></div>
-<p class="fixed top-10 left-32 text-3xl font-bold">{enemyName}</p>
-<p class="fixed bottom-10 right-32 text-3xl font-bold">{playerName}</p>
+<p class="fixed top-3 left-4 text-lg lg:top-10 lg:left-32 lg:text-3xl font-bold">{enemyName}</p>
+<p class="fixed bottom-3 right-4 text-lg lg:bottom-10 lg:right-32 lg:text-3xl font-bold">
+	{playerName}
+</p>
 {#if $svrsek.svrsekOpen}
 	<div
 		class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center px-5"

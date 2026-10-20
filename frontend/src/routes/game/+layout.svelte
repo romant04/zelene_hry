@@ -23,7 +23,7 @@
 	let { children }: Props = $props();
 </script>
 
-<main class="h-screen w-screen">
+<main class="h-dvh w-screen">
 	<Toast />
 	{@render children?.()}
 </main>

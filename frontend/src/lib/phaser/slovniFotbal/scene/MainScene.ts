@@ -10,6 +10,7 @@ import { endTime } from '../../../../stores/slovni-fotbal/timer';
 import { gameOver, toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
 import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
 import { volume } from '../../../../stores/gameGeneral/volume';
+import { isPortrait } from '$lib/phaser/utils/responsive';
 
 export default class MainScene extends Phaser.Scene {
 	private socket: Socket;
@@ -172,12 +173,17 @@ export default class MainScene extends Phaser.Scene {
 	private music: Phaser.Sound.BaseSound | undefined;
 	create() {
 		const { width, height } = this.cameras.main;
-		const bg = this.add.image(width / 2, height / 2, 'hriste');
+		// Only the green field of the image, without its white border
+		const pitch = this.textures.get('hriste');
+		if (!pitch.has('field')) pitch.add('field', 0, 12, 39, 1251, 807);
+		const bg = this.add.image(width / 2, height / 2, 'hriste', 'field');
 
-		// Calculate the scale ratio
-		const scaleX = width / bg.width;
-		const scaleY = height / bg.height;
-		const scale = Math.max(scaleX, scaleY);
+		// In portrait the pitch is turned so the goals are at the top and bottom
+		const portrait = isPortrait(this);
+		if (portrait) bg.setAngle(90);
+		// Fit the pitch between the goals so they are always visible, the rest of the screen is
+		// filled with the same green as the background color of the game
+		const scale = (portrait ? height : width) / bg.width;
 
 		bg.setScale(scale).setScrollFactor(0);
 

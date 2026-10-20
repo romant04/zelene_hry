@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { AnimatedCharText } from '$lib/phaser/horolezci/scene/AnimatedCharText';
 
-const MAX_LINE_WIDTH = 1200;
 const LETTER_SIZE = 36;
 const LETTER_GAP = 3;
 const WORD_GAP = 20;
@@ -67,7 +66,8 @@ export class SecretWordLine extends Phaser.GameObjects.Container {
 		x: number,
 		y: number,
 		text: string,
-		guessedLetters: Set<string> = new Set()
+		guessedLetters: Set<string> = new Set(),
+		maxLineWidth = 1200
 	) {
 		super(scene, x, y);
 
@@ -91,7 +91,7 @@ export class SecretWordLine extends Phaser.GameObjects.Container {
 					? secretWord.wordWidth
 					: currentWidth + WORD_GAP + secretWord.wordWidth;
 
-			if (newWidth > MAX_LINE_WIDTH && currentWords.length > 0) {
+			if (newWidth > maxLineWidth && currentWords.length > 0) {
 				lines.push({
 					words: currentWords,
 					width: currentWidth
@@ -118,7 +118,7 @@ export class SecretWordLine extends Phaser.GameObjects.Container {
 		let currentY = 0;
 
 		for (const line of lines) {
-			let currentX = (MAX_LINE_WIDTH - line.width) / 2;
+			let currentX = (maxLineWidth - line.width) / 2;
 
 			for (const word of line.words) {
 				word.setPosition(currentX, currentY);
@@ -131,7 +131,7 @@ export class SecretWordLine extends Phaser.GameObjects.Container {
 			currentY += LINE_HEIGHT;
 		}
 
-		this.lineWidth = MAX_LINE_WIDTH;
+		this.lineWidth = maxLineWidth;
 		this.lineHeight = currentY;
 	}
 

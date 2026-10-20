@@ -8,6 +8,7 @@
 	import type { Socket } from 'socket.io-client';
 	import { distanceToTravel, horolezciStats } from '../../../../stores/horolezci/stats';
 	import { fly } from 'svelte/transition';
+	import { getGameSize, reloadOnOrientationChange } from '$lib/phaser/utils/responsive';
 
 	let game: Game;
 
@@ -20,7 +21,10 @@
 
 	const MAX_TIME = 20;
 
+	let stopOrientationWatch: (() => void) | undefined;
+
 	onMount(async () => {
+		stopOrientationWatch = reloadOnOrientationChange();
 		console.log(
 			`Initializing Phaser game with playerName: ${playerName} and enemyName: ${enemyName}`
 		);
@@ -48,8 +52,7 @@
 			scale: {
 				mode: Phaser.Scale.FIT,
 				autoCenter: Phaser.Scale.CENTER_BOTH,
-				width: 1280,
-				height: 720
+				...getGameSize(1280, 720, document.getElementById('phaser-container'))
 			},
 			render: {
 				pixelArt: false,
@@ -81,6 +84,7 @@
 	});
 
 	onDestroy(() => {
+		stopOrientationWatch?.();
 		game?.destroy(true);
 	});
 </script>
@@ -90,50 +94,52 @@
 	class="w-full h-full overflow-hidden flex justify-center items-center bg-[#FEFFFF]"
 ></div>
 
-<div class="fixed top-10 left-10 flex items-center gap-2">
-	<PlayerUI {playerName} isEnemy={false} />
-	{#if $distanceToTravel === null}
-		<div
-			class="timer rounded-full flex justify-center items-center border-[5px] border-black"
-			style={`--progress: ${Number(time) / MAX_TIME};`}
-		>
-			<div class="timer-fill"></div>
+<div class="fixed top-2 left-2 lg:top-10 lg:left-10 flex flex-col gap-2 lg:gap-3">
+	<div class="flex items-center gap-2">
+		<PlayerUI {playerName} isEnemy={false} />
+		{#if $distanceToTravel === null}
+			<div
+				class="timer w-12 h-12 lg:w-20 lg:h-20 rounded-full flex justify-center items-center border-[3px] lg:border-[5px] border-black"
+				style={`--progress: ${Number(time) / MAX_TIME};`}
+			>
+				<div class="timer-fill"></div>
 
-			<span class="text-2xl font-bold text-black z-10">
-				{time}
-			</span>
-		</div>
-	{:else}
-		<div
-			in:fly={{ y: -20, duration: 500 }}
-			class={`${$distanceToTravel.player === null ? 'text-[#ffd83d]' : $distanceToTravel.player > 0 ? 'text-[#29d31c]' : 'text-[#e64545]'}`}
-		>
-			<span class="text-2xl font-bold">
-				{#if $distanceToTravel.player === null}
-					Safety placed!
-				{:else}
-					{$distanceToTravel.player > 0 ? '+' : ''}{$distanceToTravel.player}m
-				{/if}
-			</span>
-		</div>
-	{/if}
-</div>
-<div class="fixed top-36 left-10 flex items-center gap-2">
-	<PlayerUI playerName={enemyName} isEnemy={true} />
-	{#if $distanceToTravel}
-		<div
-			in:fly={{ y: -20, duration: 500 }}
-			class={`${$distanceToTravel.enemy === null ? 'text-[#ffd83d]' : $distanceToTravel.enemy > 0 ? 'text-[#29d31c]' : 'text-[#e64545]'}`}
-		>
-			<span class="text-2xl font-bold">
-				{#if $distanceToTravel.enemy === null}
-					Safety placed!
-				{:else}
-					{$distanceToTravel.enemy > 0 ? '+' : ''}{$distanceToTravel.enemy}m
-				{/if}
-			</span>
-		</div>
-	{/if}
+				<span class="text-lg lg:text-2xl font-bold text-black z-10">
+					{time}
+				</span>
+			</div>
+		{:else}
+			<div
+				in:fly={{ y: -20, duration: 500 }}
+				class={`${$distanceToTravel.player === null ? 'text-[#ffd83d]' : $distanceToTravel.player > 0 ? 'text-[#29d31c]' : 'text-[#e64545]'}`}
+			>
+				<span class="text-lg lg:text-2xl font-bold">
+					{#if $distanceToTravel.player === null}
+						Safety placed!
+					{:else}
+						{$distanceToTravel.player > 0 ? '+' : ''}{$distanceToTravel.player}m
+					{/if}
+				</span>
+			</div>
+		{/if}
+	</div>
+	<div class="flex items-center gap-2">
+		<PlayerUI playerName={enemyName} isEnemy={true} />
+		{#if $distanceToTravel}
+			<div
+				in:fly={{ y: -20, duration: 500 }}
+				class={`${$distanceToTravel.enemy === null ? 'text-[#ffd83d]' : $distanceToTravel.enemy > 0 ? 'text-[#29d31c]' : 'text-[#e64545]'}`}
+			>
+				<span class="text-lg lg:text-2xl font-bold">
+					{#if $distanceToTravel.enemy === null}
+						Safety placed!
+					{:else}
+						{$distanceToTravel.enemy > 0 ? '+' : ''}{$distanceToTravel.enemy}m
+					{/if}
+				</span>
+			</div>
+		{/if}
+	</div>
 </div>
 <VolumeControl />
 <GameOver />
@@ -141,8 +147,6 @@
 
 <style>
 	.timer {
-		width: 80px;
-		height: 80px;
 		position: relative;
 		overflow: hidden;
 		background: white;

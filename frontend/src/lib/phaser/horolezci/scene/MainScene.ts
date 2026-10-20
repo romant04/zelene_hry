@@ -13,8 +13,10 @@ import { setDisconnect } from '../../../../stores/gameGeneral/disconnect';
 import { gameOver, toggleGameOverOn } from '../../../../stores/gameGeneral/game-over';
 import { get } from 'svelte/store';
 import { volume } from '../../../../stores/gameGeneral/volume';
+import { isPortrait } from '$lib/phaser/utils/responsive';
 
-const MOUNTAIN_HEIGHT_MULTIPLIER = 2.5;
+// The mountain is always 1800 world units tall so climbed distances are the same on every screen
+const MOUNTAIN_HEIGHT = 1800;
 const TOP_OF_THE_MOUNTAIN = 728 * 2.5 - 360;
 const PLAYER_START = 1800;
 const PLAYER_END = PLAYER_START - TOP_OF_THE_MOUNTAIN;
@@ -299,8 +301,9 @@ export default class MainScene extends Phaser.Scene {
 		this.music.play();
 
 		// 1. Add background
+		// Scaled uniformly so it never gets stretched, on narrow screens the sides are cut off instead
 		const mountain = this.add.image(screenWidth / 2, 0, 'mountain').setOrigin(0.5, 0);
-		mountain.setDisplaySize(screenWidth * 0.75, screenHeight * MOUNTAIN_HEIGHT_MULTIPLIER);
+		mountain.setScale(MOUNTAIN_HEIGHT / mountain.height);
 
 		// 2. Add player as a Sprite
 		const groundY = mountain.displayHeight;
@@ -309,7 +312,8 @@ export default class MainScene extends Phaser.Scene {
 		);
 		this.enemy = new Player(this, screenWidth / 2 + 100, groundY, true, PLAYER_END).setDepth(2);
 
-		this.pyramid = new Pyramid(this, screenWidth / 2, screenHeight * 0.35).setDepth(3);
+		const pyramidY = screenHeight * (isPortrait(this) ? 0.4 : 0.35);
+		this.pyramid = new Pyramid(this, screenWidth / 2, pyramidY).setDepth(3);
 		this.pyramid.onSelectionChange = (button) => {
 			this.socket.emit('lockInGuess', {
 				letter: button?.letter,
@@ -321,10 +325,10 @@ export default class MainScene extends Phaser.Scene {
 			this.socket.emit('placeSafety');
 		};
 
-		this.secret = new Secret(this, 0, screenHeight - 250, '').setDepth(3);
+		this.secret = new Secret(this, 0, screenHeight - Secret.getHeight(this), '').setDepth(3);
 
-		// 4. Setup camera bounds & tracking
-		this.cameras.main.setBounds(0, 0, mountain.displayWidth, mountain.displayHeight);
+		// 4. Setup camera bounds & tracking (only vertically, the mountain stays centered)
+		this.cameras.main.setBounds(0, 0, screenWidth, mountain.displayHeight);
 		this.cameras.main.startFollow(this.player);
 
 		this.socket.emit('getGameState');

@@ -7,11 +7,16 @@
 		const newVolume = parseInt(target.value);
 		volume.set(newVolume);
 	}
+
+	// Touch screens have no hover, so the slider can also be toggled by tapping the icon
+	let open = $state(false);
 </script>
 
-<div class="fixed bottom-10 left-10 flex flex-col items-center gap-2 group">
+<div class="fixed bottom-4 left-4 lg:bottom-10 lg:left-10 flex flex-col items-center gap-2 group">
 	<input
-		class="volume-slider opacity-0 pointer-events-none translate-y-2 transition-all duration-200 group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0"
+		class="volume-slider transition-all duration-200 group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0 {open
+			? 'opacity-100 pointer-events-auto translate-y-0'
+			: 'opacity-0 pointer-events-none translate-y-2'}"
 		oninput={handleVolumeChange}
 		type="range"
 		min="0"
@@ -19,9 +24,16 @@
 		value="100"
 	/>
 
-	<div class="flex justify-center items-center p-4 bg-black/80 rounded-full">
-		<Icon icon="material-symbols:volume-up" class="w-8 h-8 text-white cursor-pointer" />
-	</div>
+	<button
+		onclick={() => (open = !open)}
+		class="flex justify-center items-center p-3 lg:p-4 bg-black/80 rounded-full"
+		aria-label="Volume"
+	>
+		<Icon
+			icon="material-symbols:volume-up"
+			class="w-6 h-6 lg:w-8 lg:h-8 text-white cursor-pointer"
+		/>
+	</button>
 </div>
 
 <style>

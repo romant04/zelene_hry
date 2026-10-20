@@ -7,6 +7,7 @@
 	import GameOver from '$lib/phaser/components/GameOver.svelte';
 	import Disconnect from '$lib/phaser/components/Disconnect.svelte';
 	import VolumeControl from '$lib/phaser/components/VolumeControl.svelte';
+	import { getGameSize, reloadOnOrientationChange } from '$lib/phaser/utils/responsive';
 
 	let game: Game;
 
@@ -17,7 +18,10 @@
 		enemyName
 	}: { socket: Socket; token: string; playerName: string; enemyName: string } = $props();
 
+	let stopOrientationWatch: (() => void) | undefined;
+
 	onMount(async () => {
+		stopOrientationWatch = reloadOnOrientationChange();
 		const Phaser = await import('phaser');
 		const { default: MainScene } = await import('$lib/phaser/slovniFotbal/scene/MainScene');
 		const { default: PreloadScene } = await import(
@@ -28,7 +32,7 @@
 		// eslint-disable-next-line no-undef
 		const config: Phaser.Types.Core.GameConfig = {
 			type: Phaser.AUTO,
-			backgroundColor: '#17840F',
+			backgroundColor: '#008D00', // same green as the pitch image
 			dom: {
 				createContainer: true
 			},
@@ -37,8 +41,7 @@
 			scale: {
 				mode: Phaser.Scale.FIT,
 				autoCenter: Phaser.Scale.CENTER_BOTH,
-				width: 1280,
-				height: 720
+				...getGameSize(1280, 720, document.getElementById('phaser-container'))
 			},
 			render: {
 				pixelArt: false,
@@ -84,29 +87,41 @@
 	});
 
 	onDestroy(() => {
+		stopOrientationWatch?.();
 		game?.destroy(true);
 	});
 </script>
 
-<div
-	id="phaser-container"
-	class="w-full h-full overflow-hidden flex justify-center items-center bg-[#17840F]"
-></div>
+<div class="w-full h-full flex flex-col">
+	<div class="bg-tertiary-600 flex justify-between items-center">
+		<div class="flex items-center gap-2 lg:gap-4 bg-tertiary-800 lg:w-[200px] pl-3 lg:pl-5">
+			<p
+				class="text-base lg:text-2xl font-bold uppercase truncate max-w-[7rem] lg:max-w-none"
+			>
+				{playerName}
+			</p>
+			<p class="text-xl lg:text-3xl bg-tertiary-900 p-3 lg:p-5 ml-auto">
+				{$score.player.goals}
+			</p>
+		</div>
 
-<div class="top-0 left-0 w-full fixed bg-tertiary-600 flex justify-between items-center">
-	<div class="flex items-center gap-4 bg-tertiary-800 w-[200px] pl-5">
-		<p class="text-2xl font-bold uppercase">{playerName}</p>
-		<p class="text-3xl bg-tertiary-900 p-5 ml-auto">{$score.player.goals}</p>
-	</div>
+		<div class="bg-tertiary-800 py-3 px-4 lg:py-5 lg:px-8">
+			<p class="text-xl lg:text-3xl font-bold uppercase">{time}</p>
+		</div>
 
-	<div class="bg-tertiary-800 py-5 px-8">
-		<p class="text-3xl font-bold uppercase">{time}</p>
+		<div class="flex items-center gap-2 lg:gap-4 bg-tertiary-800 lg:w-[200px] pr-3 lg:pr-5">
+			<p class="text-xl lg:text-3xl bg-tertiary-900 p-3 lg:p-5">{$score.enemy.goals}</p>
+			<p
+				class="text-base lg:text-2xl font-bold uppercase truncate max-w-[7rem] lg:max-w-none"
+			>
+				{enemyName}
+			</p>
+		</div>
 	</div>
-
-	<div class="flex items-center gap-4 bg-tertiary-800 w-[200px] pr-5">
-		<p class="text-3xl bg-tertiary-900 p-5">{$score.enemy.goals}</p>
-		<p class="text-2xl font-bold uppercase">{enemyName}</p>
-	</div>
+	<div
+		id="phaser-container"
+		class="flex-1 min-h-0 w-full overflow-hidden flex justify-center items-center bg-[#008D00]"
+	></div>
 </div>
 <VolumeControl />
 <GameOver />
