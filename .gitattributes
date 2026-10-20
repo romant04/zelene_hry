@@ -1,2 +1,3 @@
 api-design.html linguist-documentation
 graphify-out/graph.json merge=graphify
+*.html linguist-detectable=false
