@@ -1,4 +1,6 @@
-const letterLines: Record<string, number> = { // 4 - most common, 3 - common, 2 - less common, 1 - rare
+import { GameLanguage } from "../types/language";
+
+const czechLetterLines: Record<string, number> = { // 4 - most common, 3 - common, 2 - less common, 1 - rare
     "a": 4,
     "e": 4,
     "i": 4,
@@ -44,6 +46,41 @@ const letterLines: Record<string, number> = { // 4 - most common, 3 - common, 2 
     "w": 1,
     "x": 1
 };
+const englishLetterLines: Record<string, number> = { // Same ranks as above, based on english letter frequency
+    "e": 4,
+    "t": 4,
+    "a": 4,
+    "o": 4,
+    "i": 4,
+    "n": 4,
+    "s": 4,
+    "r": 4,
+    "h": 4,
+
+    "d": 3,
+    "l": 3,
+    "c": 3,
+    "u": 3,
+    "m": 3,
+    "w": 3,
+    "f": 3,
+    "g": 3,
+
+    "y": 2,
+    "p": 2,
+    "b": 2,
+    "v": 2,
+    "k": 2,
+
+    "j": 1,
+    "x": 1,
+    "q": 1,
+    "z": 1
+};
+const letterLines: Record<GameLanguage, Record<string, number>> = {
+    cs: czechLetterLines,
+    en: englishLetterLines,
+};
 function shuffle<T>(arr: T[]): T[] {
     const copy = [...arr];
     for (let i = copy.length - 1; i > 0; i--) {
@@ -57,10 +94,23 @@ function shuffle<T>(arr: T[]): T[] {
 
 const ROW_CAPACITY: Record<number, number> = { 1: 1, 2: 2, 3: 3, 4: 4 };
 
-// Precompute rank -> letters
-const ranksToLetters: Record<number, string[]> = { 1: [], 2: [], 3: [], 4: [] };
-for (const [letter, rank] of Object.entries(letterLines)) {
-    ranksToLetters[rank].push(letter);
+// Precompute rank -> letters for each language
+function buildRanksToLetters(lines: Record<string, number>): Record<number, string[]> {
+    const ranks: Record<number, string[]> = { 1: [], 2: [], 3: [], 4: [] };
+    for (const [letter, rank] of Object.entries(lines)) {
+        ranks[rank].push(letter);
+    }
+    return ranks;
+}
+const ranksToLettersByLanguage: Record<GameLanguage, Record<number, string[]>> = {
+    cs: buildRanksToLetters(letterLines.cs),
+    en: buildRanksToLetters(letterLines.en),
+};
+
+/** Letters of the secret that players have to guess (punctuation, spaces and foreign letters are skipped). */
+export function extractSecretLetters(secret: string, language: GameLanguage): string[] {
+    const notALetter = language === "en" ? /[^a-z]/g : /[^a-záčďéěíňóřšťúůýž]/g;
+    return Array.from(secret.toLowerCase().replace(notALetter, ""));
 }
 
 const ROW_RANK_WEIGHTS: Record<number, Record<number, number>> = {
@@ -83,7 +133,7 @@ function pickRankForRow(row: number): number {
 
 const GUESSED_LETTER_CHANCE = 0.03;
 /** Picks an unused letter of the given rank, falling back to nearby ranks if exhausted. */
-function pickLetterOfRank(rank: number, used: Set<string>, guessedSet: Set<string>): string | null {
+function pickLetterOfRank(rank: number, used: Set<string>, guessedSet: Set<string>, ranksToLetters: Record<number, string[]>): string | null {
     const tryRanks = [rank, ...[1, 2, 3, 4].filter(r => r !== rank)];
 
     // Small chance: deliberately allow an already-guessed letter through.
@@ -111,14 +161,15 @@ function pickLetterOfRank(rank: number, used: Set<string>, guessedSet: Set<strin
     return null;
 }
 
-export function generatePyramid(correctLetters: string[], guessedLetters: Set<string>): string[][] {
+export function generatePyramid(correctLetters: string[], guessedLetters: Set<string>, language: GameLanguage = "cs"): string[][] {
+    const ranksToLetters = ranksToLettersByLanguage[language];
     const pyramid: Record<number, string[]> = { 1: [], 2: [], 3: [], 4: [] };
     const used = new Set<string>();
 
     // Fill all 10 slots purely through the normal weighted process — no special-casing.
     for (let row = 1; row <= 4; row++) {
         while (pyramid[row].length < ROW_CAPACITY[row]) {
-            const letter = pickLetterOfRank(pickRankForRow(row), used, guessedLetters);
+            const letter = pickLetterOfRank(pickRankForRow(row), used, guessedLetters, ranksToLetters);
             if (!letter) break;
             pyramid[row].push(letter);
             used.add(letter);

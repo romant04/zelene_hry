@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
 import { WEBSOCKET } from '../constants/urls';
 import type { PublicUser, User } from '../types/user';
+import type { Locale } from './i18n';
 
 export const createChatSocket = (userId: number, friendId: number) => {
 	return io(`${WEBSOCKET}/chat`, {
@@ -8,7 +9,11 @@ export const createChatSocket = (userId: number, friendId: number) => {
 	});
 };
 
-export const createChatroomSocket = (user: User | PublicUser, chatId: number, users: PublicUser[]) => {
+export const createChatroomSocket = (
+	user: User | PublicUser,
+	chatId: number,
+	users: PublicUser[]
+) => {
 	return io(`${WEBSOCKET}/chatroom`, {
 		auth: { user, chatId, users }
 	});
@@ -26,15 +31,21 @@ export const createNotificationSocket = (userId: number) => {
 	});
 };
 
-export const createMatchmakingSocket = (user: User, gameId: number) => {
+// Language decides the queue, players of different languages are never matched together
+export const createMatchmakingSocket = (user: User, gameId: number, language: Locale) => {
 	return io(`${WEBSOCKET}/matchmaking`, {
-		auth: { user, gameId }
+		auth: { user, gameId, language }
 	});
 };
 
-export const createFriendChallengeSocket = (user: User, queueCode: string, gameId: number) => {
+export const createFriendChallengeSocket = (
+	user: User,
+	queueCode: string,
+	gameId: number,
+	language: Locale
+) => {
 	return io(`${WEBSOCKET}/friend-challenge`, {
-		auth: { user, queueCode, gameId }
+		auth: { user, queueCode, gameId, language }
 	});
 };
 

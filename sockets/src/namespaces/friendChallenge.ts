@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { GameData } from "../types/game";
 import { GameRoomsMap } from "../socket";
 import { getClientId } from "../utils/getClient";
+import { GameLanguage, parseLanguage } from "../types/language";
 
 interface FriendChallengeQueueUser {
   id: number;
@@ -18,6 +19,7 @@ interface FriendChallengeQueue {
   users: FriendChallengeQueueUser[];
   readyCounter: number;
   gameId: number;
+  language: GameLanguage; // Set by the player who created the lobby
 }
 
 const NAMESPACE = "/friend-challenge";
@@ -30,8 +32,9 @@ export function setupFriendChallengeNamespace(io: Server) {
     const user: User = socket.handshake.auth?.user;
     const queueCode: string = socket.handshake.auth?.queueCode;
     const gameId: number = socket.handshake.auth?.gameId;
+    const language = parseLanguage(socket.handshake.auth?.language);
 
-    if (!queueCode || !gameId) {
+    if (!queueCode || !gameId || !language) {
       console.log("Invalid connection information, disconnecting...");
       socket.disconnect();
       return;
@@ -51,6 +54,16 @@ export function setupFriendChallengeNamespace(io: Server) {
           `User ${user.username} already in queue ${queueCode}, disconnecting...`,
         );
         socket.emit("alreadyInQueue");
+        socket.disconnect();
+        return;
+      }
+
+      // Players of different languages must never end up in the same game
+      if (queue.language !== language) {
+        console.log(
+          `User ${user.username} (${language}) tried to join ${queue.language} queue ${queueCode}, disconnecting...`,
+        );
+        socket.emit("languageMismatch", { required: queue.language });
         socket.disconnect();
         return;
       }
@@ -97,6 +110,7 @@ export function setupFriendChallengeNamespace(io: Server) {
           roomKey: roomKey,
           gameStartTime: Date.now(),
           isPrivate: true,
+          language: queue.language,
           players: [
             {
               id: me.id,
@@ -154,6 +168,7 @@ export function setupFriendChallengeNamespace(io: Server) {
         ],
         readyCounter: 1, // Players are ready by default upon joining (might change in future)
         gameId,
+        language,
       };
       activeQueues.set(queueCode, newQueue);
       socket.join(queueCode);

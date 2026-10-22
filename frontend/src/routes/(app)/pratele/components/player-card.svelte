@@ -3,7 +3,7 @@
 	import type { PublicUser } from '../../../../types/user';
 	import { setActiveChat } from '../../../../stores/active-chat';
 	import { goto } from '$app/navigation';
-	import { t } from '$lib/i18n';
+	import { t, localizeHref } from '$lib/i18n';
 
 	let {
 		friend,
@@ -31,7 +31,7 @@
 
 	function handleChatRedirect() {
 		setActiveChat(friend);
-		goto('/chat/dms');
+		goto(localizeHref('/chat/dms'));
 	}
 </script>
 
@@ -67,7 +67,9 @@
 			</button>
 		</div>
 	{:else if friendRequestSent}
-		<span class="pointer-events-none shrink-0 rounded-md bg-surface-600 px-3 py-2 text-sm text-surface-200">
+		<span
+			class="pointer-events-none shrink-0 rounded-md bg-surface-600 px-3 py-2 text-sm text-surface-200"
+		>
 			{t('friends.requestSent')}
 		</span>
 	{:else}

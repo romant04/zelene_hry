@@ -10,7 +10,7 @@
 	import { onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import type { Game } from '../../../../../types/game';
-	import { resolveGameCode, t, tt } from '$lib/i18n';
+	import { i18n, resolveGameCode, t, tt, localizeHref } from '$lib/i18n';
 
 	let { isOpen = $bindable(), game }: { isOpen: boolean; game: Game } = $props();
 	let matchId = $state('');
@@ -19,17 +19,29 @@
 	});
 
 	let socket: Socket | null = $state(null);
+	// The lobby is bound to the language it was created in
+	let lobbyLocale = i18n.locale;
 
 	$effect(() => {
 		if (isOpen && $auth.data && !matchId) {
 			matchId = uuidv4();
-			socket = createFriendChallengeSocket($auth.data, matchId, game.gameId);
+			lobbyLocale = i18n.locale;
+			socket = createFriendChallengeSocket($auth.data, matchId, game.gameId, lobbyLocale);
 			socket.on('gameStarted', (data: { gameId: string; playerToken: string }) => {
 				localStorage.setItem('playerToken', data.playerToken);
 				localStorage.setItem('gameId', data.gameId);
 				socket?.emit('joinGame');
-				goto(`/game/${resolveGameCode(game)}`);
+				goto(localizeHref(`/game/${resolveGameCode(game)}`));
 			});
+		}
+	});
+
+	// Switching language while the lobby is open recreates it (with a new link) in the new language
+	$effect(() => {
+		if (isOpen && socket && i18n.locale !== lobbyLocale) {
+			socket.disconnect();
+			socket = null;
+			matchId = '';
 		}
 	});
 

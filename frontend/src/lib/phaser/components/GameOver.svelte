@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { localizeHref } from '$lib/i18n';
 	import { gameOver, toggleGameOverOff } from '../../../stores/gameGeneral/game-over';
 	import { profileCache } from '$lib/cache/profile.js';
 	import { mmrCache } from '$lib/cache/mmr.js';
@@ -12,7 +13,7 @@
 		toggleGameOverOff();
 		profileCache.clear();
 		mmrCache.clear();
-		goto('/');
+		goto(localizeHref('/'));
 	}
 </script>
 

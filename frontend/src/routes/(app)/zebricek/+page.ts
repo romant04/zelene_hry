@@ -4,7 +4,7 @@ import { get } from 'svelte/store';
 import { API } from '../../../constants/urls';
 import { mmrCache, type LeaderboardEntry } from '$lib/cache/mmr';
 import type { Game } from '../../../types/game';
-import { acceptLanguageHeaders, getClientLocale, type Locale } from '$lib/i18n';
+import { acceptLanguageHeaders, localizePath, type Locale } from '$lib/i18n';
 
 const CACHE_DURATION = 300000;
 const LEADERBOARD_LIMIT = 10;
@@ -33,11 +33,10 @@ async function fetchLeaderboard(
 
 export const load = async ({ fetch, data, parent, url }) => {
 	const token = data?.token || (browser ? localStorage.getItem('token') : null);
-	const { locale: parentLocale } = (await parent()) as { locale: Locale };
-	const locale = getClientLocale(parentLocale);
+	const { locale } = (await parent()) as { locale: Locale };
 
 	if (!token) {
-		throw redirect(303, '/login');
+		throw redirect(303, localizePath('/login', locale));
 	}
 
 	const gameKey = url.searchParams.get('game') || 'all';
@@ -48,7 +47,8 @@ export const load = async ({ fetch, data, parent, url }) => {
 
 	if (browser) {
 		const cache = get(mmrCache);
-		const gamesFresh = cache.games.length > 0 && Date.now() - cache.gamesFetched < CACHE_DURATION;
+		const gamesFresh =
+			cache.games.length > 0 && Date.now() - cache.gamesFetched < CACHE_DURATION;
 		const boardFresh =
 			cache.leaderboards[gameKey] &&
 			Date.now() - (cache.leaderboardFetched[gameKey] ?? 0) < CACHE_DURATION;
@@ -66,7 +66,9 @@ export const load = async ({ fetch, data, parent, url }) => {
 		try {
 			let games = cache.games;
 			if (!gamesFresh) {
-				games = (await fetch(`${API}/api/games`, { headers }).then((res) => res.json())) as Game[];
+				games = (await fetch(`${API}/api/games`, { headers }).then((res) =>
+					res.json()
+				)) as Game[];
 			}
 
 			let entries = cache.leaderboards[gameKey];

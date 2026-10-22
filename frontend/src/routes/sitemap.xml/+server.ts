@@ -1,32 +1,33 @@
+import { GAME_SLUGS, LOCALES, localizePath } from '$lib/i18n';
+import { SITE_URL } from '../../constants/urls';
+
+// Only public pages worth showing in search results (login, chat, profile, ... are left out on purpose)
+const PAGES = ['/', ...Object.keys(GAME_SLUGS).map((gameId) => `/game-detail/${gameId}`)];
+
 export const GET = async () => {
-	const site = 'https://www.zelene-hry.com';
-	const pages = [
-		'',
-		'chat/dms',
-		'chat/rooms',
-		'login',
-		'register',
-		'profil',
-		'pratele',
-		'game-detail/1',
-		'game-detail/2',
-		'game-detail/3'
-	];
+	const urls = PAGES.flatMap((page) => {
+		// Every language version lists all of its alternates, including itself
+		const alternates = [
+			...LOCALES.map(
+				(locale) =>
+					`<xhtml:link rel="alternate" hreflang="${locale}" href="${SITE_URL}${localizePath(page, locale)}" />`
+			),
+			`<xhtml:link rel="alternate" hreflang="x-default" href="${SITE_URL}${localizePath(page, 'en')}" />`
+		].join('\n      ');
+
+		return LOCALES.map(
+			(locale) => `
+    <url>
+      <loc>${SITE_URL}${localizePath(page, locale)}</loc>
+      ${alternates}
+      <priority>${page === '/' ? '1.0' : '0.8'}</priority>
+    </url>`
+		);
+	});
 
 	const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-      ${pages
-			.map(
-				(page) => `
-        <url>
-          <loc>${site}/${page}</loc>
-          <changefreq>daily</changefreq>
-          <priority>${page === '' ? '1.0' : '0.8'}</priority>
-        </url>
-      `
-			)
-			.join('')}
-    </urlset>`;
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">${urls.join('')}
+</urlset>`;
 
 	return new Response(sitemap, {
 		headers: {

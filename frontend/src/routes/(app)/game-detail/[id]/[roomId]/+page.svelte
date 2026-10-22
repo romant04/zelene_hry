@@ -5,23 +5,37 @@
 	import { auth } from '../../../../../stores/auth';
 	import { onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { resolveGameCode, t } from '$lib/i18n';
+	import { i18n, resolveGameCode, t, tt, type Locale, localizeHref } from '$lib/i18n';
+	import { addToast } from '../../../../../stores/toast';
 
 	let { data }: PageProps = $props();
 	let socket: Socket | null = $state(null);
 
 	function connectToRoom() {
 		if (!$auth.data) {
-			goto('/login');
+			goto(localizeHref('/login'));
 			return;
 		}
 
-		socket = createFriendChallengeSocket($auth.data, data.roomId, Number(data.game.gameId));
+		socket = createFriendChallengeSocket(
+			$auth.data,
+			data.roomId,
+			Number(data.game.gameId),
+			i18n.locale
+		);
+		socket.on('languageMismatch', (x: { required: Locale }) => {
+			addToast(
+				tt('gameDetail.languageMismatch', { language: tt(`language.${x.required}`) }),
+				'warning',
+				5000
+			);
+			socket = null;
+		});
 		socket.on('gameStarted', (x) => {
 			localStorage.setItem('playerToken', x.playerToken);
 			localStorage.setItem('gameId', x.gameId);
 			socket?.emit('joinGame');
-			goto(`/game/${resolveGameCode(data.game)}`);
+			goto(localizeHref(`/game/${resolveGameCode(data.game)}`));
 		});
 	}
 
@@ -44,7 +58,9 @@
 			<button onclick={connectToRoom} class="btn variant-filled-primary w-full"
 				>{t('gameDetail.join')}</button
 			>
-			<a href="/" class="btn variant-filled-tertiary w-full">{t('gameDetail.cancel')}</a>
+			<a href={localizeHref('/')} class="btn variant-filled-tertiary w-full"
+				>{t('gameDetail.cancel')}</a
+			>
 		</div>
 	</div>
 </div>

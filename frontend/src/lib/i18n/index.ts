@@ -1,14 +1,27 @@
 import type { Locale, TranslateFn, TranslationKey, TranslationSchema } from './types';
 import cs from './locales/cs';
 import en from './locales/en';
-import { alignLocaleWithServer, i18n, setLocale, syncLocaleFromStorage } from './locale.svelte';
+import { i18n, rememberLocale } from './locale.svelte';
+import { localizePath } from './routing';
 
 export type { Locale, TranslateFn, TranslationKey, TranslationSchema };
-export { acceptLanguageHeaders, parseLocaleCookie } from './localeHeaders';
+export { acceptLanguageHeaders, detectLocale, parseLocaleCookie } from './localeHeaders';
 export { formatNotificationMessage } from './formatNotification';
 export { localizeGame, localizeGamePreview, resolveGameCode } from './catalog';
-export { getClientLocale } from './getClientLocale';
-export { alignLocaleWithServer, i18n, setLocale, syncLocaleFromStorage };
+export {
+	GAME_SLUGS,
+	LOCALES,
+	delocalizePath,
+	localeFromPath,
+	localizePath,
+	switchLocalePath
+} from './routing';
+export { i18n, rememberLocale };
+
+/** Internal path -> public URL in the current language: `href={localizeHref('/login')}` */
+export function localizeHref(href: string, locale: Locale = i18n.locale): string {
+	return localizePath(href, locale);
+}
 
 const dictionaries: Record<Locale, TranslationSchema> = { cs, en };
 

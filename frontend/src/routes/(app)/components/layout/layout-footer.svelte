@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SocialLink from './social-link.svelte';
 	import { page } from '$app/state';
-	import { t } from '$lib/i18n';
+	import { t, localizeHref } from '$lib/i18n';
 
 	let LINKS = $derived([
 		{
@@ -9,19 +9,18 @@
 			links: [
 				{
 					label: t('footer.wordFootball'),
-					href: './game-detail.html'
+					href: localizeHref('/game-detail/2')
 				},
 				{
 					label: t('footer.climbers'),
-					href: './game-detail.html'
+					href: localizeHref('/game-detail/3')
 				},
 				{
 					label: t('footer.prsi'),
-					href: './game-detail.html'
+					href: localizeHref('/game-detail/1')
 				},
 				{
-					label: t('footer.ships'),
-					href: './game-detail.html'
+					label: t('footer.ships')
 				}
 			]
 		},
@@ -30,19 +29,19 @@
 			links: [
 				{
 					label: t('footer.login'),
-					href: '/login'
+					href: localizeHref('/login')
 				},
 				{
 					label: t('footer.register'),
-					href: '/register'
+					href: localizeHref('/register')
 				},
 				{
 					label: t('footer.friends'),
-					href: '/pratele'
+					href: localizeHref('/pratele')
 				},
 				{
 					label: t('footer.chat'),
-					href: '/chat'
+					href: localizeHref('/chat')
 				}
 			]
 		},

@@ -4,6 +4,7 @@ import { GameRoomsMap } from "../socket";
 import { GameData } from "../types/game";
 import { v4 as uuidv4 } from "uuid";
 import { getClientId } from "../utils/getClient";
+import { GameLanguage, parseLanguage } from "../types/language";
 
 interface MatchmakingUser {
   id: number;
@@ -13,22 +14,25 @@ interface MatchmakingUser {
   margin: number;
   token: string;
   isSearching: boolean;
+  language: GameLanguage;
 }
 
 const NAMESPACE = "/matchmaking";
 const users = new Map<string, MatchmakingUser>();
-const queueSize = new Map<number, number>();
+const queueSize = new Map<string, number>(); // Key = gameId_language
 const matchedUserIds = new Set<number>();
 
 const MARGIN_INCREMENT = 50;
 const MARGIN_INTERVAL = 5;
 
-function getUsersFromSameGame(
+// Players are only ever matched with players of the same game AND language
+function getUsersFromSameQueue(
   gameId: number,
+  language: GameLanguage,
   users: Map<string, MatchmakingUser>,
 ): MatchmakingUser[] {
   return [...users.entries()]
-    .filter(([key]) => key.startsWith(`${gameId}_`))
+    .filter(([key, value]) => key.startsWith(`${gameId}_`) && value.language === language)
     .map(([, value]) => value);
 }
 
@@ -45,6 +49,7 @@ export function setupMatchmakingNamespace(io: Server) {
   matchmakingNamespace.on("connection", (socket: Socket) => {
     const user: User = socket.handshake.auth?.user;
     const gameId: number = socket.handshake.auth?.gameId;
+    const language = parseLanguage(socket.handshake.auth?.language);
 
     const mmrData = user?.player?.mmr.find((g) => g.gameId === gameId);
     const playerStats = user?.player?.playerStats?.find(
@@ -60,7 +65,7 @@ export function setupMatchmakingNamespace(io: Server) {
       return;
     }
 
-    if (!user || !gameId || !mmrData) {
+    if (!user || !gameId || !mmrData || !language) {
       console.log("Invalid connection information, disconnecting...");
       socket.disconnect();
       return;
@@ -69,6 +74,8 @@ export function setupMatchmakingNamespace(io: Server) {
     socket.data.userId = user.id;
 
     const key = `${gameId}_${user.id}`;
+    const queueKey = `${gameId}_${language}`;
+    socket.join(queueKey);
     const playerToken = uuidv4();
 
     users.set(key, {
@@ -85,21 +92,22 @@ export function setupMatchmakingNamespace(io: Server) {
       margin: 0,
       token: playerToken,
       isSearching: false,
+      language,
     });
 
     const userData = users.get(key)!;
     let timer = 0;
 
-    socket.emit("usersInQueue", queueSize.get(gameId) || 0);
+    socket.emit("usersInQueue", queueSize.get(queueKey) || 0);
 
     let interval: NodeJS.Timeout | null;
     socket.on("startMatchmaking", () => {
       userData.isSearching = true;
-      queueSize.set(gameId, (queueSize.get(gameId) || 0) + 1);
-      matchmakingNamespace.emit("usersInQueue", queueSize.get(gameId) || 0);
+      queueSize.set(queueKey, (queueSize.get(queueKey) || 0) + 1);
+      matchmakingNamespace.to(queueKey).emit("usersInQueue", queueSize.get(queueKey) || 0);
 
       interval = setInterval(async () => {
-        const userArray = getUsersFromSameGame(gameId, users);
+        const userArray = getUsersFromSameQueue(gameId, language, users);
         timer++;
 
         if (timer >= MARGIN_INTERVAL) {
@@ -112,6 +120,7 @@ export function setupMatchmakingNamespace(io: Server) {
             (u) =>
               u.isSearching &&
               u.id !== userData.id &&
+              u.language === userData.language &&
               canUsersMatch(userData, u),
           )
           .find((u) => !matchedUserIds.has(u.id));
@@ -138,6 +147,7 @@ export function setupMatchmakingNamespace(io: Server) {
         const gameData: GameData = {
           roomKey: roomKey,
           gameStartTime: Date.now(),
+          language,
           players: [
             {
               id: user.id,
@@ -161,7 +171,7 @@ export function setupMatchmakingNamespace(io: Server) {
             console.log("GamesPlayed: " + x.playerStats.gamesPlayed),
           ),
         );
-        queueSize.set(gameId, (queueSize.get(gameId) || 0) - 1); // We decrement just by one, because the other one will get decrement by disconnect
+        queueSize.set(queueKey, (queueSize.get(queueKey) || 0) - 1); // We decrement just by one, because the other one will get decrement by disconnect
 
         const matchSocketId = await getClientId(io, NAMESPACE, match.id);
         if (!matchSocketId) {
@@ -201,15 +211,15 @@ export function setupMatchmakingNamespace(io: Server) {
       users.delete(key);
       matchedUserIds.delete(userData.id);
 
-      queueSize.set(gameId, Math.max(0, (queueSize.get(gameId) || 0) - 1));
-      matchmakingNamespace.emit("usersInQueue", queueSize.get(gameId) || 0);
+      queueSize.set(queueKey, Math.max(0, (queueSize.get(queueKey) || 0) - 1));
+      matchmakingNamespace.to(queueKey).emit("usersInQueue", queueSize.get(queueKey) || 0);
     });
 
     socket.on("disconnect", () => {
       if (interval) {
         console.log(interval);
         console.log("queue decremented for user");
-        queueSize.set(gameId, (queueSize.get(gameId) || 0) - 1);
+        queueSize.set(queueKey, (queueSize.get(queueKey) || 0) - 1);
 
         clearInterval(interval!);
       }

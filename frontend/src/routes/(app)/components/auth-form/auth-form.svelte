@@ -7,7 +7,7 @@
 	import { API } from '../../../../constants/urls';
 	import { addToast } from '../../../../stores/toast';
 	import Spinner from '../spinner.svelte';
-	import { t, tt } from '$lib/i18n';
+	import { t, tt, localizeHref } from '$lib/i18n';
 
 	let username = $state('');
 	let email = $state('');
@@ -42,7 +42,7 @@
 
 		if (res.ok) {
 			setToken(data.token);
-			await goto('/');
+			await goto(localizeHref('/'));
 		} else {
 			addToast(tt('auth.badCredentials'), 'error');
 			password = '';
@@ -81,7 +81,7 @@
 
 		if (res.ok) {
 			setToken(data.token);
-			await goto('/');
+			await goto(localizeHref('/'));
 		} else {
 			addToast(tt('auth.registrationFailed'), 'error');
 		}
@@ -172,7 +172,7 @@
 			{signIn ? t('auth.createAccountHint') : t('auth.loginHint')}
 		</p>
 		<a
-			href={signIn ? '/register' : '/login'}
+			href={localizeHref(signIn ? '/register' : '/login')}
 			class="btn mt-5 h-12 w-full z-10 max-w-56 bg-tertiary-700"
 		>
 			{signIn ? t('auth.register') : t('auth.login')}

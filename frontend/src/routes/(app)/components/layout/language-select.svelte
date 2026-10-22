@@ -2,7 +2,9 @@
 	import { slide } from 'svelte/transition';
 	import flagCs from '../../../../assets/images/flag-czechia.png';
 	import flagEn from '../../../../assets/images/flag-uk.png';
-	import { i18n, setLocale, t, type Locale } from '$lib/i18n';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import { i18n, rememberLocale, switchLocalePath, t, type Locale } from '$lib/i18n';
 
 	let {
 		onChange
@@ -41,8 +43,11 @@
 	function selectLocale(next: Locale) {
 		isOpen = false;
 		if (next === i18n.locale) return;
-		setLocale(next);
+		rememberLocale(next);
 		onChange?.(next);
+		// Each language has its own URL, so switching = going to this page in the other language
+		const { pathname, search, hash } = page.url;
+		void goto(switchLocalePath(pathname + search + hash, next));
 	}
 </script>
 

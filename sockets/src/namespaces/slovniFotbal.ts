@@ -8,6 +8,7 @@ import { GameRoomsMap } from "../socket";
 import { isValidWord } from "../services/wordsStore";
 import {generateLetters} from "../utils/generateLetters";
 import {calculateAndUpdateMMR} from "../utils/calculateAndUpdateMMR";
+import { GameLanguage } from "../types/language";
 
 const NAMESPACE = "/slovniFotbal";
 const GAME_DURATION = 3 * 60 * 1000;
@@ -15,6 +16,11 @@ const GAME_DURATION = 3 * 60 * 1000;
 const gameoverTimers = new Map<string, NodeJS.Timeout>();
 const SlovniFotbalGameData = new Map<string, SlovniFotbalGameState>();
 const activeSockets = new Map<string, string>();
+
+const MESSAGES: Record<GameLanguage, { alreadyUsed: string; notFound: string; score: string }> = {
+  cs: { alreadyUsed: "již bylo použito", notFound: "nebylo nalezeno", score: "skóre" },
+  en: { alreadyUsed: "was already used", notFound: "was not found", score: "score" },
+};
 
 function scheduleGameOver(io: Server, namespace: any, gameId: string) {
   const existing = gameoverTimers.get(gameId);
@@ -47,6 +53,9 @@ export function setupSlovniFotbalNamespace(io: Server) {
     const id = generalGameData?.players.find(
       (player) => player.token === token,
     )!.id;
+
+    const language = generalGameData?.language ?? "cs";
+    const messages = MESSAGES[language];
 
     socket.data.userId = id;
     activeSockets.set(`${gameId}:${id}`, socket.id);
@@ -121,18 +130,18 @@ export function setupSlovniFotbalNamespace(io: Server) {
     socket.on("guessWord", (word: string) => {
       const alreadyGuessed = player?.alreadyUsedWords.includes(word.toLowerCase());
       const isCorrect =
-        isValidWord(word) &&
+        isValidWord(word, language) &&
         !alreadyGuessed
 
       if (!isCorrect) {
-        const message = alreadyGuessed ? `${word} již bylo použito` : `${word} nebylo nalezeno`;
+        const message = alreadyGuessed ? `${word} ${messages.alreadyUsed}` : `${word} ${messages.notFound}`;
         socket.emit("guessResult", { correct: false, message });
         return;
       }
 
       player?.alreadyUsedWords.push(word.toLowerCase());
       player!.score += word.length;
-      socket.emit("guessResult", { correct: true, message: `+${word.length} skóre`, score: player?.score });
+      socket.emit("guessResult", { correct: true, message: `+${word.length} ${messages.score}`, score: player?.score });
       // also notify the other player that the enemy has guessed a word
       socket.to(gameId).emit("enemyGuessed", { word, score: player?.score });
     });

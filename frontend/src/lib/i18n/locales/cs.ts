@@ -180,6 +180,8 @@ const cs = {
 		joinGameTitle: 'Chcete se připojit do hry?',
 		gameCode: 'kód hry: {code}',
 		join: 'Připojit',
+		languageMismatch:
+			'Tato hra se hraje v jazyce {language}. Pro připojení přepněte jazyk na {language}.',
 		controlsAndPrinciple: 'Ovládání a princip hry',
 		controls: 'Ovládání',
 		principle: 'Princip',
@@ -193,6 +195,20 @@ const cs = {
 	common: {
 		loading: 'Načítání...',
 		cancel: 'Zrušit'
+	},
+	seo: {
+		homeTitle: 'Duelovky – online hry pro dva hráče zdarma',
+		homeDescription:
+			'Hraj online hry 1 na 1 proti skutečným soupeřům: Prší, Slovní fotbal a Horolezci. Zdarma v prohlížeči, se žebříčkem a výzvami pro kamarády.',
+		prsiTitle: 'Prší online pro dva hráče – hraj zdarma | Duelovky',
+		prsiDescription:
+			'Zahraj si klasickou českou karetní hru Prší online proti skutečnému soupeři. Hodnocení, žebříček a soukromé hry s kamarády – zdarma v prohlížeči.',
+		slovnifotbalTitle: 'Slovní fotbal online proti soupeři | Duelovky',
+		slovnifotbalDescription:
+			'Slovní fotbal online pro dva hráče. Skládej česká slova z písmen, střílej góly a poraz soupeře během tří minut. Zdarma v prohlížeči.',
+		horolezciTitle: 'Horolezci – online hádání slov pro dva hráče | Duelovky',
+		horolezciDescription:
+			'Hádej písmena tajenky a vyšplhej na vrchol hory dřív než soupeř. Online hra se slovy pro dva hráče, zdarma v prohlížeči.'
 	}
 } as const;
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { convertTimeToBestFormat } from '../../../../utils/time';
-	import { t } from '$lib/i18n';
+	import { t, localizeHref } from '$lib/i18n';
 
 	const { data }: { data: { label: string; mins: number }[] } = $props();
 
@@ -82,8 +82,9 @@
 
 	{#if totalMins === 0}
 		<p class="text-2xl font-semibold text-error-400">{t('profile.noGamesPlayed')}</p>
-		<a class="btn variant-filled-primary mt-5 text-lg font-semibold w-40" href="/#hry"
-			>{t('profile.goPlay')}</a
+		<a
+			class="btn variant-filled-primary mt-5 text-lg font-semibold w-40"
+			href={localizeHref('/#hry')}>{t('profile.goPlay')}</a
 		>
 	{/if}
 	<div class="container">

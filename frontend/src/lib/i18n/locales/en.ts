@@ -24,7 +24,8 @@ const en: TranslationSchema = {
 		heroSubtitle: 'Classic board games, all<br />in one place',
 		explore: 'Explore',
 		onlineGames: 'Online games',
-		onlineGamesDescription: 'Play online against other people or challenge your<br />friends to a duel'
+		onlineGamesDescription:
+			'Play online against other people or challenge your<br />friends to a duel'
 	},
 	auth: {
 		loginTitle: 'Duelovky | Sign in',
@@ -181,6 +182,8 @@ const en: TranslationSchema = {
 		joinGameTitle: 'Do you want to join the game?',
 		gameCode: 'game code: {code}',
 		join: 'Join',
+		languageMismatch:
+			'This game is played in {language}. Switch the language to {language} to join it.',
 		controlsAndPrinciple: 'Controls and game principles',
 		controls: 'Controls',
 		principle: 'Principles',
@@ -194,6 +197,20 @@ const en: TranslationSchema = {
 	common: {
 		loading: 'Loading...',
 		cancel: 'Cancel'
+	},
+	seo: {
+		homeTitle: 'Duelovky – free online games for two players',
+		homeDescription:
+			'Play 1v1 online games against real opponents: Prší, Word Football and Climbers. Free in your browser, with leaderboards and friend challenges.',
+		prsiTitle: 'Prší – Czech card game like Crazy Eights, play online 1v1 | Duelovky',
+		prsiDescription:
+			'Play Prší, the classic Czech card game similar to Crazy Eights and Uno, online against a real opponent. Ranked matches, leaderboard and private games with friends – free.',
+		slovnifotbalTitle: 'Word Football – online word game for two players | Duelovky',
+		slovnifotbalDescription:
+			'Word Football is a fast 1v1 word game: make English words from the given letters, score goals and beat your opponent in three minutes. Free in your browser.',
+		horolezciTitle: 'Climbers – hangman-style word race online 1v1 | Duelovky',
+		horolezciDescription:
+			'Guess the letters of a hidden phrase and climb to the summit before your opponent. A hangman-style word game for two players, free in your browser.'
 	}
 };
 

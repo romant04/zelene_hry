@@ -5,6 +5,7 @@ import type { Restriction } from '../../../../types/restriction';
 import { chatsCache } from '$lib/cache/chats';
 import { get } from 'svelte/store';
 import { error, redirect } from '@sveltejs/kit';
+import { localeFromPath, localizePath } from '$lib/i18n';
 import { browser } from '$app/environment';
 
 interface ChatsDashboard {
@@ -20,11 +21,11 @@ export interface FetchedChatData {
 
 const CACHE_DURATION = 5 * 60 * 1000;
 
-export const load: PageLoad = async ({ fetch, data }) => {
+export const load: PageLoad = async ({ fetch, data, url }) => {
 	const token = data?.token || (browser ? localStorage.getItem('token') : null);
 
 	if (!token) {
-		throw redirect(303, '/login');
+		throw redirect(303, localizePath('/login', localeFromPath(url.pathname)));
 	}
 
 	if (browser) {

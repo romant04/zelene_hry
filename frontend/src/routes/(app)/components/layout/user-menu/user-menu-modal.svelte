@@ -8,7 +8,7 @@
 	import { chatsCache } from '$lib/cache/chats';
 	import { protectedRoutes } from '../../../../../constants/protectedRoutes';
 	import { goto } from '$app/navigation';
-	import { t } from '$lib/i18n';
+	import { t, localizeHref, delocalizePath } from '$lib/i18n';
 
 	let {
 		modal = $bindable(),
@@ -26,10 +26,10 @@
 
 		// Redirect to home if the user is currently on a protected route
 		const isProtected = protectedRoutes.some((route) =>
-			window.location.pathname.startsWith(route)
+			delocalizePath(window.location.pathname).startsWith(route)
 		);
 		if (isProtected) {
-			goto('/', { replaceState: true });
+			goto(localizeHref('/'), { replaceState: true });
 		}
 	}
 

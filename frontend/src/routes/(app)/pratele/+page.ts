@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { error, redirect } from '@sveltejs/kit';
+import { localeFromPath, localizePath } from '$lib/i18n';
 import { get } from 'svelte/store';
 import { socialCache } from '$lib/cache/socials';
 import { API } from '../../../constants/urls';
@@ -13,11 +14,11 @@ export interface FetchedSocialData {
 	isCached?: boolean;
 }
 
-export const load = async ({ fetch, data }) => {
+export const load = async ({ fetch, data, url }) => {
 	const token = data?.token || (browser ? localStorage.getItem('token') : null);
 
 	if (!token) {
-		throw redirect(303, '/login');
+		throw redirect(303, localizePath('/login', localeFromPath(url.pathname)));
 	}
 
 	if (browser) {
@@ -44,7 +45,8 @@ export const load = async ({ fetch, data }) => {
 	});
 
 	if (!res.ok) {
-		if (res.status === 401) throw redirect(303, '/login');
+		if (res.status === 401)
+			throw redirect(303, localizePath('/login', localeFromPath(url.pathname)));
 		throw error(res.status, 'Backend Error');
 	}
 

@@ -1,3 +1,4 @@
+import { localizeHref } from '$lib/i18n';
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { User } from '../types/user';
@@ -23,7 +24,7 @@ async function fetchUserData(token: string) {
 			}
 		});
 	} catch {
-		await goto('/error/out-of-service');
+		await goto(localizeHref('/error/out-of-service'));
 		auth.update((u) => ({ ...u, token: null, data: null, loaded: true }));
 		return;
 	}

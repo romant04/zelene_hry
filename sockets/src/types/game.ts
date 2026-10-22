@@ -1,8 +1,10 @@
 import { PlayerStats } from "./user";
+import { GameLanguage } from "./language";
 
 export type GameData = {
   roomKey: string; // Unique identifier for the game
   gameStartTime: number;
+  language: GameLanguage; // Both players are always matched within the same language
   isPrivate?: boolean; // If set to true the game won't update the MMR
   players: {
     id: number; // Unique identifier for the player

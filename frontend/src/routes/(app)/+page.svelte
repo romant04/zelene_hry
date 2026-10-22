@@ -3,20 +3,44 @@
 	import GameCard from './components/game-card.svelte';
 	import type { PageProps } from '../../../.svelte-kit/types/src/routes/(app)/$types';
 	import type { GamePreview } from '../../types/game';
-	import { i18n, localizeGamePreview, t } from '$lib/i18n';
+	import { i18n, localizeGamePreview, localizeHref, t } from '$lib/i18n';
 	import { getGameImage } from '../../utils/gameAssets';
+	import Seo from '$lib/seo/Seo.svelte';
+	import { SITE_URL } from '../../constants/urls';
 
 	let { data }: PageProps = $props();
 
 	let games = $derived(
 		(data.data?.games ?? []).map((game: GamePreview) => localizeGamePreview(game, i18n.locale))
 	);
+
+	let jsonLd = $derived([
+		{
+			'@context': 'https://schema.org',
+			'@type': 'WebSite',
+			name: 'Duelovky',
+			url: SITE_URL + localizeHref('/'),
+			inLanguage: i18n.locale
+		},
+		{
+			'@context': 'https://schema.org',
+			'@type': 'ItemList',
+			itemListElement: games.map((game: GamePreview, index: number) => ({
+				'@type': 'ListItem',
+				position: index + 1,
+				name: game.name,
+				url: SITE_URL + localizeHref(`/game-detail/${game.gameId}`)
+			}))
+		}
+	]);
 </script>
 
-<svelte:head>
-	<title>Duelovky</title>
-	<meta name="description" content={t('home.metaDescription')} />
-</svelte:head>
+<Seo
+	title={t('seo.homeTitle')}
+	description={t('seo.homeDescription')}
+	image={getGameImage('slovnifotbal')}
+	{jsonLd}
+/>
 
 <div class="h-full">
 	<HpHero />

@@ -5,7 +5,7 @@ import { API } from '../../../constants/urls';
 import type { User } from '../../../types/user';
 import type { Game } from '../../../types/game';
 import { profileCache } from '$lib/cache/profile';
-import { acceptLanguageHeaders, getClientLocale, type Locale } from '$lib/i18n';
+import { acceptLanguageHeaders, localizePath, type Locale } from '$lib/i18n';
 
 export interface FetchedProfile {
 	user: User;
@@ -14,11 +14,10 @@ export interface FetchedProfile {
 
 export const load = async ({ fetch, data, parent }) => {
 	const token = data?.token || (browser ? localStorage.getItem('token') : null);
-	const { locale: parentLocale } = (await parent()) as { locale: Locale };
-	const locale = getClientLocale(parentLocale);
+	const { locale } = (await parent()) as { locale: Locale };
 
 	if (!token) {
-		throw redirect(303, '/login');
+		throw redirect(303, localizePath('/login', locale));
 	}
 
 	if (browser) {

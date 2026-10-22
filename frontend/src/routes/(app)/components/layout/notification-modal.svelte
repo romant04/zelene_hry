@@ -6,7 +6,7 @@
 	import { chatsCache } from '$lib/cache/chats';
 	import { goto } from '$app/navigation';
 	import { API } from '../../../../constants/urls';
-	import { formatNotificationMessage, pluralKey, t } from '$lib/i18n';
+	import { formatNotificationMessage, pluralKey, t, localizeHref } from '$lib/i18n';
 
 	let {
 		isOpenNotifications = $bindable(),
@@ -35,7 +35,7 @@
 		if (notification.redirectUrl.includes('/chat')) {
 			// If the notification is for chat, we don't need to update the notifications
 			// as it will be handled in the chat section.
-			await goto(notification.redirectUrl);
+			await goto(localizeHref(notification.redirectUrl));
 
 			return;
 		}
@@ -55,7 +55,7 @@
 		);
 		console.log(res);
 
-		await goto(notification.redirectUrl);
+		await goto(localizeHref(notification.redirectUrl));
 	}
 
 	async function deleteAllNotifications() {

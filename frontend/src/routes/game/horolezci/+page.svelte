@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { localizeHref } from '$lib/i18n';
 	import type { Socket } from 'socket.io-client';
 	import { onDestroy, onMount } from 'svelte';
 	import { addToast } from '../../../stores/toast.js';
@@ -21,7 +22,7 @@
 		if (!t || !g) {
 			addToast('Chyba: Token nebo ID hry není k dispozici.', 'error');
 			setTimeout(() => {
-				goto('/');
+				goto(localizeHref('/'));
 			}, 2000);
 		}
 
@@ -44,7 +45,7 @@
 		horolezciSocket.on('end', () => {
 			addToast('Hra do které se snažíte připojit, již není aktivní.', 'error', 3000);
 			setTimeout(() => {
-				goto('/');
+				goto(localizeHref('/'));
 			}, 3000);
 		});
 	});

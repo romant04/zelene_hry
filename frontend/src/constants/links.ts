@@ -1,32 +1,33 @@
+import { localizeHref } from '$lib/i18n';
 import type { TranslateFn } from '$lib/i18n';
 import type { Link } from '../types/link';
 
 export function getHeaderLinks(t: TranslateFn): Link[] {
 	return [
 		{
-			href: '/#hry',
+			href: localizeHref('/#hry'),
 			text: t('nav.games')
 		},
 		{
-			href: '/chat',
+			href: localizeHref('/chat'),
 			text: t('nav.chat'),
 			sublinks: [
 				{
-					href: '/chat/rooms',
+					href: localizeHref('/chat/rooms'),
 					text: t('nav.chatRooms')
 				},
 				{
-					href: '/chat/dms',
+					href: localizeHref('/chat/dms'),
 					text: t('nav.privateMessages')
 				}
 			]
 		},
 		{
-			href: '/pratele',
+			href: localizeHref('/pratele'),
 			text: t('nav.friends')
 		},
 		{
-			href: '/zebricek',
+			href: localizeHref('/zebricek'),
 			text: t('nav.leaderboard')
 		}
 	];
@@ -35,11 +36,11 @@ export function getHeaderLinks(t: TranslateFn): Link[] {
 export function getUserMenuLinks(t: TranslateFn): Link[] {
 	return [
 		{
-			href: '/profil',
+			href: localizeHref('/profil'),
 			text: t('nav.myAccount')
 		},
 		{
-			href: '/pratele',
+			href: localizeHref('/pratele'),
 			text: t('nav.friends')
 		}
 	];

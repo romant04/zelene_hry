@@ -11,8 +11,7 @@
 	import NotificationModal from './notification-modal.svelte';
 	import Link from './link.svelte';
 	import LanguageSelect from './language-select.svelte';
-	import { invalidateAll } from '$app/navigation';
-	import { i18n, t } from '$lib/i18n';
+	import { i18n, t, localizeHref } from '$lib/i18n';
 	import { profileCache } from '$lib/cache/profile';
 	import { mmrCache } from '$lib/cache/mmr';
 
@@ -31,10 +30,10 @@
 		return getHeaderLinks(t);
 	});
 
+	// Data is reloaded by navigating to the page in the other language
 	function handleLocaleChange() {
 		profileCache.clear();
 		mmrCache.clear();
-		void invalidateAll();
 	}
 
 	$effect(() => {
@@ -107,7 +106,7 @@
 			{:else}
 				<h1 class="font-heading text-3xl md:hidden font-bold">Duelovky</h1>
 			{/if}
-			<a href="/">
+			<a href={localizeHref('/')}>
 				<h1 class="font-heading text-4xl hidden md:inline font-bold">Duelovky</h1>
 			</a>
 		{/snippet}
@@ -148,7 +147,7 @@
 					class="cursor-pointer lg:hidden"
 				/>
 				<a
-					href="/login"
+					href={localizeHref('/login')}
 					class="variant-filled-primary btn hidden h-10 w-40 items-center justify-center text-sm font-bold uppercase tracking-wide lg:flex"
 				>
 					{t('nav.login')}

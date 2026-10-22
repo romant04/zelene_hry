@@ -3,8 +3,10 @@ import {
   GameData, HorolezciGameState, HorolezciPlayer,
 } from "../types/game";
 import { GameRoomsMap } from "../socket";
-import {generatePyramid} from "../utils/horolezciLetterPyramid";
+import {extractSecretLetters, generatePyramid} from "../utils/horolezciLetterPyramid";
 import { SECRETS } from "../utils/horolezci/secrets";
+import { SECRETS_EN } from "../utils/horolezci/secretsEn";
+import { GameLanguage } from "../types/language";
 import {checkForGameover, evaluateGuesses} from "../utils/horolezci/evaluateGuesses";
 import {calculateAndUpdateMMR} from "../utils/calculateAndUpdateMMR";
 
@@ -16,9 +18,18 @@ const newRoundTimer = new Map<string, NodeJS.Timeout>();
 const usedSecrets = new Map<string, Set<{type: string, secret: string}>>();
 const activeSockets = new Map<string, string>();
 
+const SECRETS_BY_LANGUAGE: Record<GameLanguage, {type: string, secret: string}[]> = {
+  cs: SECRETS,
+  en: SECRETS_EN,
+};
+
+function getGameLanguage(gameId: string): GameLanguage {
+  return GameRoomsMap.get(gameId)?.language ?? "cs";
+}
+
 function pickRandomSecret(gameId: string): {type: string, secret: string} {
   const usedSecretsForGame = usedSecrets.get(gameId) || new Set();
-  const availableSecrets = SECRETS.filter(secret => !usedSecretsForGame.has(secret));
+  const availableSecrets = SECRETS_BY_LANGUAGE[getGameLanguage(gameId)].filter(secret => !usedSecretsForGame.has(secret));
   if (availableSecrets.length === 0) {
     throw new Error("No more secrets available for this game.");
   }
@@ -49,7 +60,8 @@ function startNextRound(gameState: HorolezciGameState, player: HorolezciPlayer, 
     enemy!.readyForNextRound = false;
   }, ROUND_DURATION);
   roundEndTimer.set(gameId, timer);
-  gameState.pyramid = generatePyramid(gameState.correctLetters, new Set(gameState.guessedLetters));
+  const language = getGameLanguage(gameId);
+  gameState.pyramid = generatePyramid(gameState.correctLetters, new Set(gameState.guessedLetters), language);
 
   // Detect if the whole secret has been guessed
   const allLettersGuessed = gameState.correctLetters.every(letter => gameState.guessedLetters.includes(letter.toLowerCase()));
@@ -57,9 +69,9 @@ function startNextRound(gameState: HorolezciGameState, player: HorolezciPlayer, 
     // If all letters have been guessed, pick a new secret
     const newSecret = pickRandomSecret(gameId);
     gameState.secret = newSecret;
-    gameState.correctLetters = Array.from(newSecret.secret.toLowerCase().replace(/[^a-záčďéěíňóřšťúůýž]/g, ""));
+    gameState.correctLetters = extractSecretLetters(newSecret.secret, language);
     gameState.guessedLetters = [];
-    gameState.pyramid = generatePyramid(gameState.correctLetters, new Set());
+    gameState.pyramid = generatePyramid(gameState.correctLetters, new Set(), language);
   }
 
   // Broadcast updated game state to both players
@@ -137,14 +149,15 @@ export function setupHorolezciNamespace(io: Server) {
         return p;
       });
 
+      const language = getGameLanguage(gameId);
       const secret = pickRandomSecret(gameId);
-      const veta = secret.secret;
+      const correctLetters = extractSecretLetters(secret.secret, language);
       horolezciGameData.set(gameId, {
         players,
         guessedLetters: [],
-        correctLetters: Array.from(veta.toLowerCase().replace(/[^a-záčďéěíňóřšťúůýž]/g, "")),
+        correctLetters,
         secret: secret,
-        pyramid: generatePyramid(Array.from(new Set(veta.toLowerCase().replace(/[^a-záčďéěíňóřšťúůýž]/g, ""))), new Set()),
+        pyramid: generatePyramid(Array.from(new Set(correctLetters)), new Set(), language),
         roundEndTime: null, // null = round not started yet
       });
     }

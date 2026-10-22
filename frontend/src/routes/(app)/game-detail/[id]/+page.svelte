@@ -13,13 +13,61 @@
 	import ChallengeFriendOverlay from './components/challenge-friend-overlay.svelte';
 	import { redirect } from '@sveltejs/kit';
 	import Spinner from '../../components/spinner.svelte';
-	import { i18n, localizeGame, resolveGameCode, t, tt } from '$lib/i18n';
+	import {
+		i18n,
+		localizeGame,
+		resolveGameCode,
+		t,
+		tt,
+		type Locale,
+		localizeHref
+	} from '$lib/i18n';
 	import { getGameImage } from '../../../../utils/gameAssets';
+	import Seo from '$lib/seo/Seo.svelte';
+	import { SITE_URL } from '../../../../constants/urls';
+	import type { TranslationKey } from '$lib/i18n';
 
 	let { data }: PageProps = $props();
 	let game = $derived(localizeGame(data.game, i18n.locale));
 	let gameCode = $derived(resolveGameCode(game));
+
+	let jsonLd = $derived([
+		{
+			'@context': 'https://schema.org',
+			'@type': 'VideoGame',
+			name: game.name,
+			description: t(`seo.${gameCode}Description` as TranslationKey),
+			url: SITE_URL + localizeHref(`/game-detail/${game.gameId}`),
+			image: SITE_URL + getGameImage(game),
+			inLanguage: i18n.locale,
+			gamePlatform: 'Web browser',
+			playMode: 'MultiPlayer',
+			numberOfPlayers: { '@type': 'QuantitativeValue', value: 2 },
+			applicationCategory: 'Game',
+			offers: { '@type': 'Offer', price: 0, priceCurrency: 'CZK' }
+		},
+		{
+			'@context': 'https://schema.org',
+			'@type': 'BreadcrumbList',
+			itemListElement: [
+				{
+					'@type': 'ListItem',
+					position: 1,
+					name: 'Duelovky',
+					item: SITE_URL + localizeHref('/')
+				},
+				{
+					'@type': 'ListItem',
+					position: 2,
+					name: game.name,
+					item: SITE_URL + localizeHref(`/game-detail/${game.gameId}`)
+				}
+			]
+		}
+	]);
 	let socket: Socket | null = $state(null);
+	// Language of the queue the current socket belongs to (queues are separated by language)
+	let socketLocale: Locale | null = null;
 	let isMatchmakingOpen = $state(false);
 	let isChallengeFriendOpen = $state(false);
 	let isFreshData = $state(false);
@@ -77,7 +125,7 @@
 			});
 			if (!res.ok) {
 				addToast(tt('gameDetail.sessionExpired'), 'error');
-				redirect(303, '/login');
+				redirect(303, localizeHref('/login'));
 			}
 			const syncedData = (await res.json()) as User;
 			console.log(syncedData);
@@ -151,7 +199,8 @@
 
 			console.log('Creating matchmaking socket');
 
-			socket = createMatchmakingSocket($auth.data, game.gameId);
+			socketLocale = i18n.locale;
+			socket = createMatchmakingSocket($auth.data, game.gameId, socketLocale);
 
 			socket.on('usersInQueue', (count: number) => {
 				playersInQueue = count;
@@ -161,16 +210,30 @@
 				localStorage.setItem('playerToken', x.playerToken);
 				localStorage.setItem('gameId', x.gameId);
 				socket?.emit('joinGame');
-				goto(`/game/${gameCode}`);
+				goto(localizeHref(`/game/${gameCode}`));
 			});
 
 			socket.on('alreadyInMatchmaking', () => {
 				addToast(tt('gameDetail.alreadyInGame'), 'warning', 3000);
 				isMatchmakingOpen = false;
 				setTimeout(() => {
-					goto('/');
+					goto(localizeHref('/'));
 				}, 3000);
 			});
+		}
+	});
+
+	// When the language changes, leave the old language queue. Clearing the
+	// socket lets the effect above reconnect into the queue of the new language.
+	$effect(() => {
+		const locale = i18n.locale;
+		if (socket && socketLocale && socketLocale !== locale) {
+			socket.disconnect();
+			socket = null;
+			socketLocale = null;
+			isMatchmakingOpen = false;
+			pendingStart = false;
+			isJoining = false;
 		}
 	});
 
@@ -193,7 +256,7 @@
 
 	async function handleJoiningMatchmaking() {
 		if (!$auth.data) {
-			goto('/login');
+			goto(localizeHref('/login'));
 			return;
 		}
 		if ($auth.data.player === null) {
@@ -216,9 +279,12 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Duelovky | {game.name}</title>
-</svelte:head>
+<Seo
+	title={t(`seo.${gameCode}Title` as TranslationKey)}
+	description={t(`seo.${gameCode}Description` as TranslationKey)}
+	image={getGameImage(game)}
+	{jsonLd}
+/>
 
 <MatchmakingOverlay bind:isOpen={isMatchmakingOpen} {socket} />
 <ChallengeFriendOverlay bind:isOpen={isChallengeFriendOpen} {game} />
@@ -230,7 +296,7 @@
 			<img
 				class="max-w-[30rem] w-full object-cover rounded-t-md object-top"
 				src={getGameImage(game)}
-				alt=""
+				alt={game.name}
 			/>
 			<div class="flex flex-col max-w-[32.5rem]">
 				<h1 class="text-4xl font-heading font-semibold mb-2">{game.name}</h1>

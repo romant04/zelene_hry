@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { localizeHref } from '$lib/i18n';
 	import { onDestroy, onMount } from 'svelte';
 	import { addToast } from '../../../stores/toast';
 	import { goto } from '$app/navigation';
@@ -22,7 +23,7 @@
 		if (!t || !g) {
 			addToast('Chyba: Token nebo ID hry není k dispozici.', 'error');
 			setTimeout(() => {
-				goto('/');
+				goto(localizeHref('/'));
 			}, 2000);
 		}
 
@@ -45,7 +46,7 @@
 		prsiSocket.on('end', () => {
 			addToast('Hra do které se snažíte připojit, již není aktivní.', 'error', 3000);
 			setTimeout(() => {
-				goto('/');
+				goto(localizeHref('/'));
 			}, 3000);
 		});
 	});

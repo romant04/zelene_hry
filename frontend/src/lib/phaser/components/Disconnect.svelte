@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { localizeHref } from '$lib/i18n';
 	import { disconnect } from '../../../stores/gameGeneral/disconnect.js';
 	import { goto } from '$app/navigation';
 
@@ -13,7 +14,7 @@
 					clearInterval(timer!);
 					timer = null;
 					$disconnect.disconnect = false;
-					goto('/');
+					goto(localizeHref('/'));
 				}
 			}, 1000);
 		} else if (!$disconnect.disconnect && timer) {

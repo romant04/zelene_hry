@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import LanguageSelect from './language-select.svelte';
-	import { t, type Locale } from '$lib/i18n';
+	import { t, type Locale, localizeHref } from '$lib/i18n';
 
 	let {
 		isOpen = $bindable(false),
@@ -31,12 +31,17 @@
 		: 'translate-x-0'} fixed -right-full top-0 z-50 h-full w-full bg-tertiary-800 p-6 transition-all duration-500 md:w-1/2"
 >
 	<div class="flex items-center justify-between">
-		<a href="/" onclick={handleClose}>
+		<a href={localizeHref('/')} onclick={handleClose}>
 			<h2 class="font-heading text-3xl font-semibold">Duelovky</h2>
 		</a>
 		<div class="flex items-center gap-3">
 			<LanguageSelect onChange={onLocaleChange} />
-			<Icon width="28" icon="system-uicons:cross" class="cursor-pointer" onclick={handleClose} />
+			<Icon
+				width="28"
+				icon="system-uicons:cross"
+				class="cursor-pointer"
+				onclick={handleClose}
+			/>
 		</div>
 	</div>
 
@@ -53,7 +58,7 @@
 	{#if isAuthenticated !== 1}
 		<a
 			onclick={handleClose}
-			href="/login"
+			href={localizeHref('/login')}
 			class="flex variant-filled-primary absolute bottom-10 left-1/2 -translate-x-1/2 btn h-10 w-[90%] items-center justify-center text-sm font-bold uppercase tracking-wide"
 		>
 			{t('nav.login')}

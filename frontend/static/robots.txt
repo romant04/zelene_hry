@@ -1,3 +1,9 @@
 User-agent: *
 Allow: /
+# Live game screens and chats have no value in search results
+Disallow: /game/
+Disallow: /en/game/
+Disallow: /chat/
+Disallow: /en/chat/
+
 Sitemap: https://www.zelene-hry.com/sitemap.xml

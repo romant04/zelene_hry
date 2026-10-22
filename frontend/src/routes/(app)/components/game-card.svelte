@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { localizeHref } from '$lib/i18n';
 	let {
 		id,
 		image,
@@ -39,7 +40,7 @@
 		bind:this={card}
 		onmousemove={handleAnimation}
 		onmouseleave={handleAnimationEnd}
-		href="/game-detail/{id}"
+		href={localizeHref(`/game-detail/${id}`)}
 	>
 		<img
 			loading="lazy"

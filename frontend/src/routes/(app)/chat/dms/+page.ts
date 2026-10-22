@@ -4,6 +4,7 @@ import { API } from '../../../../constants/urls';
 import { chatsCache } from '$lib/cache/chats';
 import { get } from 'svelte/store';
 import { error, redirect } from '@sveltejs/kit';
+import { localeFromPath, localizePath } from '$lib/i18n';
 import { browser } from '$app/environment';
 
 interface FriendsDashboard {
@@ -18,11 +19,11 @@ export interface FetchedDmData {
 
 const CACHE_DURATION = 5 * 60 * 1000;
 
-export const load: PageLoad = async ({ fetch, data }) => {
+export const load: PageLoad = async ({ fetch, data, url }) => {
 	const token = data?.token || (browser ? localStorage.getItem('token') : null);
 
 	if (!token) {
-		throw redirect(303, '/login');
+		throw redirect(303, localizePath('/login', localeFromPath(url.pathname)));
 	}
 
 	if (browser) {
@@ -43,10 +44,12 @@ export const load: PageLoad = async ({ fetch, data }) => {
 
 	try {
 		const headers = { Authorization: `Bearer ${token}` };
-		const dashboard = (await fetch(`${API}/api/secured/user/friends`, { headers }).then((res) => {
-			if (!res.ok) throw new Error('friends failed');
-			return res.json();
-		})) as FriendsDashboard;
+		const dashboard = (await fetch(`${API}/api/secured/user/friends`, { headers }).then(
+			(res) => {
+				if (!res.ok) throw new Error('friends failed');
+				return res.json();
+			}
+		)) as FriendsDashboard;
 
 		if (browser) {
 			chatsCache.update((cache) => ({
