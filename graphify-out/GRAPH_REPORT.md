@@ -6,30 +6,30 @@
 - Unclassified: 34 file(s) not represented in the graph (top: (none) 12, .ttf 8, .properties 4)
 
 ## Summary
-- 1844 nodes · 4722 edges · 85 communities (63 shown, 22 thin omitted)
+- 1849 nodes · 4719 edges · 85 communities (59 shown, 26 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 170 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `df4a4636`
+- Built from commit: `afc3cbff`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- addToast
+- private-chat.svelte
 - svelte
 - t
 - org.springframework.data.jpa.repository.Query
-- MainScene
-- language-select.svelte
+- Balls
+- .getUsersBySearchTerm
 - rooms/+page.ts
 - list
-- addToast
+- chat-section.svelte
 - GameInfo
 - DirectMessage
 - SecurityConfiguration.java
-- org.springframework.beans.factory.annotation.Autowired
-- i18n/index.ts
+- org.springframework.stereotype.Service
+- frontend/src/types/user.ts
 - i18n/index.ts
 - pratele/+page.svelte
 - Game
@@ -37,41 +37,40 @@
 - svelte
 - lombok.Getter
 - devDependencies
-- [id]/+page.svelte
-- lombok.Setter
+- Letters
+- Account
 - lombok.NoArgsConstructor
 - phaser
 - UserService
-- Player
-- Account
+- GameService
+- Chat
 - FriendRequestId
-- stores/toast.ts
+- org.springframework.beans.factory.annotation.Autowired
 - lombok.NoArgsConstructor
 - JwtAuthenticationFilter.java
-- Seo.svelte
+- (app)/+page.svelte
 - .setupListeners
 - catalog.ts
 - horolezci/scene/MainScene.ts
-- PrsiCanvas.svelte
+- ChatController
 - SecurityConfiguration.java
-- persistence
+- SecretWordLine
 - svelte
-- org.springframework.http.ResponseEntity
+- AccountRepository
 - list
 - sockets/src/types/game.ts
-- urls.ts
+- rooms/+page.ts
 - AccountDto
 - ValidPassword
-- localizePath
+- i18n/index.ts
 - AccountMinimumDto
 - JwtService
-- AccountRepository
-- prsi/scene/MainScene.ts
+- ApplicationConfiguration.java
+- MainScene
 - catalog.ts
 - devDependencies
 - UserService
-- game-info.svelte
-- FriendRequestId
+- JwtService
 - JwtAuthenticationFilter.java
 - slovniFotbal.ts
 - FriendShipId
@@ -81,7 +80,7 @@
 - ChatRestriction
 - FriendShipId
 - header.svelte
-- $app
+- OpenApiConfig.java
 - GameInfo
 - tailwind.config.ts
 - Duelovky
@@ -106,29 +105,55 @@
 6. `addToast()` - 31 edges
 7. `AccountRepository` - 30 edges
 8. `Player` - 26 edges
-9. `FriendRequest` - 25 edges
-10. `AccountMinimumDto` - 25 edges
+9. `API` - 25 edges
+10. `tt` - 25 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `jsonLd` --calls--> `localizeHref()`  [EXTRACTED]
   frontend/src/routes/(app)/+page.svelte → frontend/src/lib/i18n/index.ts
-- `explore` --calls--> `t()`  [EXTRACTED]
-  frontend/src/routes/(app)/components/hp-hero.svelte → frontend/src/lib/i18n/index.ts
-- `subtitle` --calls--> `t()`  [EXTRACTED]
-  frontend/src/routes/(app)/components/hp-hero.svelte → frontend/src/lib/i18n/index.ts
-- `headerLinks` --indirect_call--> `t()`  [INFERRED]
-  frontend/src/routes/(app)/components/layout/header.svelte → frontend/src/lib/i18n/index.ts
-- `alternates` --calls--> `localizePath()`  [EXTRACTED]
-  frontend/src/lib/seo/Seo.svelte → frontend/src/lib/i18n/routing.ts
+- `FriendChallengeQueue` --references--> `GameLanguage`  [EXTRACTED]
+  sockets/src/namespaces/friendChallenge.ts → sockets/src/types/language.ts
+- `handleRemoveFriend()` --calls--> `updateAfterFriendRemoved()`  [INFERRED]
+  frontend/src/routes/(app)/pratele/components/remove-friend-modal.svelte → frontend/src/routes/(app)/pratele/+page.svelte
+- `getHeaderLinks()` --calls--> `localizeHref()`  [EXTRACTED]
+  frontend/src/constants/links.ts → frontend/src/lib/i18n/index.ts
+- `getUserMenuLinks()` --calls--> `localizeHref()`  [EXTRACTED]
+  frontend/src/constants/links.ts → frontend/src/lib/i18n/index.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (85 total, 22 thin omitted)
+## Communities (85 total, 26 thin omitted)
 
-### Community 0 - "addToast"
-Cohesion: 0.07
-Nodes (39): button, handleMessageDelete(), isOpen, { message, messageType }, mine, inputElement, {
+### Community 0 - "private-chat.svelte"
+Cohesion: 0.10
+Nodes (20): chatContainer, fetchMessages(), filter, {
+		friends,
+		chatRooms,
+		chatType,
+		restrictions,
+		currentUserId
+	}, init(), isMemberOfChatroom, loading, loadingSending (+12 more)
+
+### Community 1 - "svelte"
+Cohesion: 0.04
+Nodes (43): WEBSOCKET, createChatroomSocket(), createChatSocket(), createFriendsSocket(), createHorolezciSocket(), createMatchmakingSocket(), createNotificationSocket(), createPrsiSocket() (+35 more)
+
+### Community 2 - "t"
+Cohesion: 0.05
+Nodes (50): localizeHref(), tt, i18n, I18nState, rememberLocale(), createFriendChallengeSocket(), handleAddRestriction(), email (+42 more)
+
+### Community 3 - "org.springframework.data.jpa.repository.Query"
+Cohesion: 0.16
+Nodes (8): ChatRepository, MessageRepository, GameCategoryRepository, GameRepository, LeaderboardEntryDto, MmrRepository, NotificationRepository, PlayerStatsRepository
+
+### Community 4 - "Balls"
+Cohesion: 0.15
+Nodes (3): Balls, FloatingText, SnakeNode
+
+### Community 8 - "chat-section.svelte"
+Cohesion: 0.11
+Nodes (15): handleJoinChatroom(), inputElement, {
 		loading,
 		loadingSending,
 		username,
@@ -138,70 +163,53 @@ Nodes (39): button, handleMessageDelete(), isOpen, { message, messageType }, min
 		messages,
 		sendMessage,
 		message = $bindable()
-	}, picker (+31 more)
-
-### Community 1 - "svelte"
-Cohesion: 0.06
-Nodes (28): WEBSOCKET, createChatroomSocket(), createChatSocket(), createFriendsSocket(), createHorolezciSocket(), createMatchmakingSocket(), createPrsiSocket(), createSlovniFotbalSocket() (+20 more)
-
-### Community 2 - "t"
-Cohesion: 0.08
-Nodes (29): protectedRoutes, localizeHref(), t(), createFriendChallengeSocket(), email, handleSignIn(), handleSignUp(), handleSubmit() (+21 more)
-
-### Community 3 - "org.springframework.data.jpa.repository.Query"
-Cohesion: 0.15
-Nodes (6): MessageRepository, GameCategoryRepository, GameRepository, LeaderboardEntryDto, MmrRepository, PlayerStatsRepository
-
-### Community 4 - "MainScene"
-Cohesion: 0.07
-Nodes (9): Balls, FloatingText, createGlowTexture(), Letter, Letters, MainScene, SnakeNode, SlovniFotbalGameState (+1 more)
-
-### Community 5 - "language-select.svelte"
-Cohesion: 0.17
-Nodes (5): isOpen, {
-		onChange
-	}, options, selected, {
-		isOpen = $bindable(false),
-		links,
-		isAuthenticated,
-		onLocaleChange
-	}
-
-### Community 8 - "addToast"
-Cohesion: 0.14
-Nodes (20): tt, handleJoinChatroom(), sendMessage(), duration, handleAddRestriction(), reason, handleUrlCopy(), handleJoiningMatchmaking() (+12 more)
+	}, picker, triggerButton, duration, reason, {
+		friend,
+		isFriend,
+		activeFriend = $bindable(),
+		friendRequestSent,
+		friendToBeRemoved = $bindable()
+	} (+7 more)
 
 ### Community 9 - "GameInfo"
-Cohesion: 0.16
-Nodes (7): GameInfoDto, GameInfo, GameInfoTranslation, GameInfoType, CONTROL, GENERAL, GameInfoRepository
+Cohesion: 0.23
+Nodes (6): GameInfoDto, GameInfo, GameInfoType, CONTROL, GENERAL, GameInfoRepository
 
 ### Community 10 - "DirectMessage"
-Cohesion: 0.20
-Nodes (5): Card, getTextureFromSuit(), MainScene, TurnToken, rnd()
+Cohesion: 0.14
+Nodes (11): Card, getTableLayout(), getTextureFromSuit(), MainScene, TurnToken, CardData, PrsiGameState, checkForSpecialCards() (+3 more)
 
 ### Community 11 - "SecurityConfiguration.java"
 Cohesion: 0.09
-Nodes (7): FriendRequestsController, FriendRequest, Friendship, FriendRequestRepository, FriendShipRepository, FriendRequestService, Account
+Nodes (6): FriendRequestsController, FriendRequest, FriendRequestId, FriendRequestRepository, FriendShipRepository, FriendRequestService
 
-### Community 12 - "org.springframework.beans.factory.annotation.Autowired"
-Cohesion: 0.09
-Nodes (7): DmController, DmRepository, DmService, FriendShipsController, FriendShipDto, FriendShipService, SocialAggregatorService
+### Community 12 - "org.springframework.stereotype.Service"
+Cohesion: 0.16
+Nodes (4): DmController, DirectMessage, DmRepository, DmService
 
-### Community 13 - "i18n/index.ts"
-Cohesion: 0.15
-Nodes (17): dictionaries, getByPath(), interpolate(), translate(), i18n, I18nState, rememberLocale(), cs (+9 more)
+### Community 13 - "frontend/src/types/user.ts"
+Cohesion: 0.16
+Nodes (13): button, handleMessageDelete(), isOpen, { message, messageType }, mine, restrictionOverlay, ChatMessage, Message (+5 more)
 
 ### Community 14 - "i18n/index.ts"
 Cohesion: 0.11
-Nodes (30): formatNotificationMessage(), pluralKey(), createNotificationSocket(), acknowledgeNotifications(), { friend, loading = $bindable() }, handleChatSelect(), unreadMessages, acknowledgeNotifications() (+22 more)
+Nodes (26): formatNotificationMessage(), pluralKey(), acknowledgeNotifications(), { friend, loading = $bindable() }, handleChatSelect(), unreadMessages, acknowledgeNotifications(), handleChatSelect() (+18 more)
 
 ### Community 15 - "pratele/+page.svelte"
-Cohesion: 0.09
-Nodes (24): activeFriend, activeTab, currentUserId, { data }, didPickInitialTab, filter, findError, findLoading (+16 more)
+Cohesion: 0.06
+Nodes (39): initialSocialCache, socialCache, { subscribe, set, update }, { fill, w, h }, {
+		friendRequest,
+		updateAfterFriendRequest,
+		friendSocket
+	}, initial, {
+		friend = $bindable(),
+		friendRequests = $bindable(),
+		friendSocket = $bindable()
+	}, loading (+31 more)
 
 ### Community 16 - "Game"
-Cohesion: 0.15
-Nodes (6): GameCategoryDto, GameDto, GamePreviewDto, Game, GameCategory, GameTranslation
+Cohesion: 0.11
+Nodes (7): GameCategoryDto, GameDto, GamePreviewDto, Game, GameCategory, GameTranslation, LocaleUtils
 
 ### Community 17 - "horolezciLetterPyramid.ts"
 Cohesion: 0.16
@@ -209,76 +217,100 @@ Nodes (11): vitest, letterLines, czechLetterLines, englishLetterLines, generateP
 
 ### Community 18 - "svelte"
 Cohesion: 0.10
-Nodes (20): @types/node, @types/socket.io, typescript, uuid, name, private, type, version (+12 more)
+Nodes (19): @types/node, @types/socket.io, typescript, uuid, name, private, type, version (+11 more)
 
 ### Community 19 - "lombok.Getter"
-Cohesion: 0.12
-Nodes (8): MessageInputDto, FriendRequestDto, FriendRequestInputDto, MmrChangeDto, NotificationInputDto, SocialDashboardDTO, LoginDto, RegisterDto
+Cohesion: 0.09
+Nodes (13): ChatsDashboardDto, DmInputDto, FriendRequestInputDto, FriendsDashboardDto, GameCategoryTranslation, GameInfoTranslation, MmrChangeDto, PlayerStatsDto (+5 more)
 
 ### Community 20 - "devDependencies"
 Cohesion: 0.07
 Nodes (28): devDependencies, autoprefixer, eslint, eslint-config-prettier, eslint-plugin-svelte, globals, @iconify/svelte, @playwright/test (+20 more)
 
-### Community 21 - "[id]/+page.svelte"
-Cohesion: 0.09
-Nodes (15): resolveGameCode(), { fill, w, h }, { data }, game, gameCode, isChallengeFriendOpen, isFreshData, isJoining (+7 more)
+### Community 21 - "Letters"
+Cohesion: 0.21
+Nodes (3): createGlowTexture(), Letter, Letters
 
-### Community 22 - "lombok.Setter"
-Cohesion: 0.13
-Nodes (7): ChatDto, ChatsDashboardDto, AccountDto, AdminDto, LoginResponse, RegisterResponse, Admin
+### Community 22 - "Account"
+Cohesion: 0.10
+Nodes (7): Friendship, NotificationDto, NotificationInputDto, Notification, AccountDto, RegisterResponse, Account
 
 ### Community 23 - "lombok.NoArgsConstructor"
-Cohesion: 0.19
-Nodes (6): FriendsDashboardDto, GameCategoryTranslationId, GameInfoTranslationId, GameTranslationId, Mmr, PlayerStats
+Cohesion: 0.16
+Nodes (6): GameCategoryTranslationId, GameInfoTranslationId, GameTranslationId, Mmr, PlayerStats, Player
+
+### Community 24 - "phaser"
+Cohesion: 0.16
+Nodes (3): LetterButton, SafetyPinButton, phaser
 
 ### Community 25 - "UserService"
+Cohesion: 0.17
+Nodes (5): MmrController, MmrDto, MmrInputDto, MmrService, UserService
+
+### Community 26 - "GameService"
 Cohesion: 0.12
-Nodes (6): GameService, MmrController, MmrService, PlayerStatsController, PlayerStatsService, UserService
+Nodes (5): GameController, GameService, PlayerStatsController, PlayerStatsInputDto, PlayerStatsService
 
-### Community 26 - "Player"
-Cohesion: 0.16
-Nodes (6): MmrDto, MmrInputDto, PlayerStatsDto, PlayerStatsInputDto, PlayerDto, Player
-
-### Community 27 - "Account"
-Cohesion: 0.08
-Nodes (8): ChatController, ChatInputDto, Chat, Message, ChatRepository, ChatRestrictionService, ChatService, MessageService
+### Community 27 - "Chat"
+Cohesion: 0.11
+Nodes (5): ChatDto, ChatInputDto, MessageInputDto, Chat, Message
 
 ### Community 28 - "FriendRequestId"
 Cohesion: 0.10
 Nodes (4): FriendsPage, LoginPage, RegisterPage, @playwright/test
 
-### Community 29 - "stores/toast.ts"
-Cohesion: 0.15
-Nodes (9): durationColor, iconColor, toastIcon, { children }, Props, removeToast(), toast, Toast (+1 more)
+### Community 29 - "org.springframework.beans.factory.annotation.Autowired"
+Cohesion: 0.18
+Nodes (4): FriendShipsController, FriendShipService, SocialDashboardController, SocialAggregatorService
 
 ### Community 31 - "JwtAuthenticationFilter.java"
-Cohesion: 0.18
-Nodes (11): {
+Cohesion: 0.14
+Nodes (14): {
 		socket,
 		token,
 		playerName,
 		enemyName
-	}, time, distance, { playerName, isEnemy }, safetyPins, HorolezciPlayer, rowToMultiplier(), distanceToTravel (+3 more)
+	}, time, distance, { playerName, isEnemy }, safetyPins, HorolezciPlayer, rowToMultiplier(), getGameSize() (+6 more)
 
-### Community 32 - "Seo.svelte"
-Cohesion: 0.07
-Nodes (21): SITE_URL, localizeGamePreview(), alternates, canonical, imageUrl, jsonLdScript, OG_LOCALES, Props (+13 more)
+### Community 32 - "(app)/+page.svelte"
+Cohesion: 0.06
+Nodes (22): localizeCategories(), localizeGame(), localizeGameInfo(), localizeGamePreview(), resolveGameCode(), {
+		id,
+		image,
+		title,
+		perex,
+		categories
+	}, isOpen, {
+		options,
+		value = $bindable(),
+		asLinks = false,
+		styles,
+		optionsColors
+	} (+14 more)
 
 ### Community 33 - ".setupListeners"
-Cohesion: 0.06
-Nodes (11): AnimatedCharText, LetterButton, MainScene, Player, Pyramid, SafetyPinButton, Secret, isLetter() (+3 more)
+Cohesion: 0.12
+Nodes (5): MainScene, Player, Pyramid, Secret, HorolezciGameState
 
 ### Community 34 - "catalog.ts"
 Cohesion: 0.18
 Nodes (16): activeSockets, evaluateAndStartNewRound(), getGameLanguage(), horolezciGameData, newRoundTimer, pickRandomSecret(), roundEndTimer, SECRETS_BY_LANGUAGE (+8 more)
 
 ### Community 35 - "horolezci/scene/MainScene.ts"
-Cohesion: 0.06
-Nodes (29): localizeCategories(), localizeGame(), localizeGameInfo(), activeGameId, activeMMR, activePlayerStats, { games, MMRs, playerStats }, rank (+21 more)
+Cohesion: 0.07
+Nodes (23): activeGameId, activeMMR, activePlayerStats, { games, MMRs, playerStats }, rank, colors, darkenColors(), { data } (+15 more)
 
-### Community 36 - "PrsiCanvas.svelte"
-Cohesion: 0.15
-Nodes (8): {
+### Community 36 - "ChatController"
+Cohesion: 0.17
+Nodes (3): ChatController, ChatService, MessageService
+
+### Community 38 - "SecretWordLine"
+Cohesion: 0.20
+Nodes (4): AnimatedCharText, isLetter(), SecretWord, SecretWordLine
+
+### Community 39 - "svelte"
+Cohesion: 0.09
+Nodes (18): timer, timeRemaining, handleRedirect(), open, {
 		socket,
 		token,
 		playerName,
@@ -288,19 +320,11 @@ Nodes (8): {
 		token,
 		playerName,
 		enemyName
-	}, time, getGameSize(), isPortrait(), isPortraitScreen(), reloadOnOrientationChange()
+	}, time (+10 more)
 
-### Community 37 - "SecurityConfiguration.java"
-Cohesion: 0.10
-Nodes (3): ApplicationConfiguration, OpenApiConfig, SecurityConfiguration
-
-### Community 39 - "svelte"
-Cohesion: 0.20
-Nodes (9): handleRedirect(), open, gameOver, toggleGameOverOff(), toggleGameOverOn(), volume, score, endTime (+1 more)
-
-### Community 40 - "org.springframework.http.ResponseEntity"
-Cohesion: 0.10
-Nodes (6): GameController, HealthController, SocialDashboardController, TestController, AuthController, UsersController
+### Community 40 - "AccountRepository"
+Cohesion: 0.12
+Nodes (5): TestController, AuthController, AccountRepository, PlayerRepository, AuthService
 
 ### Community 41 - "list"
 Cohesion: 0.05
@@ -310,39 +334,29 @@ Nodes (40): amqplib, cors, nodemon, ts-node, @types/amqplib, @types/express, aut
 Cohesion: 0.39
 Nodes (8): BasePlayer, GeneralGameState, HorolezciGameState, HorolezciPlayer, PrsiGameState, PrsiPlayer, SlovniFotbalGameState, SlovniFotbalPlayer
 
-### Community 43 - "urls.ts"
-Cohesion: 0.11
-Nodes (23): API, chatsCache, initialChatsCache, { subscribe, set, update }, initialSocialCache, socialCache, { subscribe, set, update }, {
-		data
-	} (+15 more)
-
-### Community 44 - "AccountDto"
-Cohesion: 0.13
-Nodes (5): NotificationController, NotificationDto, Notification, NotificationRepository, NotificationService
+### Community 43 - "rooms/+page.ts"
+Cohesion: 0.30
+Nodes (10): chatsCache, initialChatsCache, { subscribe, set, update }, FetchedDmData, FriendsDashboard, ChatsDashboard, FetchedChatData, Chatroom (+2 more)
 
 ### Community 45 - "ValidPassword"
 Cohesion: 0.18
 Nodes (22): socket.io, setupChatNamespace(), setupChatroomNamespace(), users, setupFriendChallengeNamespace(), setupFriendsNamespace(), createNotification(), notifyUser() (+14 more)
 
-### Community 46 - "localizePath"
-Cohesion: 0.15
-Nodes (20): reroute(), handle(), NOINDEX_ROUTES, detectLocale(), parseLocaleCookie(), DEFAULT_LOCALE, delocalizePath(), GAMES_SEGMENT (+12 more)
+### Community 46 - "i18n/index.ts"
+Cohesion: 0.06
+Nodes (52): protectedRoutes, SITE_URL, reroute(), handle(), NOINDEX_ROUTES, dictionaries, getByPath(), interpolate() (+44 more)
 
 ### Community 47 - "AccountMinimumDto"
-Cohesion: 0.17
-Nodes (5): MessageDto, DmDto, DmInputDto, DirectMessage, AccountMinimumDto
+Cohesion: 0.19
+Nodes (6): MessageDto, DmDto, FriendRequestDto, FriendShipDto, SocialDashboardDTO, AccountMinimumDto
 
-### Community 49 - "AccountRepository"
-Cohesion: 0.20
-Nodes (4): AccountRepository, PlayerRepository, AccountService, AuthService
-
-### Community 50 - "prsi/scene/MainScene.ts"
+### Community 50 - "MainScene"
 Cohesion: 0.22
-Nodes (9): getTableLayout(), CardData, PrsiGameState, checkForSpecialCards(), isCardPlayable(), isGameInProgress(), setDisconnect(), svrsek (+1 more)
+Nodes (4): MainScene, SlovniFotbalGameState, SlovniFotbalPlayer, setDisconnect()
 
 ### Community 51 - "catalog.ts"
 Cohesion: 0.10
-Nodes (26): initialMMRCache, LeaderboardEntry, mmrCache, { subscribe, set, update }, initialProfileCache, profileCache, { subscribe, set, update }, CatalogGame (+18 more)
+Nodes (29): API, initialMMRCache, LeaderboardEntry, mmrCache, { subscribe, set, update }, initialProfileCache, profileCache, { subscribe, set, update } (+21 more)
 
 ### Community 52 - "devDependencies"
 Cohesion: 0.20
@@ -352,48 +366,34 @@ Nodes (12): activeQueues, FriendChallengeQueue, FriendChallengeQueueUser, canUse
 Cohesion: 0.15
 Nodes (12): compilerOptions, allowJs, checkJs, esModuleInterop, forceConsistentCasingInFileNames, moduleResolution, resolveJsonModule, skipLibCheck (+4 more)
 
-### Community 55 - "game-info.svelte"
-Cohesion: 0.22
-Nodes (7): TranslateFn, activeTab, { game }, GameInfoType, CONTROL, GENERAL, getGameInfoTypeLabel()
-
 ### Community 58 - "slovniFotbal.ts"
 Cohesion: 0.12
 Nodes (18): dotenv, express, activeSockets, gameoverTimers, MESSAGES, scheduleGameOver(), setupSlovniFotbalNamespace(), SlovniFotbalGameData (+10 more)
 
 ### Community 60 - "friend-list.svelte"
-Cohesion: 0.14
-Nodes (8): friends, {
+Cohesion: 0.25
+Nodes (5): friends, {
 		friendships,
 		currentUserId,
 		pageSize = 8,
 		friendToBeRemoved = $bindable()
-	}, page, pagedFriends, totalPages, {
-		friend,
-		isFriend,
-		activeFriend = $bindable(),
-		friendRequestSent,
-		friendToBeRemoved = $bindable()
-	}, handleChatRedirect(), initial
+	}, page, pagedFriends, totalPages
 
 ### Community 62 - "compilerOptions"
 Cohesion: 0.20
 Nodes (10): scripts, build, check, check:watch, dev, format, lint, preview (+2 more)
 
 ### Community 64 - "ChatRestriction"
-Cohesion: 0.14
-Nodes (5): ChatRestrictionDto, ChatRestrictionInputDto, ChatRestriction, ChatRestrictionId, ChatRestrictionRepository
+Cohesion: 0.13
+Nodes (7): ChatRestrictionDto, ChatRestrictionInputDto, ChatRestriction, ChatRestrictionId, ChatRestrictionRepository, ChatRestrictionService, Admin
 
 ### Community 65 - "FriendShipId"
 Cohesion: 0.20
 Nodes (9): compilerOptions, esModuleInterop, forceConsistentCasingInFileNames, module, outDir, rootDir, strict, target (+1 more)
 
 ### Community 66 - "header.svelte"
-Cohesion: 0.06
-Nodes (26): getHeaderLinks(), getUserMenuLinks(), headerLinks, isAuthenticated, isOpen, isOpenModal, isOpenNotifications, modal (+18 more)
-
-### Community 67 - "$app"
-Cohesion: 0.40
-Nodes (3): timer, timeRemaining, disconnect
+Cohesion: 0.05
+Nodes (31): getHeaderLinks(), getUserMenuLinks(), t(), explore, subtitle, headerLinks, isAuthenticated, isOpen (+23 more)
 
 ### Community 69 - "GameInfo"
 Cohesion: 0.20
@@ -424,24 +424,24 @@ Cohesion: 0.40
 Nodes (4): Building, create-svelte, Creating a project, Developing
 
 ## Knowledge Gaps
-- **34 isolated node(s):** `com.tarnai:duelovky`, `CONTROL`, `GENERAL`, `@sveltejs/adapter-auto`, `@types/eslint` (+29 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 672 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **22 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **34 isolated node(s):** `@types/node`, `@types/socket.io`, `typescript`, `uuid`, `autoprefixer` (+29 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 677 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **26 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `svelte` connect `svelte` to `addToast`, `svelte`, `header.svelte`, `t`, `PrsiCanvas.svelte`, `language-select.svelte`, `$app`, `addToast`, `urls.ts`, `i18n/index.ts`, `pratele/+page.svelte`, `svelte`, `catalog.ts`, `prsi/scene/MainScene.ts`, `[id]/+page.svelte`, `game-info.svelte`, `stores/toast.ts`, `JwtAuthenticationFilter.java`?**
-  _High betweenness centrality (0.095) - this node is a cross-community bridge._
+- **Why does `svelte` connect `svelte` to `private-chat.svelte`, `svelte`, `header.svelte`, `t`, `(app)/+page.svelte`, `chat-section.svelte`, `DirectMessage`, `rooms/+page.ts`, `frontend/src/types/user.ts`, `i18n/index.ts`, `pratele/+page.svelte`, `i18n/index.ts`, `svelte`, `catalog.ts`, `JwtAuthenticationFilter.java`?**
+  _High betweenness centrality (0.102) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `t()` (e.g. with `headerLinks` and `user-menu-modal.svelte`) actually correct?**
   _`t()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `com.tarnai:duelovky`, `CONTROL`, `GENERAL` to the rest of the system?**
+- **What connects `@types/node`, `@types/socket.io`, `typescript` to the rest of the system?**
   _34 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `addToast` be split into smaller, more focused modules?**
-  _Cohesion score 0.07017543859649122 - nodes in this community are weakly interconnected._
-- **Why does `socket.io` connect `ValidPassword` to `catalog.ts`, `GameInfo`, `list`, `devDependencies`, `slovniFotbal.ts`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
+- **Should `private-chat.svelte` be split into smaller, more focused modules?**
+  _Cohesion score 0.09538461538461539 - nodes in this community are weakly interconnected._
+- **Why does `socket.io-client` connect `svelte` to `private-chat.svelte`, `t`, `svelte`, `DirectMessage`, `pratele/+page.svelte`, `svelte`, `JwtAuthenticationFilter.java`?**
+  _High betweenness centrality (0.039) - this node is a cross-community bridge._
 - **Should `svelte` be split into smaller, more focused modules?**
-  _Cohesion score 0.05975609756097561 - nodes in this community are weakly interconnected._
-- **Why does `socket.io-client` connect `JwtAuthenticationFilter.java` to `addToast`, `svelte`, `t`, `PrsiCanvas.svelte`, `svelte`, `addToast`, `urls.ts`, `i18n/index.ts`, `pratele/+page.svelte`, `svelte`, `prsi/scene/MainScene.ts`, `[id]/+page.svelte`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+  _Cohesion score 0.04475703324808184 - nodes in this community are weakly interconnected._
+- **Why does `socket.io` connect `ValidPassword` to `catalog.ts`, `GameInfo`, `list`, `devDependencies`, `slovniFotbal.ts`?**
+  _High betweenness centrality (0.032) - this node is a cross-community bridge._
