@@ -44,6 +44,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@emailjs/browser": "^5.0.3",
     "@picmo/popup-picker": "^5.8.5",
     "@types/socket.io": "^3.0.2",
     "phaser": "^3.90.0",

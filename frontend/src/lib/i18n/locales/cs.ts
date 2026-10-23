@@ -57,7 +57,10 @@ const cs = {
 		foundBug: 'Narazili jste na bug ?',
 		email: 'E-mail',
 		bugDescription: 'Popis bugu',
-		reportBug: 'Nahlásit bug'
+		reportBug: 'Nahlásit bug',
+		fillAllFields: 'Prosím vyplňte všechna pole',
+		emailSent: 'E-mail byl úspěšně odeslán, děkujeme za nahlášení bugu',
+		emailFailed: 'Nepodařilo se odeslat e-mail, zkuste to prosím později'
 	},
 	friends: {
 		pageTitle: 'Duelovky | Přátelé',

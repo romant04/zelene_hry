@@ -59,7 +59,10 @@ const en: TranslationSchema = {
 		foundBug: 'Found a bug?',
 		email: 'E-mail',
 		bugDescription: 'Bug description',
-		reportBug: 'Report bug'
+		reportBug: 'Report bug',
+		fillAllFields: 'Please fill in all required fields',
+		emailSent: 'Thank you for reporting the bug. We will look into it as soon as possible.',
+		emailFailed: 'Failed to send the email. Please try again later.'
 	},
 	friends: {
 		pageTitle: 'Duelovky | Friends',
